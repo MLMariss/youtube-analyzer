@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>YouTube Channel Analyzer</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #1a1a1a; min-height: 100vh; }
+  .container { max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
+  .header { display: flex; align-items: center; gap: 12px; margin-bottom: 2rem; }
+  .header svg { flex-shrink: 0; }
+  .header h1 { font-size: 22px; font-weight: 600; }
+  .header p { font-size: 14px; color: #666; }
+  .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+  .sign-in-area { text-align: center; padding: 3rem 1rem; }
+  .sign-in-area p { color: #666; font-size: 15px; margin-bottom: 1.5rem; max-width: 400px; margin-left: auto; margin-right: auto; }
+  .btn-google { display: inline-flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 12px 24px; font-size: 15px; cursor: pointer; font-family: inherit; color: #1a1a1a; transition: background 0.15s; }
+  .btn-google:hover { background: #f5f5f5; }
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 1rem; }
+  .metric { background: #f9f9f9; border-radius: 8px; padding: 1rem; }
+  .metric-label { font-size: 12px; color: #888; margin-bottom: 6px; }
+  .metric-value { font-size: 24px; font-weight: 600; }
+  .channel-header { display: flex; align-items: center; gap: 14px; margin-bottom: 1.5rem; }
+  .channel-avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; background: #eee; }
+  .channel-name { font-size: 18px; font-weight: 600; }
+  .channel-handle { font-size: 13px; color: #888; }
+  .tab-bar { display: flex; gap: 4px; border-bottom: 1px solid #e5e5e5; margin-bottom: 1rem; }
+  .tab { padding: 10px 16px; font-size: 14px; cursor: pointer; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; color: #888; background: none; font-family: inherit; transition: color 0.15s; }
+  .tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; font-weight: 500; }
+  .tab:hover { color: #1a1a1a; }
+  .video-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+  .video-row:last-child { border-bottom: none; }
+  .video-thumb { width: 80px; height: 45px; border-radius: 6px; object-fit: cover; background: #eee; flex-shrink: 0; }
+  .video-title { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .video-meta { font-size: 12px; color: #888; margin-top: 3px; }
+  .video-info { flex: 1; min-width: 0; }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 6px; background: #e8f5e9; color: #2e7d32; margin-left: 6px; }
+  .bar-wrap { margin: 8px 0; }
+  .bar-label { display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-bottom: 4px; }
+  .bar-track { height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; background: #378ADD; }
+  .section-title { font-size: 16px; font-weight: 500; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .prompt-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #ddd; border-radius: 8px; padding: 8px 14px; font-size: 13px; cursor: pointer; font-family: inherit; background: #fff; color: #1a1a1a; transition: background 0.15s; }
+  .btn:hover { background: #f5f5f5; }
+  .btn-primary { background: #1a73e8; color: #fff; border-color: transparent; }
+  .btn-primary:hover { background: #1557b0; }
+  .btn-signout { margin-left: auto; font-size: 13px; }
+  .analysis-box { background: #f9f9f9; border-radius: 8px; padding: 1rem; font-size: 14px; line-height: 1.7; color: #1a1a1a; white-space: pre-wrap; min-height: 80px; }
+  .analysis-box.loading { color: #999; font-style: italic; }
+  .error-msg { color: #c62828; font-size: 13px; margin-top: 10px; }
+  .hidden { display: none; }
+  .lock-icon { font-size: 36px; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <rect width="32" height="32" rx="8" fill="#FF0000"/>
+      <polygon points="13,10 24,16 13,22" fill="white"/>
+    </svg>
+    <div>
+      <h1>YouTube channel analyzer</h1>
+      <p>Powered by Claude AI</p>
+    </div>
+  </div>
+
+  <div id="auth-section">
+    <div class="card sign-in-area">
+      <div class="lock-icon">🔐</div>
+      <p>Sign in with Google to fetch your YouTube channel data — views, top videos, traffic sources, and AI-powered insights.</p>
+      <button class="btn-google" onclick="startAuth()">
+        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 01-7.18-2.54H1.83v2.07A8 8 0 008.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 010-3.04V5.41H1.83a8 8 0 000 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.83 5.4L4.5 7.49a4.77 4.77 0 014.48-3.31z"/></svg>
+        Sign in with Google
+      </button>
+      <p id="auth-error" class="error-msg hidden"></p>
+    </div>
+  </div>
+
+  <div id="dashboard-section" class="hidden">
+    <div class="card">
+      <div class="channel-header">
+        <img id="channel-avatar" class="channel-avatar" src="" alt="channel avatar" />
+        <div>
+          <div class="channel-name" id="channel-name">—</div>
+          <div class="channel-handle" id="channel-handle">—</div>
+        </div>
+        <button class="btn btn-signout" onclick="signOut()">Sign out</button>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric"><div class="metric-label">Subscribers</div><div class="metric-value" id="m-subs">—</div></div>
+        <div class="metric"><div class="metric-label">Total views</div><div class="metric-value" id="m-views">—</div></div>
+        <div class="metric"><div class="metric-label">Videos</div><div class="metric-value" id="m-videos">—</div></div>
+        <div class="metric"><div class="metric-label">Avg views/video</div><div class="metric-value" id="m-avg">—</div></div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab active" onclick="showTab('top-videos')">Top videos</button>
+      <button class="tab" onclick="showTab('traffic')">Traffic sources</button>
+      <button class="tab" onclick="showTab('ai-analysis')">AI analysis</button>
+    </div>
+
+    <div id="tab-top-videos" class="card">
+      <div class="section-title">🏆 Top videos by views</div>
+      <div id="videos-list"><p style="color:#999;font-size:14px;">Loading...</p></div>
+    </div>
+
+    <div id="tab-traffic" class="card hidden">
+      <div class="section-title">📊 Traffic sources (last 90 days)</div>
+      <div id="traffic-list"><p style="color:#999;font-size:14px;">Loading...</p></div>
+    </div>
+
+    <div id="tab-ai-analysis" class="card hidden">
+      <div class="section-title">✨ Claude AI analysis</div>
+      <div class="prompt-row">
+        <button class="btn btn-primary" onclick="runAnalysis('overall')">Overall insights</button>
+        <button class="btn" onclick="runAnalysis('growth')">Growth tips</button>
+        <button class="btn" onclick="runAnalysis('content')">Content ideas</button>
+        <button class="btn" onclick="runAnalysis('seo')">SEO review</button>
+      </div>
+      <div id="analysis-output" class="analysis-box loading">Click a button above to get AI-powered insights about your channel.</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async></script>
+<script>
+const CLIENT_ID = '661959930559-68jr2dmujv86hcg096kq75bhov3iotvf.apps.googleusercontent.com';
+const API_KEY = 'AIzaSyD9U8ySYQtbWRMiWKjpvkG6QrzpoQRSsEQ';
+const SCOPES = 'https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly';
+
+let tokenClient, accessToken, channelData = {}, videosData = [], trafficData = [];
+
+function fmt(n) {
+  if (!n && n !== 0) return '—';
+  n = parseInt(n);
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n/1000).toFixed(1) + 'K';
+  return n.toLocaleString();
+}
+
+function startAuth() {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: (resp) => {
+      if (resp.error) { showAuthError('Sign-in failed: ' + resp.error); return; }
+      accessToken = resp.access_token;
+      loadDashboard();
+    }
+  });
+  tokenClient.requestAccessToken();
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+function signOut() {
+  if (accessToken) google.accounts.oauth2.revoke(accessToken);
+  accessToken = null;
+  document.getElementById('dashboard-section').classList.add('hidden');
+  document.getElementById('auth-section').classList.remove('hidden');
+}
+
+async function apiFetch(url) {
+  const sep = url.includes('?') ? '&' : '?';
+  const r = await fetch(url + sep + 'key=' + API_KEY, {
+    headers: { Authorization: 'Bearer ' + accessToken }
+  });
+  if (!r.ok) throw new Error('API error ' + r.status);
+  return r.json();
+}
+
+async function loadDashboard() {
+  document.getElementById('auth-section').classList.add('hidden');
+  document.getElementById('dashboard-section').classList.remove('hidden');
+  try {
+    const ch = await apiFetch('https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true');
+    const item = ch.items[0];
+    channelData = item;
+    document.getElementById('channel-name').textContent = item.snippet.title;
+    document.getElementById('channel-handle').textContent = '@' + (item.snippet.customUrl || item.id);
+    document.getElementById('channel-avatar').src = item.snippet.thumbnails.default.url;
+    const s = item.statistics;
+    document.getElementById('m-subs').textContent = fmt(s.subscriberCount);
+    document.getElementById('m-views').textContent = fmt(s.viewCount);
+    document.getElementById('m-videos').textContent = fmt(s.videoCount);
+    const avg = s.videoCount > 0 ? Math.round(parseInt(s.viewCount) / parseInt(s.videoCount)) : 0;
+    document.getElementById('m-avg').textContent = fmt(avg);
+    loadTopVideos();
+    loadTrafficSources();
+  } catch(e) {
+    showAuthError('Could not load channel data: ' + e.message);
+    document.getElementById('auth-section').classList.remove('hidden');
+    document.getElementById('dashboard-section').classList.add('hidden');
+  }
+}
+
+async function loadTopVideos() {
+  try {
+    const r = await apiFetch('https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=' + channelData.id + '&order=viewCount&type=video&maxResults=10');
+    const ids = r.items.map(i => i.id.videoId).join(',');
+    const vr = await apiFetch('https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=' + ids);
+    videosData = vr.items;
+    const list = document.getElementById('videos-list');
+    list.innerHTML = vr.items.map((v, i) => `
+      <div class="video-row">
+        <img class="video-thumb" src="${v.snippet.thumbnails.default.url}" alt="${v.snippet.title}" />
+        <div class="video-info">
+          <div class="video-title">${v.snippet.title}</div>
+          <div class="video-meta">👁 ${fmt(v.statistics.viewCount)} views &nbsp; ❤️ ${fmt(v.statistics.likeCount)} likes &nbsp; 💬 ${fmt(v.statistics.commentCount)} comments</div>
+        </div>
+        ${i === 0 ? '<span class="badge">Top video</span>' : ''}
+      </div>`).join('');
+  } catch(e) {
+    document.getElementById('videos-list').innerHTML = '<p style="color:#c62828;font-size:13px;">Could not load videos: ' + e.message + '</p>';
+  }
+}
+
+async function loadTrafficSources() {
+  const today = new Date().toISOString().split('T')[0];
+  const start = new Date(Date.now() - 90*24*60*60*1000).toISOString().split('T')[0];
+  try {
+    const r = await apiFetch(`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=${start}&endDate=${today}&metrics=views&dimensions=insightTrafficSourceType&sort=-views&maxResults=10`);
+    trafficData = r.rows || [];
+    const list = document.getElementById('traffic-list');
+    if (!trafficData.length) { list.innerHTML = '<p style="color:#999;font-size:13px;">No traffic source data available.</p>'; return; }
+    const max = Math.max(...trafficData.map(r => r[1]));
+    const labels = { 'YT_SEARCH':'YouTube search','SUBSCRIBER':'Subscribers','BROWSE_FEATURES':'Browse features','SUGGESTED_VIDEOS':'Suggested videos','EXTERNAL':'External','PLAYLIST':'Playlist','CHANNEL':'Channel page','NO_LINK_OTHER':'Other','NOTIFICATION':'Notifications','END_SCREEN':'End screen' };
+    list.innerHTML = trafficData.map(row => {
+      const pct = Math.round((row[1] / max) * 100);
+      return `<div class="bar-wrap"><div class="bar-label"><span>${labels[row[0]] || row[0]}</span><span>${fmt(row[1])} views</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div></div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('traffic-list').innerHTML = '<p style="color:#c62828;font-size:13px;">Could not load traffic data: ' + e.message + '</p>';
+  }
+}
+
+function showTab(name) {
+  ['top-videos','traffic','ai-analysis'].forEach(t => document.getElementById('tab-' + t).classList.add('hidden'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.remove('hidden');
+  document.querySelectorAll('.tab').forEach(el => { if (el.getAttribute('onclick').includes(name)) el.classList.add('active'); });
+}
+
+async function runAnalysis(type) {
+  const out = document.getElementById('analysis-output');
+  out.className = 'analysis-box loading';
+  out.textContent = 'Analyzing your channel data...';
+  const s = channelData.statistics || {};
+  const topVids = videosData.slice(0,5).map(v => `"${v.snippet.title}" — ${fmt(v.statistics.viewCount)} views, ${fmt(v.statistics.likeCount)} likes`).join('\n');
+  const traffic = trafficData.map(r => `${r[0]}: ${fmt(r[1])} views`).join('\n');
+  const prompts = {
+    overall: `You are a YouTube growth expert. Analyze this channel and give 5 specific actionable insights:\n\nChannel: ${channelData.snippet?.title}\nSubscribers: ${s.subscriberCount}\nTotal views: ${s.viewCount}\nVideo count: ${s.videoCount}\n\nTop videos:\n${topVids}\n\nTraffic sources:\n${traffic}\n\nGive concise, specific insights in plain text. No markdown.`,
+    growth: `You are a YouTube growth strategist. Give 5 specific growth strategies for this channel:\n\nChannel: ${channelData.snippet?.title}\nSubscribers: ${s.subscriberCount}\nTotal views: ${s.viewCount}\nVideo count: ${s.videoCount}\n\nTop videos:\n${topVids}\n\nFocus on practical next steps for the next 30 days. Plain text, no markdown.`,
+    content: `You are a YouTube content strategist. Suggest 8 specific video ideas based on these top performers:\n\nChannel: ${channelData.snippet?.title}\nTop videos:\n${topVids}\n\nMake ideas specific, not generic. Plain text, no markdown.`,
+    seo: `You are a YouTube SEO expert. Review these titles and give specific SEO improvements:\n\nChannel: ${channelData.snippet?.title}\nTop videos:\n${topVids}\n\nTraffic sources:\n${traffic}\n\nGive specific title rewrites and keyword suggestions. Plain text, no markdown.`
+  };
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: prompts[type] }] })
+    });
+    const data = await resp.json();
+    const text = data.content?.map(b => b.text || '').join('') || 'No response.';
+    out.className = 'analysis-box';
+    out.textContent = text;
+  } catch(e) {
+    out.className = 'analysis-box';
+    out.textContent = 'Error: ' + e.message;
+  }
+}
+</script>
+</body>
+</html>
