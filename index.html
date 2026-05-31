@@ -7,71 +7,98 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #1a1a1a; min-height: 100vh; }
-  .container { max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
+  .container { max-width: 960px; margin: 0 auto; padding: 2rem 1rem; }
   .header { display: flex; align-items: center; gap: 12px; margin-bottom: 2rem; }
-  .header svg { flex-shrink: 0; }
   .header h1 { font-size: 22px; font-weight: 600; }
   .header p { font-size: 14px; color: #666; }
   .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
   .sign-in-area { text-align: center; padding: 3rem 1rem; }
   .sign-in-area p { color: #666; font-size: 15px; margin-bottom: 1.5rem; max-width: 400px; margin-left: auto; margin-right: auto; }
-  .btn-google { display: inline-flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 12px 24px; font-size: 15px; cursor: pointer; font-family: inherit; color: #1a1a1a; transition: background 0.15s; }
+  .btn-google { display: inline-flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 12px 24px; font-size: 15px; cursor: pointer; font-family: inherit; color: #1a1a1a; }
   .btn-google:hover { background: #f5f5f5; }
-  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 1rem; }
-  .metric { background: #f9f9f9; border-radius: 8px; padding: 1rem; }
-  .metric-label { font-size: 12px; color: #888; margin-bottom: 6px; }
-  .metric-value { font-size: 24px; font-weight: 600; }
-  .channel-header { display: flex; align-items: center; gap: 14px; margin-bottom: 1.5rem; }
-  .channel-avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; background: #eee; }
-  .channel-name { font-size: 18px; font-weight: 600; }
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1rem; }
+  .metric { background: #f9f9f9; border-radius: 8px; padding: 0.85rem; }
+  .metric-label { font-size: 11px; color: #888; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .metric-value { font-size: 22px; font-weight: 600; }
+  .channel-header { display: flex; align-items: center; gap: 14px; margin-bottom: 1.25rem; }
+  .channel-avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; background: #eee; }
+  .channel-name { font-size: 17px; font-weight: 600; }
   .channel-handle { font-size: 13px; color: #888; }
-  .tab-bar { display: flex; gap: 4px; border-bottom: 1px solid #e5e5e5; margin-bottom: 1rem; }
-  .tab { padding: 10px 16px; font-size: 14px; cursor: pointer; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; color: #888; background: none; font-family: inherit; transition: color 0.15s; }
+  .tab-bar { display: flex; gap: 4px; border-bottom: 1px solid #e5e5e5; margin-bottom: 1rem; overflow-x: auto; }
+  .tab { padding: 10px 16px; font-size: 14px; cursor: pointer; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; color: #888; background: none; font-family: inherit; white-space: nowrap; }
   .tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; font-weight: 500; }
   .tab:hover { color: #1a1a1a; }
-  .video-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
-  .video-row:last-child { border-bottom: none; }
-  .video-thumb { width: 80px; height: 45px; border-radius: 6px; object-fit: cover; background: #eee; flex-shrink: 0; }
-  .video-title { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .video-meta { font-size: 12px; color: #888; margin-top: 3px; }
-  .video-info { flex: 1; min-width: 0; }
-  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 6px; background: #e8f5e9; color: #2e7d32; margin-left: 6px; }
-  .bar-wrap { margin: 8px 0; }
-  .bar-label { display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-bottom: 4px; }
-  .bar-track { height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 4px; background: #378ADD; }
-  .section-title { font-size: 16px; font-weight: 500; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-  .prompt-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-  .btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #ddd; border-radius: 8px; padding: 8px 14px; font-size: 13px; cursor: pointer; font-family: inherit; background: #fff; color: #1a1a1a; transition: background 0.15s; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #ddd; border-radius: 8px; padding: 7px 13px; font-size: 13px; cursor: pointer; font-family: inherit; background: #fff; color: #1a1a1a; }
   .btn:hover { background: #f5f5f5; }
   .btn-primary { background: #1a73e8; color: #fff; border-color: transparent; }
   .btn-primary:hover { background: #1557b0; }
   .btn-signout { margin-left: auto; font-size: 13px; }
-  .analysis-box { background: #f9f9f9; border-radius: 8px; padding: 1rem; font-size: 14px; line-height: 1.7; color: #1a1a1a; white-space: pre-wrap; min-height: 80px; }
+  .analysis-box { background: #f9f9f9; border-radius: 8px; padding: 1rem; font-size: 14px; line-height: 1.7; white-space: pre-wrap; min-height: 80px; }
   .analysis-box.loading { color: #999; font-style: italic; }
   .error-msg { color: #c62828; font-size: 13px; margin-top: 10px; }
   .hidden { display: none; }
-  .lock-icon { font-size: 36px; margin-bottom: 12px; }
+  .section-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+  .prompt-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  /* Video table */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 8px 10px; border-bottom: 2px solid #e5e5e5; color: #666; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; cursor: pointer; white-space: nowrap; }
+  th:hover { color: #1a1a1a; }
+  td { padding: 9px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+  tr:hover td { background: #fafafa; }
+  .thumb { width: 64px; height: 36px; border-radius: 4px; object-fit: cover; background: #eee; }
+  .video-title-cell { max-width: 220px; }
+  .video-title-text { font-weight: 500; font-size: 13px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .video-date { font-size: 11px; color: #999; margin-top: 2px; }
+  .bar-mini { height: 5px; border-radius: 3px; background: #1a73e8; margin-top: 3px; }
+  .score-badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .score-high { background: #e8f5e9; color: #2e7d32; }
+  .score-mid { background: #fff8e1; color: #f57f17; }
+  .score-low { background: #fce4ec; color: #c62828; }
+  /* Controls */
+  .controls { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+  .controls input[type=text] { border: 1px solid #ddd; border-radius: 8px; padding: 7px 12px; font-size: 13px; font-family: inherit; flex: 1; min-width: 180px; }
+  .controls select { border: 1px solid #ddd; border-radius: 8px; padding: 7px 12px; font-size: 13px; font-family: inherit; background: #fff; }
+  .progress-wrap { text-align: center; padding: 2rem; }
+  .progress-bar-track { height: 6px; background: #eee; border-radius: 3px; margin: 10px auto; max-width: 300px; }
+  .progress-bar-fill { height: 100%; border-radius: 3px; background: #1a73e8; transition: width 0.3s; }
+  .progress-text { font-size: 13px; color: #666; }
+  /* Traffic bars */
+  .bar-wrap { margin: 7px 0; }
+  .bar-label { display: flex; justify-content: space-between; font-size: 12px; color: #555; margin-bottom: 3px; }
+  .bar-track { height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; background: #1a73e8; }
+  .stat-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: #666; }
+  .stat-value { font-weight: 600; }
+  /* Video detail modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; display: none; align-items: center; justify-content: center; padding: 1rem; }
+  .modal-overlay.visible { display: flex; }
+  .modal { background: #fff; border-radius: 12px; width: 100%; max-width: 620px; max-height: 85vh; overflow-y: auto; padding: 1.5rem; position: relative; }
+  .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 20px; cursor: pointer; color: #666; }
+  .modal-thumb { width: 100%; border-radius: 8px; margin-bottom: 1rem; }
+  .modal-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin: 1rem 0; }
+  .modal-metric { background: #f9f9f9; border-radius: 8px; padding: 0.75rem; text-align: center; }
+  .modal-metric-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 4px; }
+  .modal-metric-value { font-size: 18px; font-weight: 700; }
 </style>
 </head>
 <body>
 <div class="container">
 
   <div class="header">
-    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-      <rect width="32" height="32" rx="8" fill="#FF0000"/>
-      <polygon points="13,10 24,16 13,22" fill="white"/>
-    </svg>
+    <svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#FF0000"/><polygon points="13,10 24,16 13,22" fill="white"/></svg>
     <div>
       <h1>YouTube channel analyzer</h1>
-      <p>Powered by Claude AI</p>
+      <p>Deep performance analysis · Powered by Claude AI</p>
     </div>
   </div>
 
   <div id="auth-section">
     <div class="card sign-in-area">
-      <div class="lock-icon">🔐</div>
-      <p>Sign in with Google to fetch your YouTube channel data — views, top videos, traffic sources, and AI-powered insights.</p>
+      <div style="font-size:36px;margin-bottom:12px;">🔐</div>
+      <p>Sign in with Google to fetch full analytics for all your videos — views, watch time, CTR, retention, revenue, engagement and more.</p>
       <button class="btn-google" onclick="startAuth()">
         <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 01-7.18-2.54H1.83v2.07A8 8 0 008.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 010-3.04V5.41H1.83a8 8 0 000 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.83 5.4L4.5 7.49a4.77 4.77 0 014.48-3.31z"/></svg>
         Sign in with Google
@@ -83,46 +110,131 @@
   <div id="dashboard-section" class="hidden">
     <div class="card">
       <div class="channel-header">
-        <img id="channel-avatar" class="channel-avatar" src="" alt="channel avatar" />
+        <img id="channel-avatar" class="channel-avatar" src="" alt="avatar" />
         <div>
           <div class="channel-name" id="channel-name">—</div>
           <div class="channel-handle" id="channel-handle">—</div>
         </div>
         <button class="btn btn-signout" onclick="signOut()">Sign out</button>
       </div>
-      <div class="metrics-grid">
+      <div class="metrics-grid" id="channel-metrics">
         <div class="metric"><div class="metric-label">Subscribers</div><div class="metric-value" id="m-subs">—</div></div>
         <div class="metric"><div class="metric-label">Total views</div><div class="metric-value" id="m-views">—</div></div>
         <div class="metric"><div class="metric-label">Videos</div><div class="metric-value" id="m-videos">—</div></div>
         <div class="metric"><div class="metric-label">Avg views/video</div><div class="metric-value" id="m-avg">—</div></div>
+        <div class="metric"><div class="metric-label">Total watch time</div><div class="metric-value" id="m-watchtime">—</div></div>
+        <div class="metric"><div class="metric-label">Avg CTR</div><div class="metric-value" id="m-ctr">—</div></div>
+        <div class="metric"><div class="metric-label">Avg retention</div><div class="metric-value" id="m-retention">—</div></div>
+        <div class="metric"><div class="metric-label">Est. revenue</div><div class="metric-value" id="m-revenue">—</div></div>
       </div>
     </div>
 
     <div class="tab-bar">
-      <button class="tab active" onclick="showTab('top-videos')">Top videos</button>
+      <button class="tab active" onclick="showTab('videos')">All videos</button>
       <button class="tab" onclick="showTab('traffic')">Traffic sources</button>
-      <button class="tab" onclick="showTab('ai-analysis')">AI analysis</button>
+      <button class="tab" onclick="showTab('ai')">AI analysis</button>
     </div>
 
-    <div id="tab-top-videos" class="card">
-      <div class="section-title">🏆 Top videos by views</div>
-      <div id="videos-list"><p style="color:#999;font-size:14px;">Loading...</p></div>
-    </div>
-
-    <div id="tab-traffic" class="card hidden">
-      <div class="section-title">📊 Traffic sources (last 90 days)</div>
-      <div id="traffic-list"><p style="color:#999;font-size:14px;">Loading...</p></div>
-    </div>
-
-    <div id="tab-ai-analysis" class="card hidden">
-      <div class="section-title">✨ Claude AI analysis</div>
-      <div class="prompt-row">
-        <button class="btn btn-primary" onclick="runAnalysis('overall')">Overall insights</button>
-        <button class="btn" onclick="runAnalysis('growth')">Growth tips</button>
-        <button class="btn" onclick="runAnalysis('content')">Content ideas</button>
-        <button class="btn" onclick="runAnalysis('seo')">SEO review</button>
+    <!-- ALL VIDEOS TAB -->
+    <div id="tab-videos">
+      <div id="loading-progress" class="card progress-wrap hidden">
+        <div class="progress-text" id="progress-text">Loading videos...</div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-bar" style="width:0%"></div></div>
+        <div style="font-size:12px;color:#aaa;margin-top:6px;" id="progress-sub"></div>
       </div>
-      <div id="analysis-output" class="analysis-box loading">Click a button above to get AI-powered insights about your channel.</div>
+      <div class="card" id="videos-card">
+        <div class="controls">
+          <input type="text" id="search-input" placeholder="Search videos..." oninput="renderTable()" />
+          <select id="sort-select" onchange="renderTable()">
+            <option value="views">Sort: Views</option>
+            <option value="watchtime">Sort: Watch time</option>
+            <option value="ctr">Sort: CTR</option>
+            <option value="retention">Sort: Retention</option>
+            <option value="engagement">Sort: Engagement rate</option>
+            <option value="revenue">Sort: Revenue</option>
+            <option value="date">Sort: Date</option>
+            <option value="score">Sort: Performance score</option>
+          </select>
+          <select id="filter-select" onchange="renderTable()">
+            <option value="all">All videos</option>
+            <option value="high">High performers</option>
+            <option value="mid">Average</option>
+            <option value="low">Underperformers</option>
+          </select>
+          <span id="video-count" style="font-size:13px;color:#888;white-space:nowrap;"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Title</th>
+                <th onclick="setSortAndRender('views')">Views ↕</th>
+                <th onclick="setSortAndRender('watchtime')">Watch time ↕</th>
+                <th onclick="setSortAndRender('ctr')">CTR ↕</th>
+                <th onclick="setSortAndRender('retention')">Retention ↕</th>
+                <th onclick="setSortAndRender('engagement')">Engagement ↕</th>
+                <th onclick="setSortAndRender('revenue')">Revenue ↕</th>
+                <th onclick="setSortAndRender('score')">Score ↕</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="videos-tbody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
+          <button class="btn" id="prev-btn" onclick="changePage(-1)">← Prev</button>
+          <span id="page-info" style="font-size:13px;color:#666;"></span>
+          <button class="btn" id="next-btn" onclick="changePage(1)">Next →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRAFFIC TAB -->
+    <div id="tab-traffic" class="hidden">
+      <div class="card">
+        <div class="section-title">Traffic sources (last 90 days)</div>
+        <div id="traffic-list"><p style="color:#999;font-size:14px;">Loading...</p></div>
+      </div>
+      <div class="card">
+        <div class="section-title">Demographics</div>
+        <div id="demo-list"><p style="color:#999;font-size:14px;">Loading...</p></div>
+      </div>
+    </div>
+
+    <!-- AI TAB -->
+    <div id="tab-ai" class="hidden">
+      <div class="card">
+        <div class="section-title">Claude AI analysis</div>
+        <div class="prompt-row">
+          <button class="btn btn-primary" onclick="runAnalysis('overall')">📊 Overall insights</button>
+          <button class="btn" onclick="runAnalysis('growth')">📈 Growth tips</button>
+          <button class="btn" onclick="runAnalysis('content')">💡 Content ideas</button>
+          <button class="btn" onclick="runAnalysis('seo')">🔍 SEO review</button>
+          <button class="btn" onclick="runAnalysis('underperform')">⚠️ Underperformers</button>
+          <button class="btn" onclick="runAnalysis('revenue')">💰 Revenue insights</button>
+        </div>
+        <div id="analysis-output" class="analysis-box loading">Click a button above to get AI-powered insights about your channel.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIDEO DETAIL MODAL -->
+  <div id="modal-overlay" class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal">
+      <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('visible')">✕</button>
+      <img id="modal-thumb" class="modal-thumb" src="" alt="thumbnail" />
+      <h2 id="modal-title" style="font-size:16px;font-weight:600;margin-bottom:4px;"></h2>
+      <div id="modal-date" style="font-size:12px;color:#999;margin-bottom:12px;"></div>
+      <div class="modal-metrics" id="modal-metrics"></div>
+      <div style="margin-top:12px;">
+        <div class="section-title" style="font-size:13px;">Description preview</div>
+        <div id="modal-desc" style="font-size:13px;color:#555;line-height:1.6;max-height:80px;overflow:hidden;"></div>
+      </div>
+      <div style="margin-top:12px;">
+        <button class="btn btn-primary" onclick="analyzeVideo()">✨ Analyze this video with AI</button>
+      </div>
+      <div id="modal-analysis" class="analysis-box hidden" style="margin-top:12px;font-size:13px;"></div>
     </div>
   </div>
 
@@ -132,22 +244,48 @@
 <script>
 const CLIENT_ID = '661959930559-68jr2dmujv86hcg096kq75bhov3iotvf.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyD9U8ySYQtbWRMiWKjpvkG6QrzpoQRSsEQ';
-const SCOPES = 'https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly';
+const SCOPES = [
+  'https://www.googleapis.com/auth/youtube.readonly',
+  'https://www.googleapis.com/auth/yt-analytics.readonly',
+  'https://www.googleapis.com/auth/yt-analytics-monetary.readonly'
+].join(' ');
 
-let tokenClient, accessToken, channelData = {}, videosData = [], trafficData = [];
+let accessToken, channelData = {}, allVideos = [], analyticsMap = {}, trafficData = [], currentPage = 0;
+const PAGE_SIZE = 25;
 
 function fmt(n) {
-  if (!n && n !== 0) return '—';
-  n = parseInt(n);
+  if (n === null || n === undefined || n === '') return '—';
+  n = parseFloat(n);
+  if (isNaN(n)) return '—';
   if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
   if (n >= 1000) return (n/1000).toFixed(1) + 'K';
-  return n.toLocaleString();
+  return Math.round(n).toLocaleString();
+}
+function fmtMin(mins) {
+  if (!mins) return '—';
+  const h = Math.floor(mins/60), m = Math.round(mins%60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+function fmtPct(n) { return n !== null && n !== undefined && !isNaN(n) ? parseFloat(n).toFixed(1) + '%' : '—'; }
+function fmtMoney(n) { return n !== null && n !== undefined && !isNaN(n) ? '$' + parseFloat(n).toFixed(2) : '—'; }
+function scoreClass(s) { return s >= 70 ? 'score-high' : s >= 40 ? 'score-mid' : 'score-low'; }
+
+function calcScore(v) {
+  const a = analyticsMap[v.id] || {};
+  let score = 0, count = 0;
+  const views = parseInt(v.statistics?.viewCount || 0);
+  const avgViews = allVideos.length ? allVideos.reduce((s,x)=>s+parseInt(x.statistics?.viewCount||0),0)/allVideos.length : 1;
+  if (avgViews) { score += Math.min(100, (views/avgViews)*50); count++; }
+  if (a.ctr !== undefined) { score += Math.min(100, a.ctr * 20); count++; }
+  if (a.avgViewPct !== undefined) { score += a.avgViewPct; count++; }
+  const likes = parseInt(v.statistics?.likeCount||0), comments = parseInt(v.statistics?.commentCount||0);
+  if (views > 0) { const eng = ((likes+comments)/views)*100; score += Math.min(100, eng*50); count++; }
+  return count ? Math.round(score/count) : 0;
 }
 
 function startAuth() {
   tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID,
-    scope: SCOPES,
+    client_id: CLIENT_ID, scope: SCOPES,
     callback: (resp) => {
       if (resp.error) { showAuthError('Sign-in failed: ' + resp.error); return; }
       accessToken = resp.access_token;
@@ -156,25 +294,20 @@ function startAuth() {
   });
   tokenClient.requestAccessToken();
 }
-
 function showAuthError(msg) {
   const el = document.getElementById('auth-error');
-  el.textContent = msg;
-  el.classList.remove('hidden');
+  el.textContent = msg; el.classList.remove('hidden');
 }
-
 function signOut() {
   if (accessToken) google.accounts.oauth2.revoke(accessToken);
-  accessToken = null;
+  accessToken = null; allVideos = []; analyticsMap = {};
   document.getElementById('dashboard-section').classList.add('hidden');
   document.getElementById('auth-section').classList.remove('hidden');
 }
 
 async function apiFetch(url) {
   const sep = url.includes('?') ? '&' : '?';
-  const r = await fetch(url + sep + 'key=' + API_KEY, {
-    headers: { Authorization: 'Bearer ' + accessToken }
-  });
+  const r = await fetch(url + sep + 'key=' + API_KEY, { headers: { Authorization: 'Bearer ' + accessToken } });
   if (!r.ok) throw new Error('API error ' + r.status);
   return r.json();
 }
@@ -193,62 +326,288 @@ async function loadDashboard() {
     document.getElementById('m-subs').textContent = fmt(s.subscriberCount);
     document.getElementById('m-views').textContent = fmt(s.viewCount);
     document.getElementById('m-videos').textContent = fmt(s.videoCount);
-    const avg = s.videoCount > 0 ? Math.round(parseInt(s.viewCount) / parseInt(s.videoCount)) : 0;
+    const avg = s.videoCount > 0 ? Math.round(parseInt(s.viewCount)/parseInt(s.videoCount)) : 0;
     document.getElementById('m-avg').textContent = fmt(avg);
-    loadTopVideos();
-    loadTrafficSources();
+    loadAllVideos();
+    loadTrafficAndDemographics();
   } catch(e) {
-    showAuthError('Could not load channel data: ' + e.message);
+    showAuthError('Could not load channel: ' + e.message);
     document.getElementById('auth-section').classList.remove('hidden');
     document.getElementById('dashboard-section').classList.add('hidden');
   }
 }
 
-async function loadTopVideos() {
-  try {
-    const r = await apiFetch('https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=' + channelData.id + '&order=viewCount&type=video&maxResults=10');
-    const ids = r.items.map(i => i.id.videoId).join(',');
-    const vr = await apiFetch('https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=' + ids);
-    videosData = vr.items;
-    const list = document.getElementById('videos-list');
-    list.innerHTML = vr.items.map((v, i) => `
-      <div class="video-row">
-        <img class="video-thumb" src="${v.snippet.thumbnails.default.url}" alt="${v.snippet.title}" />
-        <div class="video-info">
-          <div class="video-title">${v.snippet.title}</div>
-          <div class="video-meta">👁 ${fmt(v.statistics.viewCount)} views &nbsp; ❤️ ${fmt(v.statistics.likeCount)} likes &nbsp; 💬 ${fmt(v.statistics.commentCount)} comments</div>
-        </div>
-        ${i === 0 ? '<span class="badge">Top video</span>' : ''}
-      </div>`).join('');
-  } catch(e) {
-    document.getElementById('videos-list').innerHTML = '<p style="color:#c62828;font-size:13px;">Could not load videos: ' + e.message + '</p>';
+async function loadAllVideos() {
+  const progressWrap = document.getElementById('loading-progress');
+  const progressBar = document.getElementById('progress-bar');
+  const progressText = document.getElementById('progress-text');
+  const progressSub = document.getElementById('progress-sub');
+  progressWrap.classList.remove('hidden');
+  document.getElementById('videos-card').classList.add('hidden');
+
+  allVideos = [];
+  let pageToken = '', totalEstimate = parseInt(channelData.statistics?.videoCount || 100);
+
+  progressText.textContent = 'Fetching all videos...';
+  // Step 1: get all video IDs via search
+  let allIds = [];
+  do {
+    const url = `https://www.googleapis.com/youtube/v3/search?part=id&channelId=${channelData.id}&type=video&maxResults=50&order=date${pageToken ? '&pageToken='+pageToken : ''}`;
+    const r = await apiFetch(url);
+    allIds.push(...r.items.map(i => i.id.videoId));
+    pageToken = r.nextPageToken || '';
+    const pct = Math.min(40, Math.round((allIds.length/totalEstimate)*40));
+    progressBar.style.width = pct + '%';
+    progressSub.textContent = `Found ${allIds.length} videos...`;
+  } while (pageToken);
+
+  // Step 2: fetch video details in batches of 50
+  progressText.textContent = 'Loading video details...';
+  const batches = [];
+  for (let i = 0; i < allIds.length; i += 50) batches.push(allIds.slice(i, i+50));
+  for (let b = 0; b < batches.length; b++) {
+    const ids = batches[b].join(',');
+    const r = await apiFetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${ids}`);
+    allVideos.push(...r.items);
+    const pct = 40 + Math.round(((b+1)/batches.length)*30);
+    progressBar.style.width = pct + '%';
+    progressSub.textContent = `Loaded details for ${allVideos.length} videos...`;
   }
+
+  // Step 3: fetch analytics per batch of 200 video IDs
+  progressText.textContent = 'Fetching analytics data...';
+  const today = new Date().toISOString().split('T')[0];
+  const start = '2000-01-01';
+  const analyticsBatches = [];
+  for (let i = 0; i < allIds.length; i += 200) analyticsBatches.push(allIds.slice(i, i+200));
+
+  for (let b = 0; b < analyticsBatches.length; b++) {
+    const ids = analyticsBatches[b].join(',');
+    try {
+      const r = await apiFetch(`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=${start}&endDate=${today}&metrics=views,estimatedMinutesWatched,averageViewPercentage,averageViewDuration,annotationClickThroughRate,cardClickRate,subscribersGained,likes,dislikes,shares,comments,estimatedRevenue,estimatedAdRevenue,cpm,playbackBasedCpm&dimensions=video&filters=video==${ids}&maxResults=200&sort=-views`);
+      if (r.rows) {
+        r.rows.forEach(row => {
+          analyticsMap[row[0]] = {
+            views: row[1], watchMinutes: row[2], avgViewPct: row[3],
+            avgViewDuration: row[4], annotationCTR: row[5], cardCTR: row[6],
+            subsGained: row[7], likes: row[8], dislikes: row[9],
+            shares: row[10], comments: row[11], revenue: row[12],
+            adRevenue: row[13], cpm: row[14], pbCpm: row[15]
+          };
+        });
+      }
+      // Try CTR separately
+      try {
+        const r2 = await apiFetch(`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=${start}&endDate=${today}&metrics=views,impressions,impressionsClickThroughRate&dimensions=video&filters=video==${ids}&maxResults=200&sort=-views`);
+        if (r2.rows) r2.rows.forEach(row => {
+          if (analyticsMap[row[0]]) analyticsMap[row[0]].ctr = row[3];
+          else analyticsMap[row[0]] = { ctr: row[3] };
+        });
+      } catch(e) {}
+    } catch(e) {
+      progressSub.textContent = 'Analytics partially unavailable for some videos.';
+    }
+    const pct = 70 + Math.round(((b+1)/analyticsBatches.length)*30);
+    progressBar.style.width = pct + '%';
+    progressSub.textContent = `Analytics loaded for batch ${b+1}/${analyticsBatches.length}...`;
+  }
+
+  // Update channel-level aggregates
+  const totalWatchMin = Object.values(analyticsMap).reduce((s,a)=>s+(a.watchMinutes||0),0);
+  const ctrs = Object.values(analyticsMap).filter(a=>a.ctr).map(a=>a.ctr);
+  const retentions = Object.values(analyticsMap).filter(a=>a.avgViewPct).map(a=>a.avgViewPct);
+  const revenues = Object.values(analyticsMap).filter(a=>a.revenue).map(a=>a.revenue);
+  document.getElementById('m-watchtime').textContent = fmtMin(totalWatchMin);
+  document.getElementById('m-ctr').textContent = ctrs.length ? fmtPct(ctrs.reduce((a,b)=>a+b,0)/ctrs.length) : '—';
+  document.getElementById('m-retention').textContent = retentions.length ? fmtPct(retentions.reduce((a,b)=>a+b,0)/retentions.length) : '—';
+  document.getElementById('m-revenue').textContent = revenues.length ? fmtMoney(revenues.reduce((a,b)=>a+b,0)) : '—';
+
+  progressBar.style.width = '100%';
+  progressText.textContent = `✅ Loaded ${allVideos.length} videos with full analytics!`;
+  setTimeout(() => {
+    progressWrap.classList.add('hidden');
+    document.getElementById('videos-card').classList.remove('hidden');
+    renderTable();
+  }, 800);
 }
 
-async function loadTrafficSources() {
+function getFilteredSorted() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const sort = document.getElementById('sort-select').value;
+  const filter = document.getElementById('filter-select').value;
+
+  let list = allVideos.filter(v => v.snippet.title.toLowerCase().includes(q));
+
+  if (filter !== 'all') {
+    list = list.filter(v => {
+      const s = calcScore(v);
+      if (filter === 'high') return s >= 70;
+      if (filter === 'mid') return s >= 40 && s < 70;
+      if (filter === 'low') return s < 40;
+    });
+  }
+
+  list.sort((a,b) => {
+    const aa = analyticsMap[a.id] || {}, ba = analyticsMap[b.id] || {};
+    if (sort === 'views') return parseInt(b.statistics?.viewCount||0) - parseInt(a.statistics?.viewCount||0);
+    if (sort === 'watchtime') return (ba.watchMinutes||0) - (aa.watchMinutes||0);
+    if (sort === 'ctr') return (ba.ctr||0) - (aa.ctr||0);
+    if (sort === 'retention') return (ba.avgViewPct||0) - (aa.avgViewPct||0);
+    if (sort === 'engagement') {
+      const engA = a.statistics?.viewCount > 0 ? ((parseInt(a.statistics?.likeCount||0)+parseInt(a.statistics?.commentCount||0))/parseInt(a.statistics?.viewCount))*100 : 0;
+      const engB = b.statistics?.viewCount > 0 ? ((parseInt(b.statistics?.likeCount||0)+parseInt(b.statistics?.commentCount||0))/parseInt(b.statistics?.viewCount))*100 : 0;
+      return engB - engA;
+    }
+    if (sort === 'revenue') return (ba.revenue||0) - (aa.revenue||0);
+    if (sort === 'date') return new Date(b.snippet.publishedAt) - new Date(a.snippet.publishedAt);
+    if (sort === 'score') return calcScore(b) - calcScore(a);
+    return 0;
+  });
+  return list;
+}
+
+function setSortAndRender(s) { document.getElementById('sort-select').value = s; currentPage = 0; renderTable(); }
+
+function renderTable() {
+  currentPage = 0;
+  renderPage();
+}
+
+function renderPage() {
+  const list = getFilteredSorted();
+  const total = list.length;
+  const start = currentPage * PAGE_SIZE;
+  const page = list.slice(start, start + PAGE_SIZE);
+  document.getElementById('video-count').textContent = `${total} videos`;
+  document.getElementById('page-info').textContent = `Page ${currentPage+1} of ${Math.ceil(total/PAGE_SIZE)}`;
+  document.getElementById('prev-btn').disabled = currentPage === 0;
+  document.getElementById('next-btn').disabled = start + PAGE_SIZE >= total;
+
+  const maxViews = Math.max(...allVideos.map(v=>parseInt(v.statistics?.viewCount||0)));
+
+  const tbody = document.getElementById('videos-tbody');
+  tbody.innerHTML = page.map(v => {
+    const a = analyticsMap[v.id] || {};
+    const views = parseInt(v.statistics?.viewCount||0);
+    const likes = parseInt(v.statistics?.likeCount||0);
+    const comments = parseInt(v.statistics?.commentCount||0);
+    const engRate = views > 0 ? ((likes+comments)/views*100).toFixed(2) : null;
+    const score = calcScore(v);
+    const barW = maxViews > 0 ? Math.round((views/maxViews)*100) : 0;
+    const date = new Date(v.snippet.publishedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    const thumb = v.snippet.thumbnails?.default?.url || '';
+    return `<tr>
+      <td><img class="thumb" src="${thumb}" alt="" /></td>
+      <td class="video-title-cell">
+        <div class="video-title-text">${v.snippet.title}</div>
+        <div class="video-date">${date}</div>
+      </td>
+      <td>
+        <div>${fmt(views)}</div>
+        <div class="bar-mini" style="width:${barW}px;max-width:80px;"></div>
+      </td>
+      <td>${fmtMin(a.watchMinutes)}</td>
+      <td>${a.ctr !== undefined ? fmtPct(a.ctr) : '—'}</td>
+      <td>${a.avgViewPct !== undefined ? fmtPct(a.avgViewPct) : '—'}</td>
+      <td>${engRate !== null ? fmtPct(engRate) : '—'}</td>
+      <td>${a.revenue !== undefined ? fmtMoney(a.revenue) : '—'}</td>
+      <td><span class="score-badge ${scoreClass(score)}">${score}</span></td>
+      <td><button class="btn" style="padding:4px 8px;font-size:12px;" onclick="openModal('${v.id}')">Detail</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function changePage(dir) { currentPage += dir; renderPage(); }
+
+let currentModalVideoId = null;
+function openModal(videoId) {
+  currentModalVideoId = videoId;
+  const v = allVideos.find(x => x.id === videoId);
+  const a = analyticsMap[videoId] || {};
+  if (!v) return;
+  document.getElementById('modal-thumb').src = v.snippet.thumbnails?.medium?.url || v.snippet.thumbnails?.default?.url || '';
+  document.getElementById('modal-title').textContent = v.snippet.title;
+  document.getElementById('modal-date').textContent = new Date(v.snippet.publishedAt).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('modal-desc').textContent = v.snippet.description?.slice(0,300) || 'No description.';
+  const views = parseInt(v.statistics?.viewCount||0);
+  const likes = parseInt(v.statistics?.likeCount||0);
+  const comments = parseInt(v.statistics?.commentCount||0);
+  const engRate = views > 0 ? ((likes+comments)/views*100).toFixed(2) + '%' : '—';
+  const score = calcScore(v);
+  document.getElementById('modal-metrics').innerHTML = [
+    ['Views', fmt(views)],
+    ['Watch time', fmtMin(a.watchMinutes)],
+    ['CTR', a.ctr !== undefined ? fmtPct(a.ctr) : '—'],
+    ['Retention', a.avgViewPct !== undefined ? fmtPct(a.avgViewPct) : '—'],
+    ['Likes', fmt(likes)],
+    ['Comments', fmt(comments)],
+    ['Shares', fmt(a.shares)],
+    ['Subs gained', fmt(a.subsGained)],
+    ['Engagement', engRate],
+    ['Revenue', a.revenue !== undefined ? fmtMoney(a.revenue) : '—'],
+    ['CPM', a.cpm !== undefined ? fmtMoney(a.cpm) : '—'],
+    ['Score', score + '/100'],
+  ].map(([label,val]) => `<div class="modal-metric"><div class="modal-metric-label">${label}</div><div class="modal-metric-value">${val}</div></div>`).join('');
+  document.getElementById('modal-analysis').classList.add('hidden');
+  document.getElementById('modal-overlay').classList.add('visible');
+}
+
+function closeModal(e) { if (e.target === document.getElementById('modal-overlay')) document.getElementById('modal-overlay').classList.remove('visible'); }
+
+async function analyzeVideo() {
+  const v = allVideos.find(x => x.id === currentModalVideoId);
+  const a = analyticsMap[currentModalVideoId] || {};
+  const out = document.getElementById('modal-analysis');
+  out.classList.remove('hidden');
+  out.className = 'analysis-box loading';
+  out.textContent = 'Analyzing this video...';
+  const views = parseInt(v.statistics?.viewCount||0);
+  const likes = parseInt(v.statistics?.likeCount||0);
+  const comments = parseInt(v.statistics?.commentCount||0);
+  const engRate = views > 0 ? ((likes+comments)/views*100).toFixed(2) : 0;
+  const prompt = `You are a YouTube growth expert. Analyze this specific video and give 5 actionable insights:\n\nTitle: ${v.snippet.title}\nPublished: ${new Date(v.snippet.publishedAt).toLocaleDateString()}\nViews: ${views}\nWatch time: ${fmtMin(a.watchMinutes)}\nCTR: ${a.ctr !== undefined ? fmtPct(a.ctr) : 'unknown'}\nAvg view retention: ${a.avgViewPct !== undefined ? fmtPct(a.avgViewPct) : 'unknown'}\nLikes: ${likes}, Comments: ${comments}, Shares: ${fmt(a.shares)}\nEngagement rate: ${engRate}%\nSubscribers gained: ${a.subsGained || 'unknown'}\nRevenue: ${a.revenue !== undefined ? fmtMoney(a.revenue) : 'unknown'}\nDescription: ${v.snippet.description?.slice(0,200)}\n\nGive specific insights on why this video performed the way it did and how to improve. Plain text, no markdown.`;
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await resp.json();
+    out.className = 'analysis-box';
+    out.textContent = data.content?.map(b=>b.text||'').join('') || 'No response.';
+  } catch(e) { out.className = 'analysis-box'; out.textContent = 'Error: ' + e.message; }
+}
+
+async function loadTrafficAndDemographics() {
   const today = new Date().toISOString().split('T')[0];
   const start = new Date(Date.now() - 90*24*60*60*1000).toISOString().split('T')[0];
+  const labels = { 'YT_SEARCH':'YouTube search','SUBSCRIBER':'Subscribers','BROWSE_FEATURES':'Browse features','SUGGESTED_VIDEOS':'Suggested videos','EXTERNAL':'External','PLAYLIST':'Playlist','CHANNEL':'Channel page','NO_LINK_OTHER':'Other','NOTIFICATION':'Notifications','END_SCREEN':'End screen' };
   try {
     const r = await apiFetch(`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=${start}&endDate=${today}&metrics=views&dimensions=insightTrafficSourceType&sort=-views&maxResults=10`);
     trafficData = r.rows || [];
     const list = document.getElementById('traffic-list');
-    if (!trafficData.length) { list.innerHTML = '<p style="color:#999;font-size:13px;">No traffic source data available.</p>'; return; }
-    const max = Math.max(...trafficData.map(r => r[1]));
-    const labels = { 'YT_SEARCH':'YouTube search','SUBSCRIBER':'Subscribers','BROWSE_FEATURES':'Browse features','SUGGESTED_VIDEOS':'Suggested videos','EXTERNAL':'External','PLAYLIST':'Playlist','CHANNEL':'Channel page','NO_LINK_OTHER':'Other','NOTIFICATION':'Notifications','END_SCREEN':'End screen' };
-    list.innerHTML = trafficData.map(row => {
-      const pct = Math.round((row[1] / max) * 100);
-      return `<div class="bar-wrap"><div class="bar-label"><span>${labels[row[0]] || row[0]}</span><span>${fmt(row[1])} views</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div></div>`;
-    }).join('');
-  } catch(e) {
-    document.getElementById('traffic-list').innerHTML = '<p style="color:#c62828;font-size:13px;">Could not load traffic data: ' + e.message + '</p>';
-  }
-}
+    if (!trafficData.length) { list.innerHTML = '<p style="color:#999;font-size:13px;">No traffic data available.</p>'; }
+    else {
+      const max = Math.max(...trafficData.map(r=>r[1]));
+      list.innerHTML = trafficData.map(row => `<div class="bar-wrap"><div class="bar-label"><span>${labels[row[0]]||row[0]}</span><span>${fmt(row[1])} views</span></div><div class="bar-track"><div class="bar-fill" style="width:${Math.round((row[1]/max)*100)}%"></div></div></div>`).join('');
+    }
+  } catch(e) { document.getElementById('traffic-list').innerHTML = '<p style="color:#c62828;font-size:13px;">Traffic data: ' + e.message + '</p>'; }
 
-function showTab(name) {
-  ['top-videos','traffic','ai-analysis'].forEach(t => document.getElementById('tab-' + t).classList.add('hidden'));
-  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.remove('hidden');
-  document.querySelectorAll('.tab').forEach(el => { if (el.getAttribute('onclick').includes(name)) el.classList.add('active'); });
+  try {
+    const r = await apiFetch(`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=${start}&endDate=${today}&metrics=viewerPercentage&dimensions=ageGroup,gender&sort=-viewerPercentage&maxResults=20`);
+    const demoList = document.getElementById('demo-list');
+    if (!r.rows?.length) { demoList.innerHTML = '<p style="color:#999;font-size:13px;">No demographic data available.</p>'; }
+    else {
+      const grouped = {};
+      r.rows.forEach(row => {
+        const key = row[0] + ' · ' + row[1];
+        grouped[key] = (grouped[key]||0) + row[2];
+      });
+      demoList.innerHTML = Object.entries(grouped).sort((a,b)=>b[1]-a[1]).map(([k,v]) =>
+        `<div class="stat-row"><span class="stat-label">${k}</span><span class="stat-value">${parseFloat(v).toFixed(1)}%</span></div>`
+      ).join('');
+    }
+  } catch(e) { document.getElementById('demo-list').innerHTML = '<p style="color:#c62828;font-size:13px;">Demographics: ' + e.message + '</p>'; }
 }
 
 async function runAnalysis(type) {
@@ -256,28 +615,40 @@ async function runAnalysis(type) {
   out.className = 'analysis-box loading';
   out.textContent = 'Analyzing your channel data...';
   const s = channelData.statistics || {};
-  const topVids = videosData.slice(0,5).map(v => `"${v.snippet.title}" — ${fmt(v.statistics.viewCount)} views, ${fmt(v.statistics.likeCount)} likes`).join('\n');
-  const traffic = trafficData.map(r => `${r[0]}: ${fmt(r[1])} views`).join('\n');
+  const top10 = [...allVideos].sort((a,b)=>parseInt(b.statistics?.viewCount||0)-parseInt(a.statistics?.viewCount||0)).slice(0,10);
+  const bottom10 = [...allVideos].sort((a,b)=>parseInt(a.statistics?.viewCount||0)-parseInt(b.statistics?.viewCount||0)).slice(0,10);
+  const topStr = top10.map(v=>`"${v.snippet.title}" — ${fmt(v.statistics?.viewCount)} views, CTR: ${fmtPct(analyticsMap[v.id]?.ctr)}, retention: ${fmtPct(analyticsMap[v.id]?.avgViewPct)}, revenue: ${fmtMoney(analyticsMap[v.id]?.revenue)}`).join('\n');
+  const bottomStr = bottom10.map(v=>`"${v.snippet.title}" — ${fmt(v.statistics?.viewCount)} views`).join('\n');
+  const trafficStr = trafficData.map(r=>r[0]+': '+fmt(r[1])+' views').join('\n');
+  const totalRevenue = Object.values(analyticsMap).reduce((s,a)=>s+(a.revenue||0),0);
+  const avgCTR = (() => { const c = Object.values(analyticsMap).filter(a=>a.ctr).map(a=>a.ctr); return c.length ? c.reduce((a,b)=>a+b)/c.length : null; })();
+  const avgRet = (() => { const c = Object.values(analyticsMap).filter(a=>a.avgViewPct).map(a=>a.avgViewPct); return c.length ? c.reduce((a,b)=>a+b)/c.length : null; })();
+
   const prompts = {
-    overall: `You are a YouTube growth expert. Analyze this channel and give 5 specific actionable insights:\n\nChannel: ${channelData.snippet?.title}\nSubscribers: ${s.subscriberCount}\nTotal views: ${s.viewCount}\nVideo count: ${s.videoCount}\n\nTop videos:\n${topVids}\n\nTraffic sources:\n${traffic}\n\nGive concise, specific insights in plain text. No markdown.`,
-    growth: `You are a YouTube growth strategist. Give 5 specific growth strategies for this channel:\n\nChannel: ${channelData.snippet?.title}\nSubscribers: ${s.subscriberCount}\nTotal views: ${s.viewCount}\nVideo count: ${s.videoCount}\n\nTop videos:\n${topVids}\n\nFocus on practical next steps for the next 30 days. Plain text, no markdown.`,
-    content: `You are a YouTube content strategist. Suggest 8 specific video ideas based on these top performers:\n\nChannel: ${channelData.snippet?.title}\nTop videos:\n${topVids}\n\nMake ideas specific, not generic. Plain text, no markdown.`,
-    seo: `You are a YouTube SEO expert. Review these titles and give specific SEO improvements:\n\nChannel: ${channelData.snippet?.title}\nTop videos:\n${topVids}\n\nTraffic sources:\n${traffic}\n\nGive specific title rewrites and keyword suggestions. Plain text, no markdown.`
+    overall: `You are a YouTube growth expert. Analyze this channel deeply and give 7 specific actionable insights:\n\nChannel: ${channelData.snippet?.title}\nSubscribers: ${s.subscriberCount}\nTotal views: ${s.viewCount}\nVideo count: ${s.videoCount}\nEst. total revenue: ${fmtMoney(totalRevenue)}\nAvg CTR: ${fmtPct(avgCTR)}\nAvg retention: ${fmtPct(avgRet)}\n\nTop 10 videos:\n${topStr}\n\nTraffic sources:\n${trafficStr}\n\nPlain text, no markdown.`,
+    growth: `You are a YouTube growth strategist. Give 7 specific growth strategies based on this data:\n\nChannel: ${channelData.snippet?.title}\nSubscribers: ${s.subscriberCount}\nTotal views: ${s.viewCount}\nAvg CTR: ${fmtPct(avgCTR)}\nAvg retention: ${fmtPct(avgRet)}\n\nTop videos:\n${topStr}\n\nTraffic:\n${trafficStr}\n\nFocus on next 30-60 days. Plain text, no markdown.`,
+    content: `You are a YouTube content strategist. Suggest 10 specific video ideas based on top performers:\n\nChannel: ${channelData.snippet?.title}\nTop videos:\n${topStr}\n\nMake ideas hyper-specific, not generic. Plain text, no markdown.`,
+    seo: `You are a YouTube SEO expert. Review these top titles and give specific SEO improvements:\n\nChannel: ${channelData.snippet?.title}\nAvg CTR: ${fmtPct(avgCTR)}\n\nTop videos:\n${topStr}\n\nTraffic sources:\n${trafficStr}\n\nRewrite 5 titles with better SEO and explain why. Plain text, no markdown.`,
+    underperform: `You are a YouTube analyst. Review these underperforming videos and explain why they likely failed:\n\nChannel: ${channelData.snippet?.title}\nChannel avg CTR: ${fmtPct(avgCTR)}\nChannel avg retention: ${fmtPct(avgRet)}\n\nUnderperformers:\n${bottomStr}\n\nGive specific reasons and improvement tips. Plain text, no markdown.`,
+    revenue: `You are a YouTube monetization expert. Analyze this channel's revenue data and give 5 monetization improvement tips:\n\nChannel: ${channelData.snippet?.title}\nSubscribers: ${s.subscriberCount}\nTotal views: ${s.viewCount}\nEst. total revenue: ${fmtMoney(totalRevenue)}\n\nTop earning videos:\n${topStr}\n\nPlain text, no markdown.`
   };
   try {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: prompts[type] }] })
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1200, messages: [{ role: 'user', content: prompts[type] }] })
     });
     const data = await resp.json();
-    const text = data.content?.map(b => b.text || '').join('') || 'No response.';
     out.className = 'analysis-box';
-    out.textContent = text;
-  } catch(e) {
-    out.className = 'analysis-box';
-    out.textContent = 'Error: ' + e.message;
-  }
+    out.textContent = data.content?.map(b=>b.text||'').join('') || 'No response.';
+  } catch(e) { out.className = 'analysis-box'; out.textContent = 'Error: ' + e.message; }
+}
+
+function showTab(name) {
+  ['videos','traffic','ai'].forEach(t => document.getElementById('tab-'+t).classList.add('hidden'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.remove('hidden');
+  document.querySelectorAll('.tab').forEach(el => { if (el.getAttribute('onclick').includes(name)) el.classList.add('active'); });
 }
 </script>
 </body>
