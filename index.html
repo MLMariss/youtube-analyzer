@@ -145,7 +145,7 @@
     <div class="card setup-area">
       <div style="font-size:36px;margin-bottom:12px;">📺</div>
       <h2>Sign in with Google</h2>
-      <p>Connect your Google account to access your YouTube channel data.</p>
+      <p>First, sign in with the Google account that owns your YouTube channel. We'll verify your account before asking for API keys.</p>
       <button class="btn-google" onclick="startGoogleAuth()">
         <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 01-7.18-2.54H1.83v2.07A8 8 0 008.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 010-3.04V5.41H1.83a8 8 0 000 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.83 5.4L4.5 7.49a4.77 4.77 0 014.48-3.31z"/></svg>
         Sign in with Google
@@ -157,8 +157,8 @@
   <!-- STEP 2: API Keys (shown after Google login) -->
   <div id="setup-section" class="hidden">
     <div class="card setup-area">
-      <h2>🔑 Enter your API credentials</h2>
-      <p>Your keys are saved in your browser only — never stored in code or sent anywhere except Google and Anthropic.</p>
+      <h2>🔑 Enter your YouTube API credentials</h2>
+      <p>Your keys are saved in your browser only — never in code. AI analysis will appear directly in this Claude chat.</p>
       <div class="field-group">
         <label>YouTube / Google API Key</label>
         <input type="password" id="input-api-key" placeholder="AIzaSy..." autocomplete="off" />
@@ -169,11 +169,7 @@
         <input type="text" id="input-client-id" placeholder="123456789-abc...apps.googleusercontent.com" autocomplete="off" />
         <div class="hint">From Google Cloud Console → OAuth 2.0 Client IDs</div>
       </div>
-      <div class="field-group">
-        <label>Anthropic API Key (for AI analysis)</label>
-        <input type="password" id="input-anthropic-key" placeholder="sk-ant-..." autocomplete="off" />
-        <div class="hint">From console.anthropic.com → API Keys</div>
-      </div>
+      <div id="verified-account"></div>
       <button class="btn btn-primary" onclick="saveKeysAndContinue()" style="margin-top:0.5rem;">Save &amp; continue →</button>
       <p id="setup-error" class="error-msg hidden"></p>
     </div>
@@ -304,6 +300,7 @@
       <div id="tab-ai" class="hidden">
         <div class="card">
           <div class="section-title">Claude AI analysis</div>
+          <p style="font-size:13px;color:#666;margin-bottom:12px;">Analysis requests are sent directly to your Claude chat — scroll up in Claude to see the response.</p>
           <div class="prompt-row">
             <button class="btn btn-primary" onclick="runAnalysis('overall')">📊 Overall insights</button>
             <button class="btn" onclick="runAnalysis('growth')">📈 Growth tips</button>
@@ -347,7 +344,7 @@
 <script src="https://accounts.google.com/gsi/client" async></script>
 <script>
 // ─── State ───────────────────────────────────────────────────────────────────
-let API_KEY = '', CLIENT_ID = '', ANTHROPIC_KEY = '';
+let API_KEY = '', CLIENT_ID = '';
 let accessToken = null, tokenClient = null;
 let channelData = {}, allVideos = [], analyticsMap = {}, videoTrafficMap = {};
 let trafficData = [], demoData = [];
@@ -416,7 +413,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   setPreset('90d');
   // If keys already saved, go straight to Google auth
   const saved = loadKeys();
-  if(saved){ API_KEY=saved.apiKey; CLIENT_ID=saved.clientId; ANTHROPIC_KEY=saved.anthropicKey; }
+  if(saved){ API_KEY=saved.apiKey; CLIENT_ID=saved.clientId; }
   // Always start with Google sign-in first
   showEl('signin-section'); hideEl('setup-section'); hideEl('dashboard-section');
 });
@@ -426,18 +423,18 @@ function loadKeys(){
   try{ const s=localStorage.getItem('yt_analyzer_keys'); return s?JSON.parse(s):null; }catch(e){ return null; }
 }
 function saveKeys(){ 
-  localStorage.setItem('yt_analyzer_keys',JSON.stringify({apiKey:API_KEY,clientId:CLIENT_ID,anthropicKey:ANTHROPIC_KEY}));
+  localStorage.setItem('yt_analyzer_keys',JSON.stringify({apiKey:API_KEY,clientId:CLIENT_ID}));
 }
 function clearKeysAndSignOut(){
   localStorage.removeItem('yt_analyzer_keys');
   if(accessToken) try{ google.accounts.oauth2.revoke(accessToken); }catch(e){}
   accessToken=null; allVideos=[]; analyticsMap={}; videoTrafficMap={};
-  API_KEY=''; CLIENT_ID=''; ANTHROPIC_KEY='';
+  API_KEY=''; CLIENT_ID='';
   hideEl('dashboard-section'); hideEl('setup-section');
   showEl('signin-section');
   document.getElementById('input-api-key').value='';
   document.getElementById('input-client-id').value='';
-  document.getElementById('input-anthropic-key').value='';
+
 }
 
 // Step 1: Google sign-in (no keys needed yet — uses a temp client id or prompts)
@@ -464,32 +461,55 @@ function initGoogleAuth(){
         return;
       }
       accessToken=resp.access_token;
-      // Check if we already have all keys saved
-      const saved=loadKeys();
-      if(saved && saved.apiKey && saved.anthropicKey){
-        API_KEY=saved.apiKey; ANTHROPIC_KEY=saved.anthropicKey;
-        hideEl('signin-section'); hideEl('setup-section');
-        showEl('dashboard-section'); hideEl('main-content');
-        loadChannelInfo();
-      } else {
-        // Show keys form after Google login
-        hideEl('signin-section');
-        showEl('setup-section');
-        if(saved){ document.getElementById('input-api-key').value=saved.apiKey||''; document.getElementById('input-client-id').value=saved.clientId||''; document.getElementById('input-anthropic-key').value=saved.anthropicKey||''; }
-      }
+      // Verify account then proceed
+      verifyAndProceed();
     }
   });
   tokenClient.requestAccessToken();
 }
 
+async function verifyAndProceed(){
+  // Fetch Google account info to verify
+  try{
+    const r = await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true&key='+CLIENT_ID, {
+      headers:{Authorization:'Bearer '+accessToken}
+    });
+    // Even without API key yet, we can verify the token is valid via userinfo
+    const ui = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+accessToken}});
+    const user = await ui.json();
+    // Show verified badge on keys screen
+    const verifiedHtml = user.email ? 
+      `<div style="display:flex;align-items:center;gap:10px;background:#e8f5e9;border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:13px;">
+        <img src="${user.picture}" style="width:32px;height:32px;border-radius:50%;" />
+        <div><strong>${user.name}</strong><br><span style="color:#555;">${user.email}</span></div>
+        <span style="margin-left:auto;color:#2e7d32;font-weight:600;">✅ Verified</span>
+      </div>` : '';
+    document.getElementById('verified-account').innerHTML = verifiedHtml;
+  }catch(e){ /* silently continue */ }
+
+  const saved=loadKeys();
+  if(saved && saved.apiKey){
+    API_KEY=saved.apiKey; CLIENT_ID=saved.clientId||CLIENT_ID;
+    hideEl('signin-section'); hideEl('setup-section');
+    showEl('dashboard-section'); hideEl('main-content');
+    loadChannelInfo();
+  } else {
+    hideEl('signin-section');
+    showEl('setup-section');
+    if(saved){
+      document.getElementById('input-api-key').value=saved.apiKey||'';
+      document.getElementById('input-client-id').value=saved.clientId||'';
+    }
+  }
+}
+
 function saveKeysAndContinue(){
   const ak=document.getElementById('input-api-key').value.trim();
   const ck=document.getElementById('input-client-id').value.trim();
-  const sk=document.getElementById('input-anthropic-key').value.trim();
   const err=document.getElementById('setup-error');
-  if(!ak||!ck||!sk){ err.textContent='Please fill in all three fields.'; err.classList.remove('hidden'); return; }
+  if(!ak||!ck){ err.textContent='Please fill in both fields.'; err.classList.remove('hidden'); return; }
   err.classList.add('hidden');
-  API_KEY=ak; CLIENT_ID=ck; ANTHROPIC_KEY=sk;
+  API_KEY=ak; CLIENT_ID=ck;
   saveKeys();
   // If already signed in, go to dashboard; else trigger auth
   if(accessToken){
@@ -803,16 +823,9 @@ async function analyzeVideo(){
   const engRate=views>0?((likes+comments)/views*100).toFixed(2):0;
   const trafficStr=vt.length?vt.sort((a,b)=>b.views-a.views).slice(0,5).map(r=>`${TRAFFIC_LABELS[r.src]||r.src}: ${fmt(r.views)} views`).join('\n'):'Not available';
   const prompt=`You are a YouTube growth expert. Analyze this specific video and give 5 concise, actionable insights:\n\nTitle: ${v.snippet.title}\nPublished: ${new Date(v.snippet.publishedAt).toLocaleDateString()}\nViews: ${views}\nWatch time: ${fmtMin(a.watchMinutes)}\nCTR: ${a.ctr!==undefined?fmtPct(a.ctr):'unknown'}\nAvg retention: ${a.avgViewPct!==undefined?fmtPct(a.avgViewPct):'unknown'}\nLikes: ${likes}, Comments: ${comments}, Shares: ${fmt(a.shares)}\nEngagement rate: ${engRate}%\nSubscribers gained: ${a.subsGained||'unknown'}\nRevenue: ${a.revenue!==undefined?fmtMoney(a.revenue):'unknown'}\nTraffic sources:\n${trafficStr}\n\nAnalyze performance, explain why it performed this way, and give specific improvement tips. Plain text, no markdown.`;
-  try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
-    });
-    const data=await resp.json();
-    out.className='analysis-box';
-    out.textContent=data.content?.map(b=>b.text||'').join('')||'No response.';
-  }catch(e){ out.className='analysis-box'; out.textContent='Error: '+e.message; }
+  out.className='analysis-box';
+  out.textContent='✅ Analysis request sent to Claude chat above! Scroll up to see the response.';
+  sendPrompt(prompt);
 }
 
 // ─── AI Analysis ──────────────────────────────────────────────────────────────
@@ -840,16 +853,9 @@ async function runAnalysis(type){
     traffic:`You are a YouTube growth expert. Analyze these traffic sources and give 5 specific strategies to improve discovery (${dateRange}):\n\nChannel: ${channelData.snippet?.title}\nTraffic sources:\n${trafficStr}\nAvg CTR: ${fmtPct(avgCTR)}\n\nExplain what the traffic data reveals and how to capitalize on it. Plain text, no markdown.`
   };
 
-  try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages:[{role:'user',content:prompts[type]}]})
-    });
-    const data=await resp.json();
-    out.className='analysis-box';
-    out.textContent=data.content?.map(b=>b.text||'').join('')||'No response.';
-  }catch(e){ out.className='analysis-box'; out.textContent='Error: '+e.message; }
+  out.className='analysis-box';
+  out.textContent='✅ Analysis request sent to Claude chat above! Scroll up to see the response.';
+  sendPrompt(prompts[type]);
 }
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
