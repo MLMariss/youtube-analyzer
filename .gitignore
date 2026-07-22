@@ -1,8 +1,8 @@
 __pycache__/
 *.py[cod]
 
-# Local Claude Code settings
-.claude/settings.local.json
+# Local Claude Code settings and dev-server config
+.claude/
 
 # Credentials are env vars / Actions secrets -- never commit them
 .env

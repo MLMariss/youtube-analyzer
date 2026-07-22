@@ -29,22 +29,52 @@
   }
   .metric .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
   .metric .value { font-size: 20px; font-weight: 600; margin-top: 2px; }
-  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
   button, select, input {
     background: var(--panel); color: var(--text); border: 1px solid var(--line);
     border-radius: 6px; padding: 6px 12px; font: inherit; cursor: pointer;
   }
   button.active { background: var(--accent); border-color: var(--accent); color: #05070c; font-weight: 600; }
-  input[type=search] { cursor: text; min-width: 220px; }
+  input[type=search], input[type=date], input[type=number] { cursor: text; }
+  input[type=search] { min-width: 200px; }
+  input[type=date] { min-width: 150px; }
+  input[type=number] { width: 110px; }
+  .filters {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 12px 14px; margin-bottom: 14px;
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  }
+  .filters .lbl { color: var(--muted); font-size: 12px; }
+  .filters .sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 4px; }
+  .chip {
+    background: #0b0d12; border: 1px solid var(--line); border-radius: 999px;
+    padding: 2px 10px; font-size: 12px; color: var(--muted);
+  }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th, td { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-  th:first-child, td:first-child { text-align: left; white-space: normal; min-width: 280px; }
+  th:first-child, td:first-child { text-align: left; white-space: normal; min-width: 260px; }
   th { color: var(--muted); font-weight: 500; cursor: pointer; user-select: none; font-size: 12px; }
   th:hover { color: var(--text); }
-  tbody tr:hover { background: #1c2029; }
+  th.sorted { color: var(--accent); }
+  tbody tr.row { cursor: pointer; }
+  tbody tr.row:hover { background: #1c2029; }
+  tbody tr.row.open { background: #1c2029; }
   .title-cell { display: flex; gap: 10px; align-items: center; }
   .title-cell img { width: 64px; height: 36px; object-fit: cover; border-radius: 4px; flex: none; }
   .title-cell .sub { color: var(--muted); font-size: 11px; }
+  .caret { color: var(--muted); font-size: 10px; margin-right: 2px; }
+  td.detail { text-align: left; white-space: normal; background: #12151b; padding: 0; }
+  .panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; padding: 14px; }
+  .panel-box { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+  .panel-box h3 {
+    margin: 0 0 8px; font-size: 12px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+  .panel-box table { font-size: 12px; }
+  .panel-box th, .panel-box td { padding: 4px 6px; border-bottom: 1px solid #1e222b; }
+  .panel-box th:first-child, .panel-box td:first-child { min-width: 0; }
+  .empty { color: var(--muted); font-size: 12px; font-style: italic; }
+  .bar { height: 4px; background: var(--accent); border-radius: 2px; display: block; margin-top: 3px; }
   .notice {
     background: var(--panel); border: 1px solid var(--line);
     border-left: 3px solid var(--warn); border-radius: 8px;
@@ -71,21 +101,47 @@
   <div class="metrics" id="metrics"></div>
 
   <div class="controls">
-    <span style="color:var(--muted);font-size:12px;">Window:</span>
+    <span class="lbl" style="color:var(--muted);font-size:12px;">Window:</span>
     <button data-window="7d">7 days</button>
     <button data-window="28d">28 days</button>
     <button data-window="90d" class="active">90 days</button>
     <button data-window="365d">365 days</button>
     <button data-window="all">All time</button>
-    <input type="search" id="search" placeholder="Filter titles…" />
+  </div>
+
+  <div class="filters">
+    <input type="search" id="f-text" placeholder="Filter titles…" />
+    <span class="sep"></span>
+    <span class="lbl">Published</span>
+    <input type="date" id="f-from" title="Published on or after" />
+    <span class="lbl">→</span>
+    <input type="date" id="f-to" title="Published on or before" />
+    <span class="sep"></span>
+    <span class="lbl">Format</span>
+    <select id="f-format">
+      <option value="all">All</option>
+      <option value="short">Shorts (≤60s)</option>
+      <option value="long">Long-form</option>
+    </select>
+    <span class="sep"></span>
+    <span class="lbl">Traffic source</span>
+    <select id="f-source"><option value="all">Any</option></select>
+    <span class="sep"></span>
+    <span class="lbl">Min views</span>
+    <input type="number" id="f-minviews" min="0" step="10" placeholder="0" />
+    <button id="f-reset">Reset</button>
+    <span class="chip" id="f-count"></span>
   </div>
 
   <svg id="spark" class="spark hidden" width="100%" height="90"></svg>
+
+  <div id="channel-traffic"></div>
 
   <table id="tbl">
     <thead>
       <tr>
         <th data-sort="title">Video</th>
+        <th data-sort="publishedTs">Published</th>
         <th data-sort="impressions">Impressions</th>
         <th data-sort="ctr">CTR</th>
         <th data-sort="views">Views</th>
@@ -103,8 +159,19 @@
 <script>
 // This dashboard is read-only. There is no OAuth, no API key and no login:
 // the GitHub Actions collector writes data/*.json and this page just reads it.
-let SUMMARY = null, DAILY = null;
-let currentWindow = '90d', sortKey = 'impressions', sortDir = -1, filter = '';
+let SUMMARY = null, DAILY = null, TRAFFIC = null, TDETAIL = null,
+    DEVICES = null, DEMOGRAPHICS = null;
+let currentWindow = '90d', sortKey = 'impressions', sortDir = -1;
+let expanded = null;
+const F = { text: '', from: '', to: '', format: 'all', source: 'all', minViews: 0 };
+
+const COLSPAN = 9;
+
+// Titles come from YouTube and search terms in traffic_detail.json are typed by
+// viewers, so everything interpolated into innerHTML must be escaped properly.
+const esc = s => String(s === null || s === undefined ? '' : s)
+  .replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;',
+                               '"': '&quot;', "'": '&#39;' }[c]));
 
 const fmt = n => {
   if (n === null || n === undefined || isNaN(n)) return '—';
@@ -119,6 +186,37 @@ const mins = m => {
   const h = Math.floor(m/60), r = Math.round(m%60);
   return h > 0 ? `${h}h ${r}m` : `${r}m`;
 };
+// h:mm:ss past an hour, m:ss below it. Plenty of these videos run over two
+// hours, so a bare m:ss would read as "128:03".
+const secs = s => {
+  if (s === null || s === undefined || isNaN(s)) return '—';
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), r = Math.round(s%60);
+  const pad = n => String(n).padStart(2, '0');
+  return h > 0 ? `${h}:${pad(m)}:${pad(r)}` : `${m}:${pad(r)}`;
+};
+
+// "PT2H8M3S" -> 7683. Used for the Shorts/long-form split and the duration label.
+function durationSeconds(iso) {
+  if (!iso) return null;
+  const m = /^P(?:\d+D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(iso);
+  if (!m) return null;
+  return (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0);
+}
+
+// The breakdown files carry only all_time and last_90d, not every window, so
+// short windows read last_90d and long ones read all_time.
+function bucket() {
+  return (currentWindow === '365d' || currentWindow === 'all') ? 'all_time' : 'last_90d';
+}
+function bucketLabel() {
+  return bucket() === 'all_time' ? 'all time' : 'last 90 days';
+}
+function slice(file, id) {
+  if (!file) return null;
+  const b = file[bucket()];
+  if (!b) return null;
+  return id ? (b.videos || {})[id] : (b.channel || null);
+}
 
 function notice(html, isError) {
   const el = document.getElementById('notice');
@@ -132,6 +230,10 @@ async function loadJson(path) {
   if (!r.ok) throw new Error(path + ' → HTTP ' + r.status);
   return r.json();
 }
+// Breakdown files are optional: they do not exist until their reports land.
+async function loadOptional(path) {
+  try { return await loadJson(path); } catch (e) { return null; }
+}
 
 async function init() {
   try {
@@ -144,33 +246,88 @@ async function init() {
       'add the three repository secrets, run the workflow once with <code>create_jobs</code> ticked, ' +
       'then wait up to 48 hours for YouTube to generate the first reports. ' +
       'Roughly 30 days of history are backfilled automatically.<br><br>' +
-      '<span style="color:var(--muted)">' + e.message + '</span>', true);
+      '<span style="color:var(--muted)">' + esc(e.message) + '</span>', true);
     return;
   }
-  try { DAILY = await loadJson('data/daily.json'); } catch (e) { /* optional */ }
+  [DAILY, TRAFFIC, TDETAIL, DEVICES, DEMOGRAPHICS] = await Promise.all([
+    loadOptional('data/daily.json'),
+    loadOptional('data/traffic.json'),
+    loadOptional('data/traffic_detail.json'),
+    loadOptional('data/devices.json'),
+    loadOptional('data/demographics.json'),
+  ]);
 
   const when = SUMMARY.generated_at ? new Date(SUMMARY.generated_at) : null;
   document.getElementById('stamp').textContent =
     when ? 'updated ' + when.toLocaleString() : '';
 
+  populateSources();
   renderMetrics();
   renderSpark();
+  renderChannelTraffic();
   render();
 }
 
-function currentRows() {
+function populateSources() {
+  const ch = slice(TRAFFIC, null) || {};
+  const names = Object.keys(ch);
+  const sel = document.getElementById('f-source');
+  const keep = sel.value;
+  sel.innerHTML = '<option value="all">Any</option>' +
+    names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  if (names.includes(keep)) sel.value = keep;
+  else { sel.value = 'all'; F.source = 'all'; }
+  sel.disabled = names.length === 0;
+}
+
+function allRows() {
   const w = (SUMMARY.windows || {})[currentWindow] || {};
   const meta = SUMMARY.video_meta || {};
-  let rows = Object.keys(w).map(id => {
+  return Object.keys(w).map(id => {
     const d = w[id], m = meta[id] || {};
     const eng = d.views ? ((d.likes + d.comments + d.shares) / d.views) * 100 : null;
-    return Object.assign({ id, title: m.title || id, thumb: m.thumbnail,
-                           published: m.published_at, engagement: eng }, d);
+    const dur = durationSeconds(m.duration);
+    return Object.assign({
+      id, title: m.title || id, thumb: m.thumbnail,
+      published: m.published_at || null,
+      publishedTs: m.published_at ? Date.parse(m.published_at) : null,
+      durationSec: dur, engagement: eng,
+    }, d);
   });
-  if (filter) {
-    const f = filter.toLowerCase();
+}
+
+function currentRows() {
+  let rows = allRows();
+
+  if (F.text) {
+    const f = F.text.toLowerCase();
     rows = rows.filter(r => (r.title || '').toLowerCase().includes(f));
   }
+  if (F.from) {
+    const t = Date.parse(F.from + 'T00:00:00Z');
+    rows = rows.filter(r => r.publishedTs !== null && r.publishedTs >= t);
+  }
+  if (F.to) {
+    // Inclusive of the chosen day.
+    const t = Date.parse(F.to + 'T23:59:59Z');
+    rows = rows.filter(r => r.publishedTs !== null && r.publishedTs <= t);
+  }
+  if (F.format !== 'all') {
+    rows = rows.filter(r => {
+      if (r.durationSec === null) return false;
+      return F.format === 'short' ? r.durationSec <= 60 : r.durationSec > 60;
+    });
+  }
+  if (F.source !== 'all') {
+    rows = rows.filter(r => {
+      const t = slice(TRAFFIC, r.id);
+      return t && t[F.source] && t[F.source].views > 0;
+    });
+  }
+  if (F.minViews > 0) {
+    rows = rows.filter(r => (r.views || 0) >= F.minViews);
+  }
+
   rows.sort((a, b) => {
     let x = a[sortKey], y = b[sortKey];
     if (sortKey === 'title') return sortDir * String(x).localeCompare(String(y));
@@ -182,8 +339,8 @@ function currentRows() {
 }
 
 function renderMetrics() {
-  const w = (SUMMARY.windows || {})[currentWindow] || {};
-  const vals = Object.values(w);
+  // Metric cards summarise the filtered selection, so they move with the filters.
+  const vals = currentRows();
   const imps = vals.reduce((s, v) => s + (v.impressions || 0), 0);
   const views = vals.reduce((s, v) => s + (v.views || 0), 0);
   const wt = vals.reduce((s, v) => s + (v.watch_time_minutes || 0), 0);
@@ -228,6 +385,88 @@ function renderSpark() {
   svg.classList.remove('hidden');
 }
 
+function trafficTable(sources) {
+  const names = Object.keys(sources || {});
+  if (!names.length) return null;
+  const total = names.reduce((s, n) => s + (sources[n].views || 0), 0) || 1;
+  const body = names.map(n => {
+    const d = sources[n];
+    const share = ((d.views || 0) / total) * 100;
+    return `<tr>
+      <td style="text-align:left">${esc(n)}
+        <span class="bar" style="width:${Math.max(share, 1)}%"></span></td>
+      <td>${fmt(d.views)}</td>
+      <td>${share.toFixed(1)}%</td>
+      <td>${mins(d.watch_time_minutes)}</td>
+      <td>${secs(d.avg_view_seconds)}</td>
+      <td>${fmt(d.impressions)}</td>
+      <td class="${ctrClass(d.ctr)}">${pct(d.ctr)}</td>
+    </tr>`;
+  }).join('');
+  return `<table>
+    <thead><tr>
+      <th style="text-align:left">Source</th><th>Views</th><th>Share</th>
+      <th>Watch time</th><th>Avg view</th><th>Impressions</th><th>CTR</th>
+    </tr></thead><tbody>${body}</tbody></table>`;
+}
+
+function renderChannelTraffic() {
+  const el = document.getElementById('channel-traffic');
+  const tbl = trafficTable(slice(TRAFFIC, null));
+  if (!tbl) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="panel-box" style="margin:14px 0">
+    <h3>Traffic sources · channel · ${esc(bucketLabel())}</h3>${tbl}</div>`;
+}
+
+function countTable(obj, label, cap) {
+  const entries = Object.entries(obj || {});
+  if (!entries.length) return null;
+  const total = entries.reduce((s, [, v]) => s + v, 0) || 1;
+  const rows = entries.slice(0, cap || 12).map(([k, v]) => `<tr>
+      <td style="text-align:left">${esc(k)}</td>
+      <td>${fmt(v)}</td>
+      <td>${((v / total) * 100).toFixed(1)}%</td>
+    </tr>`).join('');
+  return `<table><thead><tr>
+      <th style="text-align:left">${esc(label)}</th><th>Views</th><th>Share</th>
+    </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function pending(what) {
+  return `<div class="empty">No ${esc(what)} data for ${esc(bucketLabel())} yet.</div>`;
+}
+
+function detailPanels(id) {
+  const t = trafficTable(slice(TRAFFIC, id));
+
+  const det = slice(TDETAIL, id) || {};
+  const detHtml = Object.keys(det).length
+    ? Object.keys(det).map(src =>
+        `<div style="margin-bottom:10px">${countTable(det[src], src, 10) || ''}</div>`).join('')
+    : null;
+
+  const dev = slice(DEVICES, id);
+  const devHtml = dev && (Object.keys(dev.device || {}).length || Object.keys(dev.os || {}).length)
+    ? (countTable(dev.device, 'Device', 8) || '') + (countTable(dev.os, 'OS', 8) || '')
+    : null;
+
+  const demo = slice(DEMOGRAPHICS, id);
+  const demoHtml = demo && Object.keys(demo).length
+    ? countTable(demo, 'Age / gender', 12)
+    : null;
+
+  return `<div class="panels">
+    <div class="panel-box"><h3>Traffic sources · ${esc(bucketLabel())}</h3>
+      ${t || pending('traffic source')}</div>
+    <div class="panel-box"><h3>Search terms &amp; referrers</h3>
+      ${detHtml || pending('traffic detail')}</div>
+    <div class="panel-box"><h3>Device &amp; OS</h3>
+      ${devHtml || pending('device')}</div>
+    <div class="panel-box"><h3>Age &amp; gender</h3>
+      ${demoHtml || pending('demographic')}</div>
+  </div>`;
+}
+
 function ctrClass(v) {
   if (v === null || v === undefined) return '';
   if (v >= 6) return 'good';
@@ -237,17 +476,28 @@ function ctrClass(v) {
 
 function render() {
   const rows = currentRows();
-  document.getElementById('rows').innerHTML = rows.map(r => `
-    <tr>
+  document.getElementById('f-count').textContent =
+    `${rows.length} of ${allRows().length} videos`;
+
+  document.querySelectorAll('[data-sort]').forEach(th =>
+    th.classList.toggle('sorted', th.dataset.sort === sortKey));
+
+  const html = rows.map(r => {
+    const open = expanded === r.id;
+    const sub = [r.durationSec !== null ? secs(r.durationSec) : null, r.id]
+      .filter(Boolean).join(' · ');
+    return `
+    <tr class="row ${open ? 'open' : ''}" data-id="${esc(r.id)}">
       <td>
         <div class="title-cell">
-          ${r.thumb ? `<img src="${r.thumb}" alt="" loading="lazy">` : ''}
+          ${r.thumb ? `<img src="${esc(r.thumb)}" alt="" loading="lazy">` : ''}
           <div>
-            <div>${(r.title || r.id).replace(/</g, '&lt;')}</div>
-            <div class="sub">${r.published ? new Date(r.published).toLocaleDateString() : r.id}</div>
+            <div><span class="caret">${open ? '▼' : '▶'}</span>${esc(r.title || r.id)}</div>
+            <div class="sub">${esc(sub)}</div>
           </div>
         </div>
       </td>
+      <td>${r.published ? new Date(r.published).toLocaleDateString() : '—'}</td>
       <td>${fmt(r.impressions)}</td>
       <td class="${ctrClass(r.ctr)}">${pct(r.ctr)}</td>
       <td>${fmt(r.views)}</td>
@@ -255,8 +505,22 @@ function render() {
       <td>${mins(r.watch_time_minutes)}</td>
       <td>${fmt(r.subscribers_gained)}</td>
       <td>${pct(r.engagement)}</td>
-    </tr>`).join('') ||
-    '<tr><td colspan="8" style="color:var(--muted);padding:20px;">No videos in this window.</td></tr>';
+    </tr>` + (open
+      ? `<tr><td class="detail" colspan="${COLSPAN}">${detailPanels(r.id)}</td></tr>`
+      : '');
+  }).join('');
+
+  document.getElementById('rows').innerHTML = html ||
+    `<tr><td colspan="${COLSPAN}" style="color:var(--muted);padding:20px;">` +
+    `No videos match these filters.</td></tr>`;
+}
+
+function refreshAll() {
+  populateSources();
+  renderMetrics();
+  renderSpark();
+  renderChannelTraffic();
+  render();
 }
 
 document.querySelectorAll('[data-window]').forEach(b => {
@@ -264,7 +528,7 @@ document.querySelectorAll('[data-window]').forEach(b => {
     document.querySelectorAll('[data-window]').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
     currentWindow = b.dataset.window;
-    renderMetrics(); renderSpark(); render();
+    refreshAll();
   });
 });
 
@@ -277,8 +541,30 @@ document.querySelectorAll('[data-sort]').forEach(th => {
   });
 });
 
-document.getElementById('search').addEventListener('input', e => {
-  filter = e.target.value; render();
+// Clicking a row opens its breakdown; clicking it again closes it.
+document.getElementById('rows').addEventListener('click', e => {
+  const tr = e.target.closest('tr.row');
+  if (!tr) return;
+  expanded = expanded === tr.dataset.id ? null : tr.dataset.id;
+  render();
+});
+
+const on = (id, ev, fn) => document.getElementById(id).addEventListener(ev, fn);
+on('f-text', 'input', e => { F.text = e.target.value; renderMetrics(); render(); });
+on('f-from', 'change', e => { F.from = e.target.value; renderMetrics(); render(); });
+on('f-to', 'change', e => { F.to = e.target.value; renderMetrics(); render(); });
+on('f-format', 'change', e => { F.format = e.target.value; renderMetrics(); render(); });
+on('f-source', 'change', e => { F.source = e.target.value; renderMetrics(); render(); });
+on('f-minviews', 'input', e => {
+  F.minViews = Number(e.target.value) || 0; renderMetrics(); render();
+});
+on('f-reset', 'click', () => {
+  F.text = ''; F.from = ''; F.to = ''; F.format = 'all'; F.source = 'all'; F.minViews = 0;
+  ['f-text', 'f-from', 'f-to', 'f-minviews'].forEach(i => document.getElementById(i).value = '');
+  document.getElementById('f-format').value = 'all';
+  document.getElementById('f-source').value = 'all';
+  expanded = null;
+  refreshAll();
 });
 
 init();
