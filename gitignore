@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.tmp
+client_secret*.json
+.env
+.DS_Store

@@ -1,1099 +1,287 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>YouTube Channel Analyzer</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MLMariss · YouTube analytics</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #1a1a1a; min-height: 100vh; }
-  .container { max-width: 960px; margin: 0 auto; padding: 2rem 1rem; }
-  .header { display: flex; align-items: center; gap: 12px; margin-bottom: 2rem; }
-  .header h1 { font-size: 22px; font-weight: 600; }
-  .header p { font-size: 14px; color: #666; }
-  .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
-  .hidden { display: none !important; }
-
-  /* Setup / keys screen */
-  .setup-area { text-align: center; padding: 2rem 1rem; }
-  .setup-area h2 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
-  .setup-area p { color: #666; font-size: 14px; margin-bottom: 1.5rem; }
-  .field-group { text-align: left; max-width: 480px; margin: 0 auto 1rem; }
-  .field-group label { font-size: 13px; font-weight: 500; margin-bottom: 5px; display: block; }
-  .field-group input { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 9px 12px; font-size: 14px; font-family: inherit; }
-  .field-group .hint { font-size: 11px; color: #aaa; margin-top: 4px; }
-  .error-msg { color: #c62828; font-size: 13px; margin-top: 8px; }
-
-  /* Buttons */
-  .btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #ddd; border-radius: 8px; padding: 8px 14px; font-size: 13px; cursor: pointer; font-family: inherit; background: #fff; color: #1a1a1a; transition: background 0.15s; }
-  .btn:hover { background: #f5f5f5; }
-  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  .btn-primary { background: #1a73e8; color: #fff; border-color: transparent; }
-  .btn-primary:hover { background: #1557b0; }
-  .btn-google { display: inline-flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 11px 22px; font-size: 15px; cursor: pointer; font-family: inherit; color: #1a1a1a; }
-  .btn-google:hover { background: #f5f5f5; }
-  .btn-danger { background: #fff; color: #c62828; border-color: #f5c6c6; }
-  .btn-danger:hover { background: #fce4ec; }
-
-  /* Channel header */
-  .channel-header { display: flex; align-items: center; gap: 14px; margin-bottom: 1.25rem; flex-wrap: wrap; }
-  .channel-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #eee; }
-  .channel-name { font-size: 16px; font-weight: 600; }
-  .channel-handle { font-size: 13px; color: #888; }
-  .channel-actions { margin-left: auto; display: flex; gap: 8px; }
-
-  /* Metrics grid */
-  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 1rem; }
-  .metric { background: #f9f9f9; border-radius: 8px; padding: 0.85rem; }
-  .metric-label { font-size: 11px; color: #888; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.03em; }
-  .metric-value { font-size: 21px; font-weight: 700; }
-
-  /* Date range + load */
-  .load-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 1rem; padding: 1rem; background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; }
-  .load-bar label { font-size: 13px; font-weight: 500; }
-  .preset-btns { display: flex; gap: 6px; flex-wrap: wrap; }
-  .preset-btn { padding: 5px 12px; font-size: 12px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; background: #fff; font-family: inherit; }
-  .preset-btn.active { background: #1a73e8; color: #fff; border-color: transparent; }
-  .date-inputs { display: flex; gap: 8px; align-items: center; }
-  .date-inputs input[type=date] { border: 1px solid #ddd; border-radius: 6px; padding: 5px 9px; font-size: 13px; font-family: inherit; }
-
-  /* Tabs */
-  .tab-bar { display: flex; gap: 4px; border-bottom: 1px solid #e5e5e5; margin-bottom: 1rem; overflow-x: auto; }
-  .tab { padding: 10px 16px; font-size: 14px; cursor: pointer; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; color: #888; background: none; font-family: inherit; white-space: nowrap; }
-  .tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; font-weight: 500; }
-  .tab:hover { color: #1a1a1a; }
-
-  /* Progress */
-  .progress-wrap { text-align: center; padding: 2rem; }
-  .progress-bar-track { height: 6px; background: #eee; border-radius: 3px; margin: 10px auto; max-width: 320px; }
-  .progress-bar-fill { height: 100%; border-radius: 3px; background: #1a73e8; transition: width 0.3s; }
-  .progress-text { font-size: 14px; color: #555; font-weight: 500; }
-  .progress-sub { font-size: 12px; color: #aaa; margin-top: 5px; }
-
-  /* Table */
-  .controls { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
-  .controls input[type=text] { border: 1px solid #ddd; border-radius: 8px; padding: 7px 12px; font-size: 13px; font-family: inherit; flex: 1; min-width: 160px; }
-  .controls select { border: 1px solid #ddd; border-radius: 8px; padding: 7px 11px; font-size: 13px; font-family: inherit; background: #fff; }
-  .table-wrap { overflow-x: auto; }
+  :root {
+    --bg: #0f1115; --panel: #171a21; --line: #262b36;
+    --text: #e6e9ef; --muted: #949cad; --accent: #5b9dff;
+    --good: #4ec98a; --warn: #f0b34a; --bad: #e5675f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  header {
+    padding: 18px 24px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;
+  }
+  h1 { font-size: 17px; margin: 0; font-weight: 600; }
+  .stamp { color: var(--muted); font-size: 12px; }
+  .wrap { padding: 20px 24px 60px; max-width: 1400px; }
+  .metrics { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+  .metric {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px 14px; min-width: 130px;
+  }
+  .metric .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .metric .value { font-size: 20px; font-weight: 600; margin-top: 2px; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  button, select, input {
+    background: var(--panel); color: var(--text); border: 1px solid var(--line);
+    border-radius: 6px; padding: 6px 12px; font: inherit; cursor: pointer;
+  }
+  button.active { background: var(--accent); border-color: var(--accent); color: #05070c; font-weight: 600; }
+  input[type=search] { cursor: text; min-width: 220px; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { text-align: left; padding: 8px 10px; border-bottom: 2px solid #e5e5e5; color: #666; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; cursor: pointer; white-space: nowrap; user-select: none; }
-  th:hover { color: #1a1a1a; }
-  td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
-  tr:hover td { background: #fafafa; }
-  .thumb { width: 64px; height: 36px; border-radius: 4px; object-fit: cover; background: #eee; }
-  .video-title-cell { max-width: 200px; }
-  .video-title-text { font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; }
-  .video-date { font-size: 11px; color: #aaa; margin-top: 2px; }
-  .bar-mini { height: 4px; border-radius: 2px; background: #1a73e8; margin-top: 3px; max-width: 80px; }
-  .score-badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 700; }
-  .score-high { background: #e8f5e9; color: #2e7d32; }
-  .score-mid { background: #fff8e1; color: #f57f17; }
-  .score-low { background: #fce4ec; color: #c62828; }
-  .pagination { margin-top: 10px; display: flex; gap: 8px; align-items: center; }
-  .page-info { font-size: 13px; color: #666; }
-
-  /* Traffic bars */
-  .bar-wrap { margin: 7px 0; }
-  .bar-label { display: flex; justify-content: space-between; font-size: 12px; color: #555; margin-bottom: 3px; }
-  .bar-track { height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 4px; background: #1a73e8; }
-  .section-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
-  .stat-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
-  .stat-row:last-child { border-bottom: none; }
-  .stat-label { color: #666; }
-  .stat-value { font-weight: 600; }
-
-  /* AI */
-  .prompt-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-  .analysis-box { background: #f9f9f9; border-radius: 8px; padding: 1rem; font-size: 14px; line-height: 1.7; white-space: pre-wrap; min-height: 80px; }
-  .analysis-box.loading { color: #999; font-style: italic; }
-
-  /* Modal */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; display: none; align-items: center; justify-content: center; padding: 1rem; }
-  .modal-overlay.visible { display: flex; }
-  .modal { background: #fff; border-radius: 12px; width: 100%; max-width: 640px; max-height: 88vh; overflow-y: auto; padding: 1.5rem; position: relative; }
-  .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 20px; cursor: pointer; color: #888; line-height: 1; }
-  .modal-thumb { width: 100%; border-radius: 8px; margin-bottom: 1rem; aspect-ratio: 16/9; object-fit: cover; background: #eee; }
-  .modal-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; margin: 1rem 0; }
-  .modal-metric { background: #f9f9f9; border-radius: 8px; padding: 0.65rem; text-align: center; }
-  .modal-metric-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 3px; }
-  .modal-metric-value { font-size: 16px; font-weight: 700; }
-  .traffic-mini { margin-top: 1rem; }
-  .traffic-mini-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 12px; }
-  .traffic-mini-label { width: 130px; color: #555; flex-shrink: 0; }
-  .traffic-mini-bar-track { flex: 1; height: 6px; background: #f0f0f0; border-radius: 3px; overflow: hidden; }
-  .traffic-mini-bar-fill { height: 100%; border-radius: 3px; background: #1a73e8; }
-  .traffic-mini-pct { width: 36px; text-align: right; color: #888; font-size: 11px; }
-  .empty-state { text-align: center; padding: 3rem 1rem; color: #aaa; font-size: 14px; }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+  th, td { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; white-space: normal; min-width: 280px; }
+  th { color: var(--muted); font-weight: 500; cursor: pointer; user-select: none; font-size: 12px; }
+  th:hover { color: var(--text); }
+  tbody tr:hover { background: #1c2029; }
+  .title-cell { display: flex; gap: 10px; align-items: center; }
+  .title-cell img { width: 64px; height: 36px; object-fit: cover; border-radius: 4px; flex: none; }
+  .title-cell .sub { color: var(--muted); font-size: 11px; }
+  .notice {
+    background: var(--panel); border: 1px solid var(--line);
+    border-left: 3px solid var(--warn); border-radius: 8px;
+    padding: 14px 16px; margin-bottom: 16px; font-size: 13px;
+  }
+  .notice.error { border-left-color: var(--bad); }
+  .notice code { background: #0b0d12; padding: 1px 5px; border-radius: 3px; }
+  .hidden { display: none; }
+  .good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+  .spark { display: block; }
 </style>
 </head>
 <body>
-<div class="container">
 
-  <div class="header">
-    <svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#FF0000"/><polygon points="13,10 24,16 13,22" fill="white"/></svg>
-    <div>
-      <h1>YouTube channel analyzer</h1>
-      <p>Deep performance analysis · Powered by Claude AI</p>
-    </div>
+<header>
+  <h1>MLMariss · YouTube analytics</h1>
+  <span class="stamp" id="stamp">loading…</span>
+</header>
+
+<div class="wrap">
+
+  <div id="notice" class="notice hidden"></div>
+
+  <div class="metrics" id="metrics"></div>
+
+  <div class="controls">
+    <span style="color:var(--muted);font-size:12px;">Window:</span>
+    <button data-window="7d">7 days</button>
+    <button data-window="28d">28 days</button>
+    <button data-window="90d" class="active">90 days</button>
+    <button data-window="365d">365 days</button>
+    <button data-window="all">All time</button>
+    <input type="search" id="search" placeholder="Filter titles…" />
   </div>
 
-  <!-- STEP 1: Google sign-in -->
-  <div id="signin-section">
-    <div class="card setup-area">
-      <div style="font-size:36px;margin-bottom:12px;">📺</div>
-      <h2>Sign in with Google</h2>
-      <p>First, sign in with the Google account that owns your YouTube channel. We'll verify your account before asking for API keys.</p>
-      <button class="btn-google" onclick="startGoogleAuth()">
-        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 01-7.18-2.54H1.83v2.07A8 8 0 008.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 010-3.04V5.41H1.83a8 8 0 000 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.83 5.4L4.5 7.49a4.77 4.77 0 014.48-3.31z"/></svg>
-        Sign in with Google
-      </button>
-      <p id="signin-error" class="error-msg hidden"></p>
-    </div>
-  </div>
+  <svg id="spark" class="spark hidden" width="100%" height="90"></svg>
 
-  <!-- STEP 2: API Keys (shown after Google login) -->
-  <div id="setup-section" class="hidden">
-    <div class="card setup-area">
-      <h2>🔑 Enter your YouTube API credentials</h2>
-      <p>Your keys are saved in your browser only — never in code. AI analysis will appear directly in this Claude chat.</p>
-      <div class="field-group">
-        <label>YouTube / Google API Key</label>
-        <input type="password" id="input-api-key" placeholder="AIzaSy..." autocomplete="off" />
-        <div class="hint">From Google Cloud Console → APIs &amp; Services → Credentials</div>
-      </div>
-      <div class="field-group">
-        <label>OAuth Client ID</label>
-        <input type="text" id="input-client-id" placeholder="123456789-abc...apps.googleusercontent.com" autocomplete="off" />
-        <div class="hint">From Google Cloud Console → OAuth 2.0 Client IDs</div>
-      </div>
-      <div id="verified-account"></div>
-      <button class="btn btn-primary" onclick="saveKeysAndContinue()" style="margin-top:0.5rem;">Save &amp; continue →</button>
-      <p id="setup-error" class="error-msg hidden"></p>
-    </div>
-  </div>
-
-  <!-- STEP 3: Dashboard -->
-  <div id="dashboard-section" class="hidden">
-
-    <div class="card">
-      <div class="channel-header">
-        <img id="channel-avatar" class="channel-avatar" src="" alt="avatar" />
-        <div>
-          <div class="channel-name" id="channel-name">—</div>
-          <div class="channel-handle" id="channel-handle">—</div>
-        </div>
-        <div class="channel-actions">
-          <button class="btn btn-danger" onclick="clearKeysAndSignOut()">🔓 Clear keys & sign out</button>
-        </div>
-      </div>
-      <div class="metrics-grid">
-        <div class="metric"><div class="metric-label">Subscribers</div><div class="metric-value" id="m-subs">—</div></div>
-        <div class="metric"><div class="metric-label">Total views</div><div class="metric-value" id="m-views">—</div></div>
-        <div class="metric"><div class="metric-label">Videos</div><div class="metric-value" id="m-videos">—</div></div>
-        <div class="metric"><div class="metric-label">Watch time</div><div class="metric-value" id="m-watchtime">—</div></div>
-        <div class="metric"><div class="metric-label">Avg CTR</div><div class="metric-value" id="m-ctr">—</div></div>
-        <div class="metric"><div class="metric-label">Avg retention</div><div class="metric-value" id="m-retention">—</div></div>
-        <div class="metric"><div class="metric-label">Impressions</div><div class="metric-value" id="m-impressions">—</div></div>
-        <div class="metric"><div class="metric-label">Videos loaded</div><div class="metric-value" id="m-loaded">—</div></div>
-      </div>
-    </div>
-
-    <!-- Date range + load -->
-    <div class="load-bar">
-      <label>Date range:</label>
-      <div class="preset-btns">
-        <button class="preset-btn" data-preset="30d" onclick="setPreset('30d', event)">Last 30 days</button>
-        <button class="preset-btn active" data-preset="90d" onclick="setPreset('90d', event)">Last 90 days</button>
-        <button class="preset-btn" data-preset="365d" onclick="setPreset('365d', event)">Last 365 days</button>
-        <button class="preset-btn" data-preset="thisyear" onclick="setPreset('thisyear', event)">This year</button>
-        <button class="preset-btn" data-preset="lastyear" onclick="setPreset('lastyear', event)">Last year</button>
-      </div>
-      <div class="date-inputs">
-        <input type="date" id="date-from" />
-        <span style="font-size:13px;color:#aaa;">→</span>
-        <input type="date" id="date-to" />
-      </div>
-      <button class="btn btn-primary" id="load-btn" onclick="startLoad()">⏳ Load data</button>
-    </div>
-
-    <div id="error-banner" class="card hidden" style="border-left:4px solid #d93025;font-size:13px;padding:12px 16px;margin-bottom:12px;"></div>
-    <div id="reach-notice" class="card hidden" style="border-left:4px solid #f9ab00;font-size:13px;padding:12px 16px;margin-bottom:12px;"></div>
-
-    <div id="progress-wrap" class="card progress-wrap hidden">
-      <div class="progress-text" id="progress-text">Loading...</div>
-      <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-bar" style="width:0%"></div></div>
-      <div class="progress-sub" id="progress-sub"></div>
-    </div>
-
-    <div id="main-content" class="hidden">
-      <div class="tab-bar">
-        <button class="tab active" onclick="showTab('videos')">📹 Videos</button>
-        <button class="tab" onclick="showTab('traffic')">📊 Traffic & demographics</button>
-        <button class="tab" onclick="showTab('ai')">✨ AI analysis</button>
-      </div>
-
-      <!-- VIDEOS TAB -->
-      <div id="tab-videos">
-        <div class="card">
-          <div class="controls">
-            <input type="text" id="search-input" placeholder="Search videos..." oninput="currentPage=0;renderPage()" />
-            <select id="sort-select" onchange="currentPage=0;renderPage()">
-              <option value="views">Sort: Views</option>
-              <option value="watchtime">Sort: Watch time</option>
-              <option value="ctr">Sort: CTR</option>
-              <option value="retention">Sort: Retention</option>
-              <option value="engagement">Sort: Engagement</option>
-              <option value="impressions">Sort: Impressions</option>
-              <option value="date">Sort: Date</option>
-              <option value="score">Sort: Score</option>
-            </select>
-            <select id="filter-select" onchange="currentPage=0;renderPage()">
-              <option value="all">All videos</option>
-              <option value="high">High performers</option>
-              <option value="mid">Average</option>
-              <option value="low">Underperformers</option>
-            </select>
-            <span id="video-count" style="font-size:13px;color:#888;white-space:nowrap;"></span>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>Title</th>
-                  <th onclick="setSort('views')">Views ↕</th>
-                  <th onclick="setSort('watchtime')">Watch time ↕</th>
-                  <th onclick="setSort('ctr')">CTR ↕</th>
-                  <th onclick="setSort('retention')">Retention ↕</th>
-                  <th onclick="setSort('engagement')">Engagement ↕</th>
-                  <th onclick="setSort('impressions')">Impressions ↕</th>
-                  <th onclick="setSort('score')">Score ↕</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="videos-tbody"></tbody>
-            </table>
-          </div>
-          <div class="pagination">
-            <button class="btn" id="prev-btn" onclick="changePage(-1)">← Prev</button>
-            <span class="page-info" id="page-info"></span>
-            <button class="btn" id="next-btn" onclick="changePage(1)">Next →</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- TRAFFIC TAB -->
-      <div id="tab-traffic" class="hidden">
-        <div class="two-col">
-          <div class="card">
-            <div class="section-title">Traffic sources</div>
-            <div id="traffic-list"><div class="empty-state">No data loaded yet.</div></div>
-          </div>
-          <div class="card">
-            <div class="section-title">Demographics (age & gender)</div>
-            <div id="demo-list"><div class="empty-state">No data loaded yet.</div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- AI TAB -->
-      <div id="tab-ai" class="hidden">
-        <div class="card">
-          <div class="section-title">Claude AI analysis</div>
-          <p style="font-size:13px;color:#666;margin-bottom:12px;">Analysis requests are sent directly to your Claude chat — scroll up in Claude to see the response.</p>
-          <div class="prompt-row">
-            <button class="btn btn-primary" onclick="runAnalysis('overall')">📊 Overall insights</button>
-            <button class="btn" onclick="runAnalysis('growth')">📈 Growth tips</button>
-            <button class="btn" onclick="runAnalysis('content')">💡 Content ideas</button>
-            <button class="btn" onclick="runAnalysis('seo')">🔍 SEO review</button>
-            <button class="btn" onclick="runAnalysis('underperform')">⚠️ Underperformers</button>
-            <button class="btn" onclick="runAnalysis('reach')">👁 Reach &amp; CTR insights</button>
-            <button class="btn" onclick="runAnalysis('traffic')">🚦 Traffic analysis</button>
-          </div>
-          <div id="analysis-output" class="analysis-box loading">Load data first, then click a button above to get AI-powered insights.</div>
-        </div>
-      </div>
-    </div>
-
-    <div id="empty-state" class="card empty-state">
-      Select a date range and click <strong>Load data</strong> to begin analysis.
-    </div>
-  </div>
-
-  <!-- VIDEO DETAIL MODAL -->
-  <div id="modal-overlay" class="modal-overlay" onclick="closeModal(event)">
-    <div class="modal">
-      <button class="modal-close" onclick="closeModalDirect()">✕</button>
-      <img id="modal-thumb" class="modal-thumb" src="" alt="thumbnail" />
-      <h2 id="modal-title" style="font-size:15px;font-weight:600;margin-bottom:3px;padding-right:2rem;"></h2>
-      <div id="modal-date" style="font-size:12px;color:#aaa;margin-bottom:10px;"></div>
-      <div class="modal-metrics" id="modal-metrics"></div>
-      <div class="traffic-mini" id="modal-traffic"></div>
-      <div style="margin-top:1rem;">
-        <div class="section-title" style="font-size:13px;margin-bottom:6px;">Description</div>
-        <div id="modal-desc" style="font-size:13px;color:#555;line-height:1.6;max-height:70px;overflow:hidden;"></div>
-      </div>
-      <div style="margin-top:1rem;">
-        <button class="btn btn-primary" onclick="analyzeVideo()">✨ Analyze with Claude AI</button>
-      </div>
-      <div id="modal-analysis" class="analysis-box hidden" style="margin-top:12px;font-size:13px;"></div>
-    </div>
-  </div>
+  <table id="tbl">
+    <thead>
+      <tr>
+        <th data-sort="title">Video</th>
+        <th data-sort="impressions">Impressions</th>
+        <th data-sort="ctr">CTR</th>
+        <th data-sort="views">Views</th>
+        <th data-sort="avg_view_percentage">Retention</th>
+        <th data-sort="watch_time_minutes">Watch time</th>
+        <th data-sort="subscribers_gained">Subs</th>
+        <th data-sort="engagement">Engagement</th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
 
 </div>
-<script src="https://accounts.google.com/gsi/client" async></script>
-<script>
-// ─── State ───────────────────────────────────────────────────────────────────
-let API_KEY = '', CLIENT_ID = '';
-let accessToken = null, tokenClient = null;
-let channelData = {}, allVideos = [], analyticsMap = {}, videoTrafficMap = {};
-let trafficData = [], demoData = [];
-let currentPage = 0;
-const PAGE_SIZE = 25;
-// yt-analytics.readonly covers both the Analytics API and the Reporting API.
-// The monetary scope is intentionally omitted: Google's docs state it does not
-// grant access to monetary data in channel reports, so it buys nothing here.
-const SCOPES = 'https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly';
 
-const TRAFFIC_LABELS = {
-  'YT_SEARCH':'YouTube search','SUBSCRIBER':'Subscribers','BROWSE_FEATURES':'Browse / home',
-  'SUGGESTED_VIDEOS':'Suggested videos','EXTERNAL':'External sites','PLAYLIST':'Playlist',
-  'CHANNEL':'Channel page','NO_LINK_OTHER':'Other','NOTIFICATION':'Notifications',
-  'END_SCREEN':'End screen','SHORTS':'Shorts feed','HASHTAG':'Hashtag pages'
+<script>
+// This dashboard is read-only. There is no OAuth, no API key and no login:
+// the GitHub Actions collector writes data/*.json and this page just reads it.
+let SUMMARY = null, DAILY = null;
+let currentWindow = '90d', sortKey = 'impressions', sortDir = -1, filter = '';
+
+const fmt = n => {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  n = Number(n);
+  if (Math.abs(n) >= 1e6) return (n/1e6).toFixed(1) + 'M';
+  if (Math.abs(n) >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return Math.round(n).toLocaleString();
+};
+const pct = n => (n === null || n === undefined || isNaN(n)) ? '—' : Number(n).toFixed(1) + '%';
+const mins = m => {
+  if (!m) return '—';
+  const h = Math.floor(m/60), r = Math.round(m%60);
+  return h > 0 ? `${h}h ${r}m` : `${r}m`;
 };
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-function fmt(n) {
-  if (n === null || n === undefined || n === '') return '—';
-  n = parseFloat(n); if (isNaN(n)) return '—';
-  if (n >= 1000000) return (n/1000000).toFixed(1)+'M';
-  if (n >= 1000) return (n/1000).toFixed(1)+'K';
-  return Math.round(n).toLocaleString();
-}
-function fmtMin(m) { if (!m) return '—'; const h=Math.floor(m/60),mn=Math.round(m%60); return h>0?`${h}h ${mn}m`:`${mn}m`; }
-function fmtPct(n) { return (n!==null&&n!==undefined&&!isNaN(n)) ? parseFloat(n).toFixed(1)+'%' : '—'; }
-function fmtMoney(n) { return (n!==null&&n!==undefined&&!isNaN(n)) ? '$'+parseFloat(n).toFixed(2) : '—'; }
-function scoreClass(s) { return s>=70?'score-high':s>=40?'score-mid':'score-low'; }
-
-function calcScore(v) {
-  const a = analyticsMap[v.id]||{};
-  let score=0,count=0;
-  const views=parseInt(v.statistics?.viewCount||0);
-  const avgViews = allVideos.length ? allVideos.reduce((s,x)=>s+parseInt(x.statistics?.viewCount||0),0)/allVideos.length : 1;
-  if(avgViews){ score+=Math.min(100,(views/avgViews)*50); count++; }
-  if(a.ctr!==undefined){ score+=Math.min(100,a.ctr*20); count++; }
-  if(a.avgViewPct!==undefined){ score+=a.avgViewPct; count++; }
-  const likes=parseInt(v.statistics?.likeCount||0), comments=parseInt(v.statistics?.commentCount||0);
-  if(views>0){ score+=Math.min(100,((likes+comments)/views)*100*50); count++; }
-  return count?Math.round(score/count):0;
+function notice(html, isError) {
+  const el = document.getElementById('notice');
+  el.innerHTML = html;
+  el.classList.toggle('error', !!isError);
+  el.classList.remove('hidden');
 }
 
-function showEl(id){ document.getElementById(id).classList.remove('hidden'); }
-function hideEl(id){ document.getElementById(id).classList.add('hidden'); }
-function setProgress(pct,text,sub){ 
-  document.getElementById('progress-bar').style.width=pct+'%';
-  document.getElementById('progress-text').textContent=text;
-  document.getElementById('progress-sub').textContent=sub||'';
-}
-
-// ─── Date presets ────────────────────────────────────────────────────────────
-function setPreset(p, evt) {
-  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
-  // On initial load there is no click event, so fall back to matching by preset key.
-  const btn = (evt && evt.target) ? evt.target
-            : document.querySelector('.preset-btn[data-preset="'+p+'"]');
-  if(btn) btn.classList.add('active');
-  const today=new Date(), fmt=d=>d.toISOString().split('T')[0];
-  let from,to=fmt(today);
-  if(p==='30d'){ from=fmt(new Date(Date.now()-30*864e5)); }
-  else if(p==='90d'){ from=fmt(new Date(Date.now()-90*864e5)); }
-  else if(p==='365d'){ from=fmt(new Date(Date.now()-365*864e5)); }
-  else if(p==='thisyear'){ from=today.getFullYear()+'-01-01'; }
-  else if(p==='lastyear'){ const y=today.getFullYear()-1; from=y+'-01-01'; to=y+'-12-31'; }
-  document.getElementById('date-from').value=from;
-  document.getElementById('date-to').value=to;
-}
-
-// init default
-window.addEventListener('DOMContentLoaded',()=>{
-  setPreset('90d');
-  // If keys already saved, go straight to Google auth
-  const saved = loadKeys();
-  if(saved){ API_KEY=saved.apiKey; CLIENT_ID=saved.clientId; }
-  // Always start with Google sign-in first
-  showEl('signin-section'); hideEl('setup-section'); hideEl('dashboard-section');
-});
-
-// ─── Keys & Auth ─────────────────────────────────────────────────────────────
-function loadKeys(){ 
-  try{ const s=localStorage.getItem('yt_analyzer_keys'); return s?JSON.parse(s):null; }catch(e){ return null; }
-}
-function saveKeys(){ 
-  localStorage.setItem('yt_analyzer_keys',JSON.stringify({apiKey:API_KEY,clientId:CLIENT_ID}));
-}
-function clearKeysAndSignOut(){
-  localStorage.removeItem('yt_analyzer_keys');
-  if(accessToken) try{ google.accounts.oauth2.revoke(accessToken); }catch(e){}
-  accessToken=null; allVideos=[]; analyticsMap={}; videoTrafficMap={};
-  API_KEY=''; CLIENT_ID='';
-  hideEl('dashboard-section'); hideEl('setup-section');
-  showEl('signin-section');
-  document.getElementById('input-api-key').value='';
-  document.getElementById('input-client-id').value='';
-
-}
-
-// Step 1: Google sign-in (no keys needed yet — uses a temp client id or prompts)
-function startGoogleAuth(){
-  // We need CLIENT_ID to init OAuth. If saved, use it; otherwise prompt for keys first.
-  if(!CLIENT_ID){
-    // No keys saved yet — skip to keys screen directly, then come back
-    hideEl('signin-section'); showEl('setup-section');
-    document.getElementById('setup-error').textContent='Please enter your API credentials first, then we will sign you in.';
-    document.getElementById('setup-error').classList.remove('hidden');
-    return;
-  }
-  initGoogleAuth();
-}
-
-function initGoogleAuth(){
-  if(!window.google){ setTimeout(initGoogleAuth,300); return; }
-  tokenClient=google.accounts.oauth2.initTokenClient({
-    client_id:CLIENT_ID, scope:SCOPES,
-    callback:(resp)=>{
-      if(resp.error){
-        const e=document.getElementById('signin-error');
-        e.textContent='Sign-in failed: '+resp.error; e.classList.remove('hidden');
-        return;
-      }
-      accessToken=resp.access_token;
-      // Verify account then proceed
-      verifyAndProceed();
-    }
-  });
-  tokenClient.requestAccessToken();
-}
-
-async function verifyAndProceed(){
-  // Fetch Google account info to verify
-  try{
-    const r = await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true&key='+CLIENT_ID, {
-      headers:{Authorization:'Bearer '+accessToken}
-    });
-    // Even without API key yet, we can verify the token is valid via userinfo
-    const ui = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+accessToken}});
-    const user = await ui.json();
-    // Show verified badge on keys screen
-    const verifiedHtml = user.email ? 
-      `<div style="display:flex;align-items:center;gap:10px;background:#e8f5e9;border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:13px;">
-        <img src="${user.picture}" style="width:32px;height:32px;border-radius:50%;" />
-        <div><strong>${user.name}</strong><br><span style="color:#555;">${user.email}</span></div>
-        <span style="margin-left:auto;color:#2e7d32;font-weight:600;">✅ Verified</span>
-      </div>` : '';
-    document.getElementById('verified-account').innerHTML = verifiedHtml;
-  }catch(e){ /* silently continue */ }
-
-  const saved=loadKeys();
-  if(saved && saved.apiKey){
-    API_KEY=saved.apiKey; CLIENT_ID=saved.clientId||CLIENT_ID;
-    hideEl('signin-section'); hideEl('setup-section');
-    showEl('dashboard-section'); hideEl('main-content');
-    loadChannelInfo();
-  } else {
-    hideEl('signin-section');
-    showEl('setup-section');
-    if(saved){
-      document.getElementById('input-api-key').value=saved.apiKey||'';
-      document.getElementById('input-client-id').value=saved.clientId||'';
-    }
-  }
-}
-
-function saveKeysAndContinue(){
-  const ak=document.getElementById('input-api-key').value.trim();
-  const ck=document.getElementById('input-client-id').value.trim();
-  const err=document.getElementById('setup-error');
-  if(!ak||!ck){ err.textContent='Please fill in both fields.'; err.classList.remove('hidden'); return; }
-  err.classList.add('hidden');
-  API_KEY=ak; CLIENT_ID=ck;
-  saveKeys();
-  // If already signed in, go to dashboard; else trigger auth
-  if(accessToken){
-    hideEl('setup-section'); showEl('dashboard-section'); hideEl('main-content');
-    loadChannelInfo();
-  } else {
-    initGoogleAuth();
-  }
-}
-
-function showSetupError(msg){
-  showEl('setup-section'); hideEl('dashboard-section'); hideEl('signin-section');
-  const e=document.getElementById('setup-error');
-  e.textContent=msg; e.classList.remove('hidden');
-}
-
-// The Analytics and Reporting APIs reject requests that carry an API key —
-// they are OAuth-only. Only youtube/v3 (Data API) gets the key appended.
-function needsApiKey(url){
-  return url.indexOf('googleapis.com/youtube/v3') !== -1;
-}
-
-async function apiFetch(url){
-  let finalUrl = url;
-  if(needsApiKey(url)){
-    const sep = url.includes('?') ? '&' : '?';
-    finalUrl = url + sep + 'key=' + API_KEY;
-  }
-  const r = await fetch(finalUrl, {headers:{Authorization:'Bearer '+accessToken}});
-  if(!r.ok){
-    const t = await r.text();
-    let msg = t;
-    try { const j = JSON.parse(t); if(j.error && j.error.message) msg = j.error.message; } catch(e){}
-    const err = new Error('HTTP '+r.status+': '+msg.slice(0,400));
-    err.status = r.status;
-    throw err;
-  }
+async function loadJson(path) {
+  const r = await fetch(path + '?t=' + Date.now());
+  if (!r.ok) throw new Error(path + ' → HTTP ' + r.status);
   return r.json();
 }
 
-// ─── Error surfacing ─────────────────────────────────────────────────────────
-// Previously every failure was swallowed into console.warn, so the UI rendered
-// em-dashes and looked like it had succeeded. Failures now collect here and
-// render into a banner.
-let loadErrors = [];
-function noteError(label, e){
-  console.warn(label, e && e.message ? e.message : e);
-  loadErrors.push({label, message: (e && e.message) ? e.message : String(e)});
-}
-function renderErrors(){
-  const box = document.getElementById('error-banner');
-  if(!box) return;
-  if(!loadErrors.length){ box.classList.add('hidden'); box.innerHTML=''; return; }
-  const seen = {}, uniq = [];
-  loadErrors.forEach(err=>{ const k=err.label+'|'+err.message; if(!seen[k]){ seen[k]=1; uniq.push(err); } });
-  box.innerHTML = '<strong>Some data could not be loaded:</strong><ul style="margin:6px 0 0 18px;padding:0;">'
-    + uniq.map(e=>`<li><b>${e.label}</b>: ${e.message.replace(/</g,'&lt;')}</li>`).join('')
-    + '</ul>';
-  box.classList.remove('hidden');
-}
-
-// ─── Channel info (loads once after sign-in) ─────────────────────────────────
-async function loadChannelInfo(){
-  try{
-    const ch=await apiFetch('https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true');
-    const item=ch.items[0]; channelData=item;
-    document.getElementById('channel-name').textContent=item.snippet.title;
-    document.getElementById('channel-handle').textContent='@'+(item.snippet.customUrl||item.id);
-    document.getElementById('channel-avatar').src=item.snippet.thumbnails.default.url;
-    const s=item.statistics;
-    document.getElementById('m-subs').textContent=fmt(s.subscriberCount);
-    document.getElementById('m-videos').textContent=fmt(s.videoCount);
-    document.getElementById('m-views').textContent=fmt(s.viewCount);
-  }catch(e){ console.error('Channel load failed',e); }
-}
-
-// ─── Main load ────────────────────────────────────────────────────────────────
-async function startLoad(){
-  const from=document.getElementById('date-from').value;
-  const to=document.getElementById('date-to').value;
-  if(!from||!to){ alert('Please select a date range.'); return; }
-  // videoTrafficMap is keyed by video id, so it must be an object, not an array.
-  allVideos=[]; analyticsMap={}; videoTrafficMap={}; loadErrors=[];
-  hideEl('main-content'); hideEl('empty-state');
-  showEl('progress-wrap');
-  document.getElementById('load-btn').disabled=true;
-
-  try{
-    await fetchVideosInRange(from,to);
-    await fetchAnalytics(from,to);
-    await fetchReach(from,to);
-    await fetchVideoTraffic(from,to);
-    await fetchChannelTrafficAndDemo(from,to);
-    updateChannelAggregates();
-    renderTable();
-    renderTraffic();
-    renderDemo();
-    renderErrors();
-    renderReachNotice();
-    hideEl('progress-wrap');
-    showEl('main-content'); hideEl('empty-state');
-  }catch(e){
-    setProgress(0,'Error: '+e.message,'');
-    noteError('Load', e);
-    renderErrors();
-    console.error(e);
-  }
-  document.getElementById('load-btn').disabled=false;
-}
-
-// Step 1: get all videos in date range
-async function fetchVideosInRange(from,to){
-  setProgress(5,'Finding videos in date range...','');
-  allVideos=[];
-  let pageToken='', batch=0;
-  do{
-    const url=`https://www.googleapis.com/youtube/v3/search?part=id&channelId=${channelData.id}&type=video&maxResults=50&order=date&publishedAfter=${from}T00:00:00Z&publishedBefore=${to}T23:59:59Z${pageToken?'&pageToken='+pageToken:''}`;
-    const r=await apiFetch(url);
-    const ids=r.items.map(i=>i.id.videoId);
-    if(ids.length){
-      const vr=await apiFetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${ids.join(',')}`);
-      allVideos.push(...vr.items);
-    }
-    pageToken=r.nextPageToken||'';
-    batch++;
-    setProgress(5+Math.min(25,batch*5),`Finding videos...`,`Found ${allVideos.length} so far...`);
-  }while(pageToken);
-  document.getElementById('m-loaded').textContent=allVideos.length;
-  setProgress(30,`Found ${allVideos.length} videos. Loading analytics...`,'');
-}
-
-// Step 2: analytics per video
-async function fetchAnalytics(from,to){
-  if(!allVideos.length) return;
-  const ids=allVideos.map(v=>v.id);
-  const batches=[];
-  for(let i=0;i<ids.length;i+=200) batches.push(ids.slice(i,i+200));
-
-  for(let b=0;b<batches.length;b++){
-    const filter='video=='+batches[b].join(',');
-    const pct=30+Math.round(((b+1)/batches.length)*30);
-    setProgress(pct,`Loading analytics batch ${b+1}/${batches.length}...`,`${Object.keys(analyticsMap).length} videos processed`);
-    // Revenue metrics (estimatedRevenue/estimatedAdRevenue/cpm) are NOT supported
-    // for channel reports — per Google's docs the yt-analytics-monetary.readonly
-    // scope does not grant access to monetary data in channel reports. Including
-    // them made the whole request fail. Thumbnail impressions and CTR do not
-    // exist in the Analytics API at all; they come from the Reporting API below.
-    try{
-      const metrics = 'views,estimatedMinutesWatched,averageViewPercentage,averageViewDuration,subscribersGained,likes,shares,comments';
-      const r=await apiFetch(`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=${from}&endDate=${to}&metrics=${metrics}&dimensions=video&filters=${encodeURIComponent(filter)}&maxResults=200&sort=-views`);
-      const cols = (r.columnHeaders||[]).map(c=>c.name);
-      const idx = name => cols.indexOf(name);
-      if(r.rows) r.rows.forEach(row=>{
-        const vid = row[idx('video')];
-        const get = n => { const i=idx(n); return i>=0 ? row[i] : undefined; };
-        analyticsMap[vid] = Object.assign(analyticsMap[vid]||{}, {
-          views:get('views'), watchMinutes:get('estimatedMinutesWatched'),
-          avgViewPct:get('averageViewPercentage'), avgViewDuration:get('averageViewDuration'),
-          subsGained:get('subscribersGained'), likes:get('likes'),
-          shares:get('shares'), comments:get('comments')
-        });
-      });
-    }catch(e){ noteError('Analytics (watch time / retention)', e); }
-  }
-}
-
-// ─── Reporting API: thumbnail impressions + CTR ──────────────────────────────
-// The Analytics API has no impressions/CTR metrics. They live only in the
-// Reporting API's channel_reach_basic_a1 bulk report, which requires a
-// scheduled job. Job creation yields ~30 days of backfilled history plus
-// daily reports going forward. First data appears within ~48h of job creation.
-const REACH_REPORT_TYPE = 'channel_reach_basic_a1';
-const REPORTING_BASE = 'https://youtubereporting.googleapis.com/v1';
-let reachJobId = null, reachStatus = 'unknown';
-
-async function findOrNoteReachJob(){
-  const r = await apiFetch(`${REPORTING_BASE}/jobs`);
-  const jobs = r.jobs || [];
-  const job = jobs.filter(j => j.reportTypeId === REACH_REPORT_TYPE)[0];
-  return job ? job.id : null;
-}
-
-async function createReachJob(){
-  const r = await fetch(`${REPORTING_BASE}/jobs`, {
-    method:'POST',
-    headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},
-    body: JSON.stringify({reportTypeId: REACH_REPORT_TYPE, name: 'Reach (impressions + CTR)'})
-  });
-  if(!r.ok){
-    const t = await r.text();
-    let msg = t; try { const j=JSON.parse(t); if(j.error&&j.error.message) msg=j.error.message; } catch(e){}
-    throw new Error('HTTP '+r.status+': '+msg.slice(0,400));
-  }
-  const j = await r.json();
-  return j.id;
-}
-
-// Parse a report CSV. Column order is NOT guaranteed, so the header row is
-// authoritative — never assume positions.
-function parseReachCsv(text){
-  const lines = text.trim().split(/\r?\n/);
-  if(lines.length < 2) return [];
-  const header = lines[0].split(',').map(h=>h.trim());
-  const iVideo = header.indexOf('video_id');
-  const iImp   = header.indexOf('video_thumbnail_impressions');
-  const iCtr   = header.indexOf('video_thumbnail_impressions_ctr');
-  if(iVideo < 0 || iImp < 0) return [];
-  const out = [];
-  for(let i=1;i<lines.length;i++){
-    if(!lines[i]) continue;
-    const c = lines[i].split(',');
-    out.push({
-      video: c[iVideo],
-      impressions: parseFloat(c[iImp]) || 0,
-      ctr: iCtr >= 0 ? (parseFloat(c[iCtr]) || 0) : null
-    });
-  }
-  return out;
-}
-
-async function fetchReach(from, to){
-  reachStatus = 'unknown';
+async function init() {
   try {
-    reachJobId = await findOrNoteReachJob();
-  } catch(e){
-    noteError('Reporting API (jobs list)', e);
-    reachStatus = 'error';
+    SUMMARY = await loadJson('data/summary.json');
+  } catch (e) {
+    document.getElementById('stamp').textContent = 'no data yet';
+    notice(
+      '<strong>No collected data yet.</strong><br>' +
+      'The collector has not produced <code>data/summary.json</code>. If you have just set this up: ' +
+      'add the three repository secrets, run the workflow once with <code>create_jobs</code> ticked, ' +
+      'then wait up to 48 hours for YouTube to generate the first reports. ' +
+      'Roughly 30 days of history are backfilled automatically.<br><br>' +
+      '<span style="color:var(--muted)">' + e.message + '</span>', true);
     return;
   }
+  try { DAILY = await loadJson('data/daily.json'); } catch (e) { /* optional */ }
 
-  if(!reachJobId){
-    reachStatus = 'nojob';
-    return; // UI offers a button to create it; we don't create silently.
-  }
+  const when = SUMMARY.generated_at ? new Date(SUMMARY.generated_at) : null;
+  document.getElementById('stamp').textContent =
+    when ? 'updated ' + when.toLocaleString() : '';
 
-  setProgress(62,'Loading impressions & CTR (Reporting API)...','');
+  renderMetrics();
+  renderSpark();
+  render();
+}
 
-  let reports = [];
-  try {
-    let pageToken = '';
-    do {
-      const url = `${REPORTING_BASE}/jobs/${reachJobId}/reports?pageSize=100`
-                + (pageToken ? `&pageToken=${pageToken}` : '');
-      const r = await apiFetch(url);
-      reports = reports.concat(r.reports || []);
-      pageToken = r.nextPageToken || '';
-    } while(pageToken);
-  } catch(e){
-    noteError('Reporting API (reports list)', e);
-    reachStatus = 'error';
-    return;
-  }
-
-  if(!reports.length){ reachStatus = 'pending'; return; }
-
-  // Keep only reports overlapping the selected range, and when several reports
-  // cover the same period (backfill), keep the one with the newest createTime.
-  const fromMs = new Date(from+'T00:00:00Z').getTime();
-  const toMs   = new Date(to  +'T23:59:59Z').getTime();
-  const byPeriod = {};
-  reports.forEach(rep=>{
-    const s = new Date(rep.startTime).getTime();
-    const e = new Date(rep.endTime).getTime();
-    if(e < fromMs || s > toMs) return;
-    const key = rep.startTime+'|'+rep.endTime;
-    const prev = byPeriod[key];
-    if(!prev || new Date(rep.createTime) > new Date(prev.createTime)) byPeriod[key] = rep;
+function currentRows() {
+  const w = (SUMMARY.windows || {})[currentWindow] || {};
+  const meta = SUMMARY.video_meta || {};
+  let rows = Object.keys(w).map(id => {
+    const d = w[id], m = meta[id] || {};
+    const eng = d.views ? ((d.likes + d.comments + d.shares) / d.views) * 100 : null;
+    return Object.assign({ id, title: m.title || id, thumb: m.thumbnail,
+                           published: m.published_at, engagement: eng }, d);
   });
-  const wanted = Object.keys(byPeriod).map(k=>byPeriod[k]);
-
-  if(!wanted.length){ reachStatus = 'norange'; return; }
-
-  const totals = {}; // videoId -> {impressions, clicks}
-  let done = 0, failed = 0;
-  for(const rep of wanted){
-    try {
-      const r = await fetch(rep.downloadUrl, {headers:{Authorization:'Bearer '+accessToken}});
-      if(!r.ok) { failed++; continue; }
-      const text = await r.text();
-      parseReachCsv(text).forEach(row=>{
-        if(!totals[row.video]) totals[row.video] = {impressions:0, clicks:0};
-        totals[row.video].impressions += row.impressions;
-        // CTR is a percentage per day; convert to clicks so daily rows can be
-        // aggregated correctly, then recompute CTR over the whole range.
-        if(row.ctr !== null) totals[row.video].clicks += row.impressions * (row.ctr/100);
-      });
-    } catch(e){ failed++; }
-    done++;
-    setProgress(62 + Math.round((done/wanted.length)*10),
-      `Loading impressions & CTR (${done}/${wanted.length} days)...`,'');
+  if (filter) {
+    const f = filter.toLowerCase();
+    rows = rows.filter(r => (r.title || '').toLowerCase().includes(f));
   }
-
-  Object.keys(totals).forEach(vid=>{
-    const t = totals[vid];
-    analyticsMap[vid] = analyticsMap[vid] || {};
-    analyticsMap[vid].impressions = t.impressions;
-    analyticsMap[vid].ctr = t.impressions > 0 ? (t.clicks / t.impressions) * 100 : null;
+  rows.sort((a, b) => {
+    let x = a[sortKey], y = b[sortKey];
+    if (sortKey === 'title') return sortDir * String(x).localeCompare(String(y));
+    x = (x === null || x === undefined) ? -Infinity : x;
+    y = (y === null || y === undefined) ? -Infinity : y;
+    return sortDir * (x - y);
   });
-
-  reachStatus = failed && failed === wanted.length ? 'error' : 'ok';
-  if(failed) noteError('Reporting API (report download)', new Error(failed+' of '+wanted.length+' daily reports failed to download'));
+  return rows;
 }
 
-function renderReachNotice(){
-  const box = document.getElementById('reach-notice');
-  if(!box) return;
-  let html = '';
-  if(reachStatus === 'nojob'){
-    html = `Impressions and CTR require a YouTube Reporting API job, which is not yet scheduled.
-      <button class="preset-btn" style="margin-left:8px" onclick="scheduleReachJob()">Schedule it now</button>
-      <div style="margin-top:6px;color:#555;">After scheduling, YouTube backfills roughly the previous 30 days and then posts a new report daily. First data typically appears within 48 hours.</div>`;
-  } else if(reachStatus === 'pending'){
-    html = `Reporting job is scheduled but no reports have been generated yet. The first report is usually available within 48 hours of creating the job.`;
-  } else if(reachStatus === 'norange'){
-    html = `The reporting job has data, but none of it falls inside the selected date range. Reports only exist from the job's creation date onward (plus ~30 days of backfill).`;
-  }
-  if(html){ box.innerHTML = html; box.classList.remove('hidden'); }
-  else { box.classList.add('hidden'); box.innerHTML=''; }
-}
+function renderMetrics() {
+  const w = (SUMMARY.windows || {})[currentWindow] || {};
+  const vals = Object.values(w);
+  const imps = vals.reduce((s, v) => s + (v.impressions || 0), 0);
+  const views = vals.reduce((s, v) => s + (v.views || 0), 0);
+  const wt = vals.reduce((s, v) => s + (v.watch_time_minutes || 0), 0);
+  const subs = vals.reduce((s, v) => s + (v.subscribers_gained || 0), 0);
+  // Channel CTR must be total clicks over total impressions, never a mean of
+  // per-video CTRs, which would weight a 50-impression video like a 50k one.
+  const clicks = vals.reduce((s, v) =>
+    s + ((v.impressions || 0) * ((v.ctr || 0) / 100)), 0);
+  const ctr = imps ? (clicks / imps) * 100 : null;
+  const ch = SUMMARY.channel || {};
 
-async function scheduleReachJob(){
-  const box = document.getElementById('reach-notice');
-  try {
-    if(box) box.textContent = 'Scheduling reporting job...';
-    reachJobId = await createReachJob();
-    if(box) box.innerHTML = `Reporting job created. YouTube will backfill roughly the previous 30 days and post daily reports going forward; the first data typically appears within 48 hours. Re-run "Load data" then.`;
-  } catch(e){
-    noteError('Reporting API (job create)', e);
-    if(box) box.textContent = 'Could not create the reporting job: ' + e.message;
-  }
-}
-
-// Step 3: traffic source per video
-async function fetchVideoTraffic(from,to){
-  if(!allVideos.length) return;
-  const ids=allVideos.map(v=>v.id);
-  // The traffic source report errors if (videos x days in range) exceeds 50,000.
-  // Size batches from the actual range instead of hardcoding 50.
-  const days = Math.max(1, Math.round((new Date(to) - new Date(from))/864e5) + 1);
-  const batchSize = Math.max(1, Math.min(50, Math.floor(50000 / days)));
-  const batches=[];
-  for(let i=0;i<ids.length;i+=batchSize) batches.push(ids.slice(i,i+batchSize));
-
-  for(let b=0;b<batches.length;b++){
-    const pct=60+Math.round(((b+1)/batches.length)*25);
-    setProgress(pct,`Loading traffic sources per video...`,`Batch ${b+1}/${batches.length}`);
-    try{
-      const filter='video=='+batches[b].join(',');
-      const r=await apiFetch(`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=${from}&endDate=${to}&metrics=views&dimensions=video,insightTrafficSourceType&filters=${encodeURIComponent(filter)}&maxResults=1000&sort=-views`);
-      if(r.rows) r.rows.forEach(row=>{
-        const vid=row[0],src=row[1],views=row[2];
-        if(!videoTrafficMap[vid]) videoTrafficMap[vid]=[];
-        videoTrafficMap[vid].push({src,views});
-      });
-    }catch(e){ noteError('Traffic sources (per video)', e); }
-  }
-}
-
-// Step 4: channel-level traffic + demographics
-async function fetchChannelTrafficAndDemo(from,to){
-  setProgress(88,'Loading channel traffic & demographics...','');
-  try{
-    const r=await apiFetch(`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=${from}&endDate=${to}&metrics=views&dimensions=insightTrafficSourceType&sort=-views&maxResults=15`);
-    trafficData=r.rows||[];
-  }catch(e){ trafficData=[]; noteError('Traffic sources (channel)', e); }
-
-  try{
-    const r=await apiFetch(`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=${from}&endDate=${to}&metrics=viewerPercentage&dimensions=ageGroup,gender&sort=-viewerPercentage&maxResults=20`);
-    demoData=r.rows||[];
-  }catch(e){ demoData=[]; noteError('Demographics', e); }
-  setProgress(95,'Finalizing...','');
-}
-
-function updateChannelAggregates(){
-  const totalWM=Object.values(analyticsMap).reduce((s,a)=>s+(a.watchMinutes||0),0);
-  const ctrs=Object.values(analyticsMap).filter(a=>a.ctr!=null).map(a=>a.ctr);
-  const rets=Object.values(analyticsMap).filter(a=>a.avgViewPct!=null).map(a=>a.avgViewPct);
-  const imps=Object.values(analyticsMap).filter(a=>a.impressions!=null).map(a=>a.impressions);
-  document.getElementById('m-watchtime').textContent=fmtMin(totalWM);
-  document.getElementById('m-ctr').textContent=ctrs.length?fmtPct(ctrs.reduce((a,b)=>a+b)/ctrs.length):'—';
-  document.getElementById('m-retention').textContent=rets.length?fmtPct(rets.reduce((a,b)=>a+b)/rets.length):'—';
-  document.getElementById('m-impressions').textContent=imps.length?fmt(imps.reduce((a,b)=>a+b)):'—';
-}
-
-// ─── Table ────────────────────────────────────────────────────────────────────
-function getFilteredSorted(){
-  const q=document.getElementById('search-input').value.toLowerCase();
-  const sort=document.getElementById('sort-select').value;
-  const filter=document.getElementById('filter-select').value;
-  let list=allVideos.filter(v=>v.snippet.title.toLowerCase().includes(q));
-  if(filter!=='all') list=list.filter(v=>{ const s=calcScore(v); return filter==='high'?s>=70:filter==='mid'?s>=40&&s<70:s<40; });
-  list.sort((a,b)=>{
-    const aa=analyticsMap[a.id]||{},ba=analyticsMap[b.id]||{};
-    if(sort==='views') return parseInt(b.statistics?.viewCount||0)-parseInt(a.statistics?.viewCount||0);
-    if(sort==='watchtime') return (ba.watchMinutes||0)-(aa.watchMinutes||0);
-    if(sort==='ctr') return (ba.ctr||0)-(aa.ctr||0);
-    if(sort==='retention') return (ba.avgViewPct||0)-(aa.avgViewPct||0);
-    if(sort==='engagement'){ const ea=ea_=(parseInt(a.statistics?.viewCount||0)>0)?((parseInt(a.statistics?.likeCount||0)+parseInt(a.statistics?.commentCount||0))/parseInt(a.statistics?.viewCount))*100:0; const eb=(parseInt(b.statistics?.viewCount||0)>0)?((parseInt(b.statistics?.likeCount||0)+parseInt(b.statistics?.commentCount||0))/parseInt(b.statistics?.viewCount))*100:0; return eb-ea; }
-    if(sort==='impressions') return (ba.impressions||0)-(aa.impressions||0);
-    if(sort==='date') return new Date(b.snippet.publishedAt)-new Date(a.snippet.publishedAt);
-    if(sort==='score') return calcScore(b)-calcScore(a);
-    return 0;
-  });
-  return list;
-}
-
-function setSort(s){ document.getElementById('sort-select').value=s; currentPage=0; renderPage(); }
-
-function renderTable(){ currentPage=0; renderPage(); }
-
-function renderPage(){
-  const list=getFilteredSorted();
-  const total=list.length;
-  const start=currentPage*PAGE_SIZE;
-  const page=list.slice(start,start+PAGE_SIZE);
-  document.getElementById('video-count').textContent=total+' videos';
-  document.getElementById('page-info').textContent=`Page ${currentPage+1} of ${Math.max(1,Math.ceil(total/PAGE_SIZE))}`;
-  document.getElementById('prev-btn').disabled=currentPage===0;
-  document.getElementById('next-btn').disabled=start+PAGE_SIZE>=total;
-  const maxViews=Math.max(1,...allVideos.map(v=>parseInt(v.statistics?.viewCount||0)));
-  document.getElementById('videos-tbody').innerHTML=page.map(v=>{
-    const a=analyticsMap[v.id]||{};
-    const views=parseInt(v.statistics?.viewCount||0);
-    const likes=parseInt(v.statistics?.likeCount||0);
-    const comments=parseInt(v.statistics?.commentCount||0);
-    const engRate=views>0?((likes+comments)/views*100).toFixed(2):null;
-    const score=calcScore(v);
-    const barW=Math.round((views/maxViews)*80);
-    const date=new Date(v.snippet.publishedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-    const thumb=v.snippet.thumbnails?.default?.url||'';
-    return `<tr>
-      <td><img class="thumb" src="${thumb}" alt="" /></td>
-      <td class="video-title-cell"><div class="video-title-text">${v.snippet.title.replace(/</g,'&lt;')}</div><div class="video-date">${date}</div></td>
-      <td><div>${fmt(views)}</div><div class="bar-mini" style="width:${barW}px;"></div></td>
-      <td>${fmtMin(a.watchMinutes)}</td>
-      <td>${a.ctr!==undefined?fmtPct(a.ctr):'—'}</td>
-      <td>${a.avgViewPct!==undefined?fmtPct(a.avgViewPct):'—'}</td>
-      <td>${engRate!==null?fmtPct(engRate):'—'}</td>
-      <td>${a.impressions!==undefined?fmt(a.impressions):'—'}</td>
-      <td><span class="score-badge ${scoreClass(score)}">${score}</span></td>
-      <td><button class="btn" style="padding:4px 8px;font-size:11px;" onclick="openModal('${v.id}')">Detail</button></td>
-    </tr>`;
-  }).join('');
-}
-
-function changePage(dir){ currentPage+=dir; renderPage(); }
-
-// ─── Traffic & Demo render ────────────────────────────────────────────────────
-function renderTraffic(){
-  const el=document.getElementById('traffic-list');
-  if(!trafficData.length){ el.innerHTML='<div class="empty-state">No traffic data available.</div>'; return; }
-  const max=Math.max(...trafficData.map(r=>r[1]));
-  el.innerHTML=trafficData.map(row=>`
-    <div class="bar-wrap">
-      <div class="bar-label"><span>${TRAFFIC_LABELS[row[0]]||row[0]}</span><span>${fmt(row[1])} views</span></div>
-      <div class="bar-track"><div class="bar-fill" style="width:${Math.round((row[1]/max)*100)}%"></div></div>
-    </div>`).join('');
-}
-
-function renderDemo(){
-  const el=document.getElementById('demo-list');
-  if(!demoData.length){ el.innerHTML='<div class="empty-state">No demographic data available.</div>'; return; }
-  const grouped={};
-  demoData.forEach(row=>{ const k=row[0]+' · '+row[1]; grouped[k]=(grouped[k]||0)+row[2]; });
-  el.innerHTML=Object.entries(grouped).sort((a,b)=>b[1]-a[1]).map(([k,v])=>
-    `<div class="stat-row"><span class="stat-label">${k}</span><span class="stat-value">${parseFloat(v).toFixed(1)}%</span></div>`
+  const cards = [
+    ['Subscribers', fmt(ch.subscriber_count)],
+    ['Impressions', fmt(imps)],
+    ['CTR', pct(ctr)],
+    ['Views', fmt(views)],
+    ['Watch time', mins(wt)],
+    ['Subs gained', fmt(subs)],
+    ['Videos', fmt(vals.length)],
+  ];
+  document.getElementById('metrics').innerHTML = cards.map(
+    ([l, v]) => `<div class="metric"><div class="label">${l}</div><div class="value">${v}</div></div>`
   ).join('');
 }
 
-// ─── Modal ────────────────────────────────────────────────────────────────────
-let currentModalVideoId=null;
-function openModal(videoId){
-  currentModalVideoId=videoId;
-  const v=allVideos.find(x=>x.id===videoId);
-  const a=analyticsMap[videoId]||{};
-  if(!v) return;
-  document.getElementById('modal-thumb').src=v.snippet.thumbnails?.medium?.url||v.snippet.thumbnails?.default?.url||'';
-  document.getElementById('modal-title').textContent=v.snippet.title;
-  document.getElementById('modal-date').textContent=new Date(v.snippet.publishedAt).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
-  document.getElementById('modal-desc').textContent=v.snippet.description?.slice(0,300)||'No description.';
-  const views=parseInt(v.statistics?.viewCount||0);
-  const likes=parseInt(v.statistics?.likeCount||0);
-  const comments=parseInt(v.statistics?.commentCount||0);
-  const engRate=views>0?((likes+comments)/views*100).toFixed(2)+'%':'—';
-  const score=calcScore(v);
-  document.getElementById('modal-metrics').innerHTML=[
-    ['Views',fmt(views)],['Watch time',fmtMin(a.watchMinutes)],
-    ['CTR',a.ctr!==undefined?fmtPct(a.ctr):'—'],['Retention',a.avgViewPct!==undefined?fmtPct(a.avgViewPct):'—'],
-    ['Likes',fmt(likes)],['Comments',fmt(comments)],
-    ['Shares',fmt(a.shares)],['Subs gained',fmt(a.subsGained)],
-    ['Engagement',engRate],['Impressions',a.impressions!==undefined?fmt(a.impressions):'—'],
-    ['CPM',a.cpm!==undefined?fmtMoney(a.cpm):'—'],['Score',score+'/100'],
-  ].map(([l,val])=>`<div class="modal-metric"><div class="modal-metric-label">${l}</div><div class="modal-metric-value">${val}</div></div>`).join('');
-
-  // Per-video traffic sources
-  const vt=videoTrafficMap[videoId];
-  const trafficEl=document.getElementById('modal-traffic');
-  if(vt&&vt.length){
-    const total=vt.reduce((s,r)=>s+r.views,0);
-    const sorted=[...vt].sort((a,b)=>b.views-a.views).slice(0,6);
-    trafficEl.innerHTML=`<div class="section-title" style="font-size:13px;margin-bottom:8px;">Traffic sources for this video</div>`+
-      sorted.map(r=>{
-        const pct=total>0?Math.round((r.views/total)*100):0;
-        return `<div class="traffic-mini-row">
-          <span class="traffic-mini-label">${TRAFFIC_LABELS[r.src]||r.src}</span>
-          <div class="traffic-mini-bar-track"><div class="traffic-mini-bar-fill" style="width:${pct}%"></div></div>
-          <span class="traffic-mini-pct">${pct}%</span>
-        </div>`;
-      }).join('');
-  } else {
-    trafficEl.innerHTML='';
-  }
-
-  document.getElementById('modal-analysis').classList.add('hidden');
-  document.getElementById('modal-overlay').classList.add('visible');
+function renderSpark() {
+  const svg = document.getElementById('spark');
+  if (!DAILY || !DAILY.series || DAILY.series.length < 2) { svg.classList.add('hidden'); return; }
+  const days = currentWindow === 'all' ? DAILY.series.length
+             : parseInt(currentWindow) || DAILY.series.length;
+  const s = DAILY.series.slice(-days);
+  const W = 1200, H = 90, pad = 4;
+  const max = Math.max(...s.map(d => d.impressions || 0), 1);
+  const step = s.length > 1 ? (W - pad * 2) / (s.length - 1) : 0;
+  const pts = s.map((d, i) =>
+    `${pad + i * step},${H - pad - ((d.impressions || 0) / max) * (H - pad * 2)}`).join(' ');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML =
+    `<polyline fill="none" stroke="var(--accent)" stroke-width="2" points="${pts}" />` +
+    `<text x="${pad}" y="12" fill="var(--muted)" font-size="11">` +
+    `impressions/day · peak ${fmt(max)}</text>`;
+  svg.classList.remove('hidden');
 }
 
-function closeModal(e){ if(e.target===document.getElementById('modal-overlay')) closeModalDirect(); }
-function closeModalDirect(){ document.getElementById('modal-overlay').classList.remove('visible'); }
-
-async function analyzeVideo(){
-  const v=allVideos.find(x=>x.id===currentModalVideoId);
-  const a=analyticsMap[currentModalVideoId]||{};
-  const vt=videoTrafficMap[currentModalVideoId]||[];
-  const out=document.getElementById('modal-analysis');
-  out.classList.remove('hidden'); out.className='analysis-box loading';
-  out.textContent='Analyzing with Claude AI...';
-  const views=parseInt(v.statistics?.viewCount||0);
-  const likes=parseInt(v.statistics?.likeCount||0);
-  const comments=parseInt(v.statistics?.commentCount||0);
-  const engRate=views>0?((likes+comments)/views*100).toFixed(2):0;
-  const trafficStr=vt.length?vt.sort((a,b)=>b.views-a.views).slice(0,5).map(r=>`${TRAFFIC_LABELS[r.src]||r.src}: ${fmt(r.views)} views`).join('\n'):'Not available';
-  const prompt=`You are a YouTube growth expert. Analyze this specific video and give 5 concise, actionable insights:\n\nTitle: ${v.snippet.title}\nPublished: ${new Date(v.snippet.publishedAt).toLocaleDateString()}\nViews: ${views}\nWatch time: ${fmtMin(a.watchMinutes)}\nCTR: ${a.ctr!==undefined?fmtPct(a.ctr):'unknown'}\nAvg retention: ${a.avgViewPct!==undefined?fmtPct(a.avgViewPct):'unknown'}\nLikes: ${likes}, Comments: ${comments}, Shares: ${fmt(a.shares)}\nEngagement rate: ${engRate}%\nSubscribers gained: ${a.subsGained||'unknown'}\nImpressions: ${a.impressions!==undefined?fmt(a.impressions):'unknown'}\nTraffic sources:\n${trafficStr}\n\nAnalyze performance, explain why it performed this way, and give specific improvement tips. Plain text, no markdown.`;
-  out.className='analysis-box';
-  out.textContent='✅ Analysis request sent to Claude chat above! Scroll up to see the response.';
-  sendPrompt(prompt);
+function ctrClass(v) {
+  if (v === null || v === undefined) return '';
+  if (v >= 6) return 'good';
+  if (v >= 3) return 'warn';
+  return 'bad';
 }
 
-// ─── AI Analysis ──────────────────────────────────────────────────────────────
-async function runAnalysis(type){
-  const out=document.getElementById('analysis-output');
-  out.className='analysis-box loading'; out.textContent='Analyzing your channel data with Claude...';
-  const s=channelData.statistics||{};
-  const top10=[...allVideos].sort((a,b)=>parseInt(b.statistics?.viewCount||0)-parseInt(a.statistics?.viewCount||0)).slice(0,10);
-  const bottom10=[...allVideos].sort((a,b)=>parseInt(a.statistics?.viewCount||0)-parseInt(b.statistics?.viewCount||0)).slice(0,10);
-  const topStr=top10.map(v=>`"${v.snippet.title}" — ${fmt(v.statistics?.viewCount)} views, CTR: ${fmtPct(analyticsMap[v.id]?.ctr)}, retention: ${fmtPct(analyticsMap[v.id]?.avgViewPct)}, impressions: ${fmt(analyticsMap[v.id]?.impressions)}`).join('\n');
-  const bottomStr=bottom10.map(v=>`"${v.snippet.title}" — ${fmt(v.statistics?.viewCount)} views, CTR: ${fmtPct(analyticsMap[v.id]?.ctr)}, retention: ${fmtPct(analyticsMap[v.id]?.avgViewPct)}`).join('\n');
-  const trafficStr=trafficData.map(r=>(TRAFFIC_LABELS[r[0]]||r[0])+': '+fmt(r[1])+' views').join('\n');
-  const totalImpressions=Object.values(analyticsMap).reduce((s,a)=>s+(a.impressions||0),0);
-  const avgCTR=(()=>{ const c=Object.values(analyticsMap).filter(a=>a.ctr!=null).map(a=>a.ctr); return c.length?c.reduce((a,b)=>a+b)/c.length:null; })();
-  const avgRet=(()=>{ const c=Object.values(analyticsMap).filter(a=>a.avgViewPct!=null).map(a=>a.avgViewPct); return c.length?c.reduce((a,b)=>a+b)/c.length:null; })();
-  const dateRange=`${document.getElementById('date-from').value} to ${document.getElementById('date-to').value}`;
-
-  const prompts={
-    overall:`You are a YouTube growth expert. Analyze this channel for the period ${dateRange} and give 7 specific actionable insights:\n\nChannel: ${channelData.snippet?.title}\nSubscribers: ${s.subscriberCount}\nVideos analyzed: ${allVideos.length}\nTotal impressions this period: ${fmt(totalImpressions)}\nAvg CTR: ${fmtPct(avgCTR)}\nAvg retention: ${fmtPct(avgRet)}\n\nTop 10 videos:\n${topStr}\n\nTraffic sources:\n${trafficStr}\n\nPlain text, no markdown.`,
-    growth:`You are a YouTube growth strategist. Give 7 specific growth strategies for the next 30-60 days based on this data (${dateRange}):\n\nChannel: ${channelData.snippet?.title}\nSubscribers: ${s.subscriberCount}\nAvg CTR: ${fmtPct(avgCTR)}\nAvg retention: ${fmtPct(avgRet)}\nTop videos:\n${topStr}\nTraffic:\n${trafficStr}\n\nPlain text, no markdown.`,
-    content:`You are a YouTube content strategist. Suggest 10 specific video ideas based on what performed best (${dateRange}):\n\nChannel: ${channelData.snippet?.title}\nTop videos:\n${topStr}\n\nMake each idea hyper-specific with a suggested title. Plain text, no markdown.`,
-    seo:`You are a YouTube SEO expert. Review the top performing titles and give specific SEO improvements (${dateRange}):\n\nAvg CTR: ${fmtPct(avgCTR)}\nTop videos:\n${topStr}\nTraffic sources:\n${trafficStr}\n\nRewrite 5 titles with better SEO, explain why, and suggest keyword strategies. Plain text, no markdown.`,
-    underperform:`You are a YouTube analyst. Explain why these videos underperformed and give specific improvement tips (${dateRange}):\n\nChannel avg CTR: ${fmtPct(avgCTR)}\nChannel avg retention: ${fmtPct(avgRet)}\nUnderperformers:\n${bottomStr}\n\nPlain text, no markdown.`,
-    reach:`You are a YouTube packaging expert. Analyze thumbnail impressions and click-through rate, and give 5 specific title/thumbnail improvements (${dateRange}):\n\nChannel: ${channelData.snippet?.title}\nTotal impressions: ${fmt(totalImpressions)}\nAvg CTR: ${fmtPct(avgCTR)}\nTop videos:\n${topStr}\n\nDistinguish low impressions (a demand/distribution problem) from low CTR (a packaging problem). Plain text, no markdown.`,
-    traffic:`You are a YouTube growth expert. Analyze these traffic sources and give 5 specific strategies to improve discovery (${dateRange}):\n\nChannel: ${channelData.snippet?.title}\nTraffic sources:\n${trafficStr}\nAvg CTR: ${fmtPct(avgCTR)}\n\nExplain what the traffic data reveals and how to capitalize on it. Plain text, no markdown.`
-  };
-
-  out.className='analysis-box';
-  out.textContent='✅ Analysis request sent to Claude chat above! Scroll up to see the response.';
-  sendPrompt(prompts[type]);
+function render() {
+  const rows = currentRows();
+  document.getElementById('rows').innerHTML = rows.map(r => `
+    <tr>
+      <td>
+        <div class="title-cell">
+          ${r.thumb ? `<img src="${r.thumb}" alt="" loading="lazy">` : ''}
+          <div>
+            <div>${(r.title || r.id).replace(/</g, '&lt;')}</div>
+            <div class="sub">${r.published ? new Date(r.published).toLocaleDateString() : r.id}</div>
+          </div>
+        </div>
+      </td>
+      <td>${fmt(r.impressions)}</td>
+      <td class="${ctrClass(r.ctr)}">${pct(r.ctr)}</td>
+      <td>${fmt(r.views)}</td>
+      <td>${pct(r.avg_view_percentage)}</td>
+      <td>${mins(r.watch_time_minutes)}</td>
+      <td>${fmt(r.subscribers_gained)}</td>
+      <td>${pct(r.engagement)}</td>
+    </tr>`).join('') ||
+    '<tr><td colspan="8" style="color:var(--muted);padding:20px;">No videos in this window.</td></tr>';
 }
 
-// ─── Tabs ─────────────────────────────────────────────────────────────────────
-function showTab(name){
-  ['videos','traffic','ai'].forEach(t=>document.getElementById('tab-'+t).classList.add('hidden'));
-  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.remove('hidden');
-  document.querySelectorAll('.tab').forEach(el=>{ if(el.getAttribute('onclick').includes(name)) el.classList.add('active'); });
-}
+document.querySelectorAll('[data-window]').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('[data-window]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    currentWindow = b.dataset.window;
+    renderMetrics(); renderSpark(); render();
+  });
+});
+
+document.querySelectorAll('[data-sort]').forEach(th => {
+  th.addEventListener('click', () => {
+    const k = th.dataset.sort;
+    if (sortKey === k) sortDir = -sortDir;
+    else { sortKey = k; sortDir = k === 'title' ? 1 : -1; }
+    render();
+  });
+});
+
+document.getElementById('search').addEventListener('input', e => {
+  filter = e.target.value; render();
+});
+
+init();
 </script>
 </body>
 </html>
