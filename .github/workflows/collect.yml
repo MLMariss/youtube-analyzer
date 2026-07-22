@@ -50,11 +50,11 @@ jobs:
           ARGS=""
           if [ "${{ inputs.create_jobs }}" = "true" ]; then ARGS="$ARGS --create-jobs"; fi
           if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
-          python scripts/collect.py $ARGS
+          python collect.py $ARGS
 
       - name: Build summaries
         if: ${{ inputs.dry_run != true }}
-        run: python scripts/summarize.py
+        run: python summarize.py
 
       - name: Commit new data
         if: ${{ inputs.dry_run != true }}
