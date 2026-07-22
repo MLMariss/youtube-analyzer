@@ -8,6 +8,9 @@ produces a small set of pre-aggregated files:
     data/summary.json          per-video totals over several windows
     data/daily.json            channel-level daily series
     data/traffic.json          traffic source breakdown per video
+    data/devices.json          device type and OS breakdown per video
+    data/demographics.json     age and gender breakdown per video
+    data/reach_sources.json    impressions and CTR by traffic source per video
 
 Critically, CTR is recomputed as (total clicks / total impressions), never as
 an average of daily CTR values. Averaging percentages across days weights a
@@ -190,6 +193,131 @@ def build_traffic(since=None):
     }
 
 
+def sorted_desc(counts):
+    return dict(sorted(counts.items(), key=lambda kv: -kv[1]))
+
+
+def build_device_os(since=None):
+    """Views by device type and by operating system, per video and channel-wide."""
+    dev_video = defaultdict(lambda: defaultdict(int))
+    os_video = defaultdict(lambda: defaultdict(int))
+    dev_channel = defaultdict(int)
+    os_channel = defaultdict(int)
+
+    for day, rows in iter_shards("channel_device_os_a3", since):
+        for row in rows:
+            vid = row.get("video_id")
+            v = num(row.get("views"))
+            dev = row.get("device_type") or "UNKNOWN"
+            osys = row.get("operating_system") or "UNKNOWN"
+            dev_channel[dev] += v
+            os_channel[osys] += v
+            if vid:
+                dev_video[vid][dev] += v
+                os_video[vid][osys] += v
+
+    return {
+        "channel": {"device": sorted_desc(dev_channel), "os": sorted_desc(os_channel)},
+        "videos": {vid: {"device": sorted_desc(dev_video[vid]),
+                         "os": sorted_desc(os_video[vid])}
+                   for vid in set(dev_video) | set(os_video)},
+    }
+
+
+def views_by_dimension_key(since=None):
+    """
+    Views from channel_basic_a3, keyed by its full non-metric dimension tuple.
+
+    channel_demographics_a1 carries exactly the same dimensions, so this key
+    joins the two reports row for row.
+    """
+    views = defaultdict(int)
+    for day, rows in iter_shards("channel_basic_a3", since):
+        for row in rows:
+            key = (day, row.get("video_id"), row.get("live_or_on_demand"),
+                   row.get("subscribed_status"), row.get("country_code"))
+            views[key] += num(row.get("views"))
+    return views
+
+
+def build_demographics(since=None):
+    """
+    Estimated views by age group and gender, per video and channel-wide.
+
+    The demographics report carries only views_percentage -- never a view count.
+    Summing those percentages across days would weight a 10-view day the same as
+    a 10,000-view day, so each percentage is converted back into views using the
+    matching channel_basic_a3 row before anything is added up. Rows with no
+    matching activity row cannot be weighted and are skipped.
+    """
+    base_views = views_by_dimension_key(since)
+    per_video = defaultdict(lambda: defaultdict(float))
+    channel = defaultdict(float)
+
+    for day, rows in iter_shards("channel_demographics_a1", since):
+        for row in rows:
+            vid = row.get("video_id")
+            key = (day, vid, row.get("live_or_on_demand"),
+                   row.get("subscribed_status"), row.get("country_code"))
+            base = base_views.get(key)
+            if not base:
+                continue
+            bucket = "{}/{}".format(row.get("age_group") or "UNKNOWN",
+                                    row.get("gender") or "UNKNOWN")
+            est = base * (num(row.get("views_percentage")) / 100.0)
+            if vid:
+                per_video[vid][bucket] += est
+            channel[bucket] += est
+
+    def rounded(d):
+        return sorted_desc({k: round(v, 1) for k, v in d.items()})
+
+    return {
+        "channel": rounded(channel),
+        "videos": {vid: rounded(b) for vid, b in per_video.items()},
+    }
+
+
+def build_reach_sources(since=None):
+    """
+    Thumbnail impressions and CTR by traffic source, per video and channel-wide.
+
+    CTR is rebuilt as summed clicks over summed impressions, never averaged --
+    same reason as everywhere else here. This is the breakdown that shows a
+    thumbnail underperforming specifically in the browse feed rather than
+    overall, which the plain reach report cannot distinguish.
+    """
+    per_video = defaultdict(lambda: defaultdict(lambda: [0.0, 0.0]))
+    channel = defaultdict(lambda: [0.0, 0.0])
+
+    for day, rows in iter_shards("channel_reach_combined_a1", since):
+        for row in rows:
+            vid = row.get("video_id")
+            src = row.get("traffic_source_type") or "UNKNOWN"
+            imp = num(row.get("video_thumbnail_impressions"))
+            ctr = row.get("video_thumbnail_impressions_ctr")
+            clicks = imp * (ctr / 100.0) if isinstance(ctr, (int, float)) else 0.0
+            channel[src][0] += imp
+            channel[src][1] += clicks
+            if vid:
+                per_video[vid][src][0] += imp
+                per_video[vid][src][1] += clicks
+
+    def formatted(sources):
+        out = {}
+        for src, (imp, clicks) in sorted(sources.items(), key=lambda kv: -kv[1][0]):
+            out[src] = {
+                "impressions": round(imp),
+                "ctr": round((clicks / imp) * 100, 3) if imp else None,
+            }
+        return out
+
+    return {
+        "channel": formatted(channel),
+        "videos": {vid: formatted(s) for vid, s in per_video.items()},
+    }
+
+
 def cutoff(days):
     if days is None:
         return None
@@ -241,6 +369,24 @@ def main():
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "all_time": build_traffic(),
         "last_90d": build_traffic(since=cutoff(90)),
+    })
+
+    write_json("devices.json", {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "all_time": build_device_os(),
+        "last_90d": build_device_os(since=cutoff(90)),
+    })
+
+    write_json("demographics.json", {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "all_time": build_demographics(),
+        "last_90d": build_demographics(since=cutoff(90)),
+    })
+
+    write_json("reach_sources.json", {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "all_time": build_reach_sources(),
+        "last_90d": build_reach_sources(since=cutoff(90)),
     })
 
     print("Done.")
