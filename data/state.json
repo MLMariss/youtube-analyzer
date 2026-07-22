@@ -1,0 +1,390 @@
+{
+  "archived": {
+    "channel_basic_a3": {
+      "2026-05-05": {
+        "create_time": "2026-05-24T03:55:53.708194Z",
+        "report_id": "17362135590",
+        "row_count": 746
+      },
+      "2026-05-07": {
+        "create_time": "2026-05-23T17:33:15.594186Z",
+        "report_id": "20020160562",
+        "row_count": 737
+      },
+      "2026-05-12": {
+        "create_time": "2026-06-15T09:44:31.660070Z",
+        "report_id": "20111419135",
+        "row_count": 717
+      },
+      "2026-05-17": {
+        "create_time": "2026-05-24T09:25:45.370979Z",
+        "report_id": "20024120882",
+        "row_count": 681
+      },
+      "2026-05-18": {
+        "create_time": "2026-05-24T14:40:53.166942Z",
+        "report_id": "20025118117",
+        "row_count": 643
+      },
+      "2026-05-19": {
+        "create_time": "2026-05-25T04:07:04.627161Z",
+        "report_id": "20028282798",
+        "row_count": 565
+      },
+      "2026-05-20": {
+        "create_time": "2026-05-25T18:14:04.597371Z",
+        "report_id": "20029545045",
+        "row_count": 588
+      },
+      "2026-05-21": {
+        "create_time": "2026-05-26T03:45:27.363029Z",
+        "report_id": "20031161704",
+        "row_count": 575
+      },
+      "2026-05-22": {
+        "create_time": "2026-05-27T08:08:15.345419Z",
+        "report_id": "17370230061",
+        "row_count": 572
+      },
+      "2026-05-23": {
+        "create_time": "2026-05-29T16:08:52.609537Z",
+        "report_id": "20041327051",
+        "row_count": 616
+      },
+      "2026-05-24": {
+        "create_time": "2026-05-30T11:39:29.401127Z",
+        "report_id": "20043669086",
+        "row_count": 646
+      },
+      "2026-05-25": {
+        "create_time": "2026-05-30T15:11:11.618086Z",
+        "report_id": "20043925466",
+        "row_count": 601
+      },
+      "2026-05-26": {
+        "create_time": "2026-05-31T13:55:50.716657Z",
+        "report_id": "20047074954",
+        "row_count": 596
+      },
+      "2026-05-27": {
+        "create_time": "2026-06-01T05:09:44.259299Z",
+        "report_id": "20049217435",
+        "row_count": 568
+      },
+      "2026-05-28": {
+        "create_time": "2026-06-02T19:02:20.767494Z",
+        "report_id": "20052199716",
+        "row_count": 752
+      },
+      "2026-05-29": {
+        "create_time": "2026-06-03T13:01:03.237318Z",
+        "report_id": "20058236686",
+        "row_count": 872
+      },
+      "2026-05-30": {
+        "create_time": "2026-06-05T20:59:49.870676Z",
+        "report_id": "20069536754",
+        "row_count": 744
+      },
+      "2026-05-31": {
+        "create_time": "2026-06-06T14:44:35.045555Z",
+        "report_id": "20076222493",
+        "row_count": 695
+      },
+      "2026-06-01": {
+        "create_time": "2026-06-06T09:49:14.971525Z",
+        "report_id": "20073377649",
+        "row_count": 644
+      },
+      "2026-06-02": {
+        "create_time": "2026-06-07T05:31:37.703954Z",
+        "report_id": "20079466537",
+        "row_count": 552
+      },
+      "2026-06-03": {
+        "create_time": "2026-06-07T19:40:31.598823Z",
+        "report_id": "20083346408",
+        "row_count": 573
+      },
+      "2026-06-04": {
+        "create_time": "2026-06-08T21:08:09.283757Z",
+        "report_id": "20086360964",
+        "row_count": 579
+      },
+      "2026-06-05": {
+        "create_time": "2026-06-11T08:13:49.550851Z",
+        "report_id": "20101411679",
+        "row_count": 486
+      },
+      "2026-06-06": {
+        "create_time": "2026-06-11T13:51:02.368638Z",
+        "report_id": "20102198622",
+        "row_count": 595
+      },
+      "2026-06-07": {
+        "create_time": "2026-06-10T04:32:28.009572Z",
+        "report_id": "20088980636",
+        "row_count": 692
+      },
+      "2026-06-08": {
+        "create_time": "2026-06-15T23:37:30.508470Z",
+        "report_id": "20113178615",
+        "row_count": 601
+      },
+      "2026-06-09": {
+        "create_time": "2026-06-15T20:11:57.016521Z",
+        "report_id": "20112915938",
+        "row_count": 533
+      },
+      "2026-06-10": {
+        "create_time": "2026-06-15T15:54:49.019686Z",
+        "report_id": "20112319520",
+        "row_count": 588
+      },
+      "2026-06-11": {
+        "create_time": "2026-06-16T13:44:44.677808Z",
+        "report_id": "20115682304",
+        "row_count": 627
+      },
+      "2026-06-12": {
+        "create_time": "2026-06-14T16:06:51.395773Z",
+        "report_id": "20109344599",
+        "row_count": 638
+      },
+      "2026-06-13": {
+        "create_time": "2026-06-20T05:16:17.437645Z",
+        "report_id": "20125360998",
+        "row_count": 631
+      },
+      "2026-06-14": {
+        "create_time": "2026-06-20T11:10:00.098536Z",
+        "report_id": "17444587631",
+        "row_count": 654
+      },
+      "2026-06-15": {
+        "create_time": "2026-06-20T21:55:28.204338Z",
+        "report_id": "20127608178",
+        "row_count": 569
+      },
+      "2026-06-16": {
+        "create_time": "2026-06-21T04:41:46.661685Z",
+        "report_id": "20129997459",
+        "row_count": 508
+      },
+      "2026-06-17": {
+        "create_time": "2026-06-22T22:20:58.806109Z",
+        "report_id": "20133246765",
+        "row_count": 497
+      },
+      "2026-06-18": {
+        "create_time": "2026-06-23T21:04:38.304414Z",
+        "report_id": "20135872180",
+        "row_count": 484
+      },
+      "2026-06-19": {
+        "create_time": "2026-06-21T00:28:41.946251Z",
+        "report_id": "17446378130",
+        "row_count": 514
+      },
+      "2026-06-20": {
+        "create_time": "2026-06-22T02:28:38.454443Z",
+        "report_id": "20130560333",
+        "row_count": 575
+      },
+      "2026-06-21": {
+        "create_time": "2026-06-23T01:26:21.720278Z",
+        "report_id": "17452382601",
+        "row_count": 531
+      },
+      "2026-06-22": {
+        "create_time": "2026-06-24T07:35:36.228809Z",
+        "report_id": "17457551114",
+        "row_count": 552
+      },
+      "2026-06-23": {
+        "create_time": "2026-06-29T22:41:49.763921Z",
+        "report_id": "20152444975",
+        "row_count": 511
+      },
+      "2026-06-24": {
+        "create_time": "2026-07-09T05:05:08.616134Z",
+        "report_id": "20198236753",
+        "row_count": 518
+      },
+      "2026-06-25": {
+        "create_time": "2026-07-06T05:58:24.958499Z",
+        "report_id": "20179358707",
+        "row_count": 499
+      },
+      "2026-06-26": {
+        "create_time": "2026-07-06T20:49:15.140003Z",
+        "report_id": "20180063882",
+        "row_count": 555
+      },
+      "2026-06-27": {
+        "create_time": "2026-06-28T23:56:05.374512Z",
+        "report_id": "17473698934",
+        "row_count": 575
+      },
+      "2026-06-28": {
+        "create_time": "2026-07-07T09:31:05.415150Z",
+        "report_id": "20188574060",
+        "row_count": 589
+      },
+      "2026-06-29": {
+        "create_time": "2026-07-07T13:49:35.490995Z",
+        "report_id": "20189623845",
+        "row_count": 552
+      },
+      "2026-06-30": {
+        "create_time": "2026-07-07T06:33:23.418243Z",
+        "report_id": "20186486589",
+        "row_count": 572
+      },
+      "2026-07-01": {
+        "create_time": "2026-07-03T04:23:39.970539Z",
+        "report_id": "20168967875",
+        "row_count": 570
+      },
+      "2026-07-02": {
+        "create_time": "2026-07-04T08:35:05.898454Z",
+        "report_id": "20172089383",
+        "row_count": 521
+      },
+      "2026-07-03": {
+        "create_time": "2026-07-05T23:49:23.031843Z",
+        "report_id": "17485716690",
+        "row_count": 493
+      },
+      "2026-07-04": {
+        "create_time": "2026-07-11T17:10:43.038323Z",
+        "report_id": "20209983037",
+        "row_count": 556
+      },
+      "2026-07-05": {
+        "create_time": "2026-07-11T21:09:23.721388Z",
+        "report_id": "20211458507",
+        "row_count": 591
+      },
+      "2026-07-06": {
+        "create_time": "2026-07-12T13:43:56.344874Z",
+        "report_id": "20215961635",
+        "row_count": 570
+      },
+      "2026-07-07": {
+        "create_time": "2026-07-12T07:50:53.499424Z",
+        "report_id": "20214796363",
+        "row_count": 554
+      },
+      "2026-07-08": {
+        "create_time": "2026-07-13T04:49:49.535188Z",
+        "report_id": "20218391681",
+        "row_count": 531
+      },
+      "2026-07-09": {
+        "create_time": "2026-07-14T11:16:05.105602Z",
+        "report_id": "20222702857",
+        "row_count": 576
+      },
+      "2026-07-10": {
+        "create_time": "2026-07-16T20:21:21.927403Z",
+        "report_id": "20231734684",
+        "row_count": 530
+      },
+      "2026-07-11": {
+        "create_time": "2026-07-16T11:20:19.472354Z",
+        "report_id": "20230839869",
+        "row_count": 568
+      },
+      "2026-07-12": {
+        "create_time": "2026-07-17T19:35:22.687964Z",
+        "report_id": "20233972394",
+        "row_count": 552
+      },
+      "2026-07-13": {
+        "create_time": "2026-07-18T22:34:28.449057Z",
+        "report_id": "20241326013",
+        "row_count": 466
+      },
+      "2026-07-14": {
+        "create_time": "2026-07-19T11:30:12.487898Z",
+        "report_id": "17516875175",
+        "row_count": 483
+      },
+      "2026-07-15": {
+        "create_time": "2026-07-20T08:40:44.339150Z",
+        "report_id": "20246221889",
+        "row_count": 491
+      },
+      "2026-07-16": {
+        "create_time": "2026-07-21T19:49:45.831241Z",
+        "report_id": "20251621942",
+        "row_count": 491
+      },
+      "2026-07-17": {
+        "create_time": "2026-07-22T08:02:33.408629Z",
+        "report_id": "20252694424",
+        "row_count": 503
+      },
+      "2026-07-18": {
+        "create_time": "2026-07-20T05:27:19.154177Z",
+        "report_id": "17521516050",
+        "row_count": 547
+      },
+      "2026-07-19": {
+        "create_time": "2026-07-21T13:04:09.890011Z",
+        "report_id": "20251421556",
+        "row_count": 538
+      },
+      "2026-07-20": {
+        "create_time": "2026-07-22T09:51:41.900272Z",
+        "report_id": "20253385346",
+        "row_count": 559
+      }
+    },
+    "channel_cards_a1": {},
+    "channel_combined_a3": {},
+    "channel_demographics_a1": {},
+    "channel_device_os_a3": {},
+    "channel_playback_location_a3": {},
+    "channel_province_a3": {},
+    "channel_reach_basic_a1": {},
+    "channel_reach_combined_a1": {},
+    "channel_subtitles_a3": {},
+    "channel_traffic_source_a3": {},
+    "playlist_basic_a2": {},
+    "playlist_combined_a2": {},
+    "playlist_device_os_a2": {},
+    "playlist_playback_location_a2": {},
+    "playlist_province_a2": {},
+    "playlist_traffic_source_a2": {}
+  },
+  "jobs": {
+    "channel_basic_a3": "7d875d93-4a2a-4413-89b4-1dd5ac7b3dd5",
+    "channel_cards_a1": "926789bf-8003-4d5e-9042-ba15cbf0e795",
+    "channel_combined_a3": "670692bf-6a91-46de-9218-1ac186c552a4",
+    "channel_demographics_a1": "5b90da59-c4ce-4590-9af5-412a23a2aa00",
+    "channel_device_os_a3": "92cf078d-8d1d-4a49-99a4-60bacc988d8a",
+    "channel_playback_location_a3": "07105c5d-a63c-4e92-bee0-cc0dc97e0e26",
+    "channel_province_a3": "8945abb6-c9cf-4461-a2d6-cd7c50b22fbe",
+    "channel_reach_basic_a1": "b7b48e18-2493-4afe-b951-6ad625c0a0a7",
+    "channel_reach_combined_a1": "9da46bf3-b786-484f-9c84-08e4107955c5",
+    "channel_subtitles_a3": "700ca958-2e0e-4494-86ce-efe29cd9ad85",
+    "channel_traffic_source_a3": "aa79ad91-d489-4de4-9b58-6e003ff85330",
+    "playlist_basic_a2": "54930423-e093-4e49-ac6f-18d847fc2616",
+    "playlist_combined_a2": "cc5895ea-c021-46e5-8bd5-dc3b1a90499a",
+    "playlist_device_os_a2": "8d4b8acc-5943-47e6-9de6-0c6980720666",
+    "playlist_playback_location_a2": "31d479cf-8657-44af-8926-00ffc011400f",
+    "playlist_province_a2": "0c217b96-e686-44cc-9daf-7651980893b0",
+    "playlist_traffic_source_a2": "2f9ca6e0-4576-40ed-98ba-9cb41adb4726"
+  },
+  "last_run": "2026-07-22T14:15:44.295460+00:00",
+  "runs": [
+    {
+      "at": "2026-07-22T14:15:44.295460+00:00",
+      "backfilled": 0,
+      "failed": 0,
+      "new": 68
+    }
+  ]
+}
