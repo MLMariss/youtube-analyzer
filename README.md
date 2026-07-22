@@ -41,7 +41,7 @@ Project **661959930559** (or whichever holds your OAuth client).
 ### 2. Mint a refresh token
 
 ```bash
-python scripts/mint_token.py --client-id YOUR_ID --client-secret YOUR_SECRET
+python mint_token.py --client-id YOUR_ID --client-secret YOUR_SECRET
 ```
 
 Standard library only, no `pip install`. A browser opens; consent (click through
@@ -92,6 +92,13 @@ so the next run retries it.
 ## Layout
 
 ```
+collect.py         the collector
+summarize.py       builds dashboard JSON from shards
+auth.py            refresh-token OAuth
+mint_token.py      one-time token minting
+report_types.py    registry of all report types
+index.html         read-only dashboard
+.github/workflows/collect.yml
 data/
   reports/<report_type>/<YYYY-MM-DD>.json   permanent archive, one file per day
   summary.json    per-video totals across 7d/28d/90d/365d/all
@@ -99,13 +106,6 @@ data/
   traffic.json    traffic source breakdown
   videos.json     titles and thumbnails (refreshed, not accumulated)
   state.json      which reports have been archived
-scripts/
-  auth.py          refresh-token OAuth
-  mint_token.py    one-time token minting
-  report_types.py  registry of all report types
-  collect.py       the collector
-  summarize.py     builds dashboard JSON from shards
-index.html         read-only dashboard
 ```
 
 ## Manual use
@@ -113,11 +113,11 @@ index.html         read-only dashboard
 ```bash
 export YT_CLIENT_ID=... YT_CLIENT_SECRET=... YT_REFRESH_TOKEN=...
 
-python scripts/collect.py --dry-run          # show what would happen
-python scripts/collect.py --create-jobs      # create missing jobs
-python scripts/collect.py                    # normal run
-python scripts/collect.py --only channel_reach_basic_a1
-python scripts/summarize.py
+python collect.py --dry-run          # show what would happen
+python collect.py --create-jobs      # create missing jobs
+python collect.py                    # normal run
+python collect.py --only channel_reach_basic_a1
+python summarize.py
 ```
 
 ## A note on averaging

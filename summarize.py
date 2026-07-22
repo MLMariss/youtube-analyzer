@@ -26,7 +26,9 @@ from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Scripts live in the repository root (flat layout, matching SteamQTPD),
+# so the repo root is simply this file's own directory.
+REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(REPO_ROOT, "data")
 REPORTS_DIR = os.path.join(DATA_DIR, "reports")
 

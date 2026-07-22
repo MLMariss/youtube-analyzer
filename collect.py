@@ -44,7 +44,9 @@ from report_types import CHANNEL_REPORTS, ordered_report_ids, label_for
 REPORTING_BASE = "https://youtubereporting.googleapis.com/v1"
 DATA_API_BASE = "https://www.googleapis.com/youtube/v3"
 
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Scripts live in the repository root (flat layout, matching SteamQTPD),
+# so the repo root is simply this file's own directory.
+REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(REPO_ROOT, "data")
 REPORTS_DIR = os.path.join(DATA_DIR, "reports")
 STATE_PATH = os.path.join(DATA_DIR, "state.json")
@@ -54,6 +56,20 @@ RETRY_BASE_DELAY = 2.0
 
 
 # ---------------------------------------------------------------- HTTP helpers
+
+def _safe(creds, text):
+    """
+    Scrub credentials from any text destined for a log.
+
+    GitHub Actions logs are public on a public repository, and signed report
+    downloadUrls are themselves sensitive (they grant access to the data), so
+    nothing credential-shaped should ever reach stdout.
+    """
+    try:
+        return creds._redact(str(text))
+    except Exception:
+        return str(text)
+
 
 def _request(creds, url, method="GET", body=None, accept_gzip=False):
     """Authorised request with retry on transient failures."""
@@ -75,19 +91,30 @@ def _request(creds, url, method="GET", body=None, accept_gzip=False):
                     raw = gzip.decompress(raw)
                 return raw
         except urllib.error.HTTPError as e:
-            detail = e.read().decode(errors="replace")
-            # 429/5xx are transient; retry with backoff. 4xx are not.
+            detail = _safe(creds, e.read().decode(errors="replace"))
+            # 429/5xx are transient; retry with backoff. Other 4xx are not.
             if e.code == 429 or 500 <= e.code < 600:
                 last_err = f"HTTP {e.code}: {detail[:300]}"
                 time.sleep(RETRY_BASE_DELAY * (2 ** attempt))
                 continue
-            raise RuntimeError(f"HTTP {e.code} for {url}\n{detail[:600]}") from e
+            # Never echo the URL itself: report downloadUrls carry access tokens.
+            raise RuntimeError(f"HTTP {e.code} for {_url_label(url)}\n{detail[:600]}") from e
         except urllib.error.URLError as e:
-            last_err = str(e)
+            last_err = _safe(creds, e)
             time.sleep(RETRY_BASE_DELAY * (2 ** attempt))
             continue
 
-    raise RuntimeError(f"Request failed after {MAX_RETRIES} attempts: {url}\n{last_err}")
+    raise RuntimeError(
+        f"Request failed after {MAX_RETRIES} attempts: {_url_label(url)}\n{last_err}")
+
+
+def _url_label(url):
+    """A loggable description of a URL, with query string stripped."""
+    try:
+        parts = urllib.parse.urlsplit(url)
+        return f"{parts.scheme}://{parts.netloc}{parts.path}"
+    except Exception:
+        return "(url withheld)"
 
 
 def _get_json(creds, url):

@@ -20,6 +20,7 @@ Self-consenting to your own unverified app is fine for a single-user tool.
 
 import json
 import os
+import re
 import time
 import urllib.error
 import urllib.parse
@@ -75,6 +76,27 @@ class Credentials:
             os.environ.get("YT_REFRESH_TOKEN", "").strip(),
         )
 
+    def _redact(self, text):
+        """
+        Strip anything credential-shaped from text before it can be printed.
+
+        GitHub Actions logs are PUBLIC on a public repository. Actions masks
+        registered secrets automatically, but that only covers exact matches of
+        values stored as secrets -- it would not catch, say, a secret echoed
+        back with different whitespace or a partial match. Redacting at the
+        source is the reliable guarantee.
+        """
+        out = text
+        for value in (self.client_secret, self.refresh_token, self.client_id):
+            if value and len(value) > 6:
+                out = out.replace(value, "[REDACTED]")
+        # Belt and braces: catch credential-shaped strings we did not emit.
+        out = re.sub(r"GOCSPX-[A-Za-z0-9_-]+", "[REDACTED-SECRET]", out)
+        out = re.sub(r"1//[A-Za-z0-9_-]{20,}", "[REDACTED-TOKEN]", out)
+        out = re.sub(r"ya29\.[A-Za-z0-9_.-]{20,}", "[REDACTED-ACCESS-TOKEN]", out)
+        out = re.sub(r"AIza[A-Za-z0-9_-]{30,}", "[REDACTED-API-KEY]", out)
+        return out
+
     def access_token(self):
         # Refresh a minute early so a token cannot expire mid-request.
         if self._access_token and time.time() < self._expires_at - 60:
@@ -95,7 +117,7 @@ class Credentials:
             with urllib.request.urlopen(req, timeout=30) as resp:
                 payload = json.loads(resp.read().decode())
         except urllib.error.HTTPError as e:
-            detail = e.read().decode(errors="replace")
+            detail = self._redact(e.read().decode(errors="replace"))
             if "invalid_grant" in detail:
                 raise AuthError(
                     "Refresh token rejected (invalid_grant). Likely causes:\n"
@@ -105,7 +127,7 @@ class Credentials:
                     "  2. Access was revoked at myaccount.google.com/permissions.\n"
                     "  3. The token was minted against a different client ID.\n"
                     "Re-run scripts/mint_token.py to issue a new one.\n"
-                    f"Raw response: {detail}"
+                    f"Response: {detail}"
                 ) from e
             raise AuthError(f"Token refresh failed (HTTP {e.code}): {detail}") from e
 
