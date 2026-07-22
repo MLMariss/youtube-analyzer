@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+
+# Local Claude Code settings
+.claude/settings.local.json
+
+# Credentials are env vars / Actions secrets -- never commit them
+.env
+
+# Note: data/ is deliberately NOT ignored. The collector commits it.

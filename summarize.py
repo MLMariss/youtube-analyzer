@@ -15,7 +15,7 @@ an average of daily CTR values. Averaging percentages across days weights a
 that is simply wrong.
 
 Usage:
-    python scripts/summarize.py
+    python summarize.py
 """
 
 import json
