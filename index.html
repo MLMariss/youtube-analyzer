@@ -196,7 +196,7 @@
         <div class="metric"><div class="metric-label">Watch time</div><div class="metric-value" id="m-watchtime">—</div></div>
         <div class="metric"><div class="metric-label">Avg CTR</div><div class="metric-value" id="m-ctr">—</div></div>
         <div class="metric"><div class="metric-label">Avg retention</div><div class="metric-value" id="m-retention">—</div></div>
-        <div class="metric"><div class="metric-label">Est. revenue</div><div class="metric-value" id="m-revenue">—</div></div>
+        <div class="metric"><div class="metric-label">Impressions</div><div class="metric-value" id="m-impressions">—</div></div>
         <div class="metric"><div class="metric-label">Videos loaded</div><div class="metric-value" id="m-loaded">—</div></div>
       </div>
     </div>
@@ -205,11 +205,11 @@
     <div class="load-bar">
       <label>Date range:</label>
       <div class="preset-btns">
-        <button class="preset-btn" onclick="setPreset('30d')">Last 30 days</button>
-        <button class="preset-btn active" onclick="setPreset('90d')">Last 90 days</button>
-        <button class="preset-btn" onclick="setPreset('365d')">Last 365 days</button>
-        <button class="preset-btn" onclick="setPreset('thisyear')">This year</button>
-        <button class="preset-btn" onclick="setPreset('lastyear')">Last year</button>
+        <button class="preset-btn" data-preset="30d" onclick="setPreset('30d', event)">Last 30 days</button>
+        <button class="preset-btn active" data-preset="90d" onclick="setPreset('90d', event)">Last 90 days</button>
+        <button class="preset-btn" data-preset="365d" onclick="setPreset('365d', event)">Last 365 days</button>
+        <button class="preset-btn" data-preset="thisyear" onclick="setPreset('thisyear', event)">This year</button>
+        <button class="preset-btn" data-preset="lastyear" onclick="setPreset('lastyear', event)">Last year</button>
       </div>
       <div class="date-inputs">
         <input type="date" id="date-from" />
@@ -218,6 +218,9 @@
       </div>
       <button class="btn btn-primary" id="load-btn" onclick="startLoad()">⏳ Load data</button>
     </div>
+
+    <div id="error-banner" class="card hidden" style="border-left:4px solid #d93025;font-size:13px;padding:12px 16px;margin-bottom:12px;"></div>
+    <div id="reach-notice" class="card hidden" style="border-left:4px solid #f9ab00;font-size:13px;padding:12px 16px;margin-bottom:12px;"></div>
 
     <div id="progress-wrap" class="card progress-wrap hidden">
       <div class="progress-text" id="progress-text">Loading...</div>
@@ -243,7 +246,7 @@
               <option value="ctr">Sort: CTR</option>
               <option value="retention">Sort: Retention</option>
               <option value="engagement">Sort: Engagement</option>
-              <option value="revenue">Sort: Revenue</option>
+              <option value="impressions">Sort: Impressions</option>
               <option value="date">Sort: Date</option>
               <option value="score">Sort: Score</option>
             </select>
@@ -266,7 +269,7 @@
                   <th onclick="setSort('ctr')">CTR ↕</th>
                   <th onclick="setSort('retention')">Retention ↕</th>
                   <th onclick="setSort('engagement')">Engagement ↕</th>
-                  <th onclick="setSort('revenue')">Revenue ↕</th>
+                  <th onclick="setSort('impressions')">Impressions ↕</th>
                   <th onclick="setSort('score')">Score ↕</th>
                   <th></th>
                 </tr>
@@ -307,7 +310,7 @@
             <button class="btn" onclick="runAnalysis('content')">💡 Content ideas</button>
             <button class="btn" onclick="runAnalysis('seo')">🔍 SEO review</button>
             <button class="btn" onclick="runAnalysis('underperform')">⚠️ Underperformers</button>
-            <button class="btn" onclick="runAnalysis('revenue')">💰 Revenue insights</button>
+            <button class="btn" onclick="runAnalysis('reach')">👁 Reach &amp; CTR insights</button>
             <button class="btn" onclick="runAnalysis('traffic')">🚦 Traffic analysis</button>
           </div>
           <div id="analysis-output" class="analysis-box loading">Load data first, then click a button above to get AI-powered insights.</div>
@@ -350,7 +353,10 @@ let channelData = {}, allVideos = [], analyticsMap = {}, videoTrafficMap = {};
 let trafficData = [], demoData = [];
 let currentPage = 0;
 const PAGE_SIZE = 25;
-const SCOPES = 'https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/yt-analytics-monetary.readonly';
+// yt-analytics.readonly covers both the Analytics API and the Reporting API.
+// The monetary scope is intentionally omitted: Google's docs state it does not
+// grant access to monetary data in channel reports, so it buys nothing here.
+const SCOPES = 'https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly';
 
 const TRAFFIC_LABELS = {
   'YT_SEARCH':'YouTube search','SUBSCRIBER':'Subscribers','BROWSE_FEATURES':'Browse / home',
@@ -394,9 +400,12 @@ function setProgress(pct,text,sub){
 }
 
 // ─── Date presets ────────────────────────────────────────────────────────────
-function setPreset(p) {
+function setPreset(p, evt) {
   document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
-  event.target.classList.add('active');
+  // On initial load there is no click event, so fall back to matching by preset key.
+  const btn = (evt && evt.target) ? evt.target
+            : document.querySelector('.preset-btn[data-preset="'+p+'"]');
+  if(btn) btn.classList.add('active');
   const today=new Date(), fmt=d=>d.toISOString().split('T')[0];
   let from,to=fmt(today);
   if(p==='30d'){ from=fmt(new Date(Date.now()-30*864e5)); }
@@ -526,11 +535,49 @@ function showSetupError(msg){
   e.textContent=msg; e.classList.remove('hidden');
 }
 
+// The Analytics and Reporting APIs reject requests that carry an API key —
+// they are OAuth-only. Only youtube/v3 (Data API) gets the key appended.
+function needsApiKey(url){
+  return url.indexOf('googleapis.com/youtube/v3') !== -1;
+}
+
 async function apiFetch(url){
-  const sep=url.includes('?')?'&':'?';
-  const r=await fetch(url+sep+'key='+API_KEY,{headers:{Authorization:'Bearer '+accessToken}});
-  if(!r.ok){ const t=await r.text(); throw new Error('HTTP '+r.status+' '+t.slice(0,120)); }
+  let finalUrl = url;
+  if(needsApiKey(url)){
+    const sep = url.includes('?') ? '&' : '?';
+    finalUrl = url + sep + 'key=' + API_KEY;
+  }
+  const r = await fetch(finalUrl, {headers:{Authorization:'Bearer '+accessToken}});
+  if(!r.ok){
+    const t = await r.text();
+    let msg = t;
+    try { const j = JSON.parse(t); if(j.error && j.error.message) msg = j.error.message; } catch(e){}
+    const err = new Error('HTTP '+r.status+': '+msg.slice(0,400));
+    err.status = r.status;
+    throw err;
+  }
   return r.json();
+}
+
+// ─── Error surfacing ─────────────────────────────────────────────────────────
+// Previously every failure was swallowed into console.warn, so the UI rendered
+// em-dashes and looked like it had succeeded. Failures now collect here and
+// render into a banner.
+let loadErrors = [];
+function noteError(label, e){
+  console.warn(label, e && e.message ? e.message : e);
+  loadErrors.push({label, message: (e && e.message) ? e.message : String(e)});
+}
+function renderErrors(){
+  const box = document.getElementById('error-banner');
+  if(!box) return;
+  if(!loadErrors.length){ box.classList.add('hidden'); box.innerHTML=''; return; }
+  const seen = {}, uniq = [];
+  loadErrors.forEach(err=>{ const k=err.label+'|'+err.message; if(!seen[k]){ seen[k]=1; uniq.push(err); } });
+  box.innerHTML = '<strong>Some data could not be loaded:</strong><ul style="margin:6px 0 0 18px;padding:0;">'
+    + uniq.map(e=>`<li><b>${e.label}</b>: ${e.message.replace(/</g,'&lt;')}</li>`).join('')
+    + '</ul>';
+  box.classList.remove('hidden');
 }
 
 // ─── Channel info (loads once after sign-in) ─────────────────────────────────
@@ -553,7 +600,8 @@ async function startLoad(){
   const from=document.getElementById('date-from').value;
   const to=document.getElementById('date-to').value;
   if(!from||!to){ alert('Please select a date range.'); return; }
-  allVideos=[]; analyticsMap={}; videoTrafficMap=[];
+  // videoTrafficMap is keyed by video id, so it must be an object, not an array.
+  allVideos=[]; analyticsMap={}; videoTrafficMap={}; loadErrors=[];
   hideEl('main-content'); hideEl('empty-state');
   showEl('progress-wrap');
   document.getElementById('load-btn').disabled=true;
@@ -561,16 +609,21 @@ async function startLoad(){
   try{
     await fetchVideosInRange(from,to);
     await fetchAnalytics(from,to);
+    await fetchReach(from,to);
     await fetchVideoTraffic(from,to);
     await fetchChannelTrafficAndDemo(from,to);
     updateChannelAggregates();
     renderTable();
     renderTraffic();
     renderDemo();
+    renderErrors();
+    renderReachNotice();
     hideEl('progress-wrap');
     showEl('main-content'); hideEl('empty-state');
   }catch(e){
     setProgress(0,'Error: '+e.message,'');
+    noteError('Load', e);
+    renderErrors();
     console.error(e);
   }
   document.getElementById('load-btn').disabled=false;
@@ -608,21 +661,193 @@ async function fetchAnalytics(from,to){
     const filter='video=='+batches[b].join(',');
     const pct=30+Math.round(((b+1)/batches.length)*30);
     setProgress(pct,`Loading analytics batch ${b+1}/${batches.length}...`,`${Object.keys(analyticsMap).length} videos processed`);
+    // Revenue metrics (estimatedRevenue/estimatedAdRevenue/cpm) are NOT supported
+    // for channel reports — per Google's docs the yt-analytics-monetary.readonly
+    // scope does not grant access to monetary data in channel reports. Including
+    // them made the whole request fail. Thumbnail impressions and CTR do not
+    // exist in the Analytics API at all; they come from the Reporting API below.
     try{
-      const r=await apiFetch(`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=${from}&endDate=${to}&metrics=views,estimatedMinutesWatched,averageViewPercentage,averageViewDuration,subscribersGained,likes,shares,comments,estimatedRevenue,estimatedAdRevenue,cpm&dimensions=video&filters=${encodeURIComponent(filter)}&maxResults=200&sort=-views`);
+      const metrics = 'views,estimatedMinutesWatched,averageViewPercentage,averageViewDuration,subscribersGained,likes,shares,comments';
+      const r=await apiFetch(`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=${from}&endDate=${to}&metrics=${metrics}&dimensions=video&filters=${encodeURIComponent(filter)}&maxResults=200&sort=-views`);
+      const cols = (r.columnHeaders||[]).map(c=>c.name);
+      const idx = name => cols.indexOf(name);
       if(r.rows) r.rows.forEach(row=>{
-        analyticsMap[row[0]]={ views:row[1],watchMinutes:row[2],avgViewPct:row[3],avgViewDuration:row[4],subsGained:row[5],likes:row[6],shares:row[7],comments:row[8],revenue:row[9],adRevenue:row[10],cpm:row[11] };
+        const vid = row[idx('video')];
+        const get = n => { const i=idx(n); return i>=0 ? row[i] : undefined; };
+        analyticsMap[vid] = Object.assign(analyticsMap[vid]||{}, {
+          views:get('views'), watchMinutes:get('estimatedMinutesWatched'),
+          avgViewPct:get('averageViewPercentage'), avgViewDuration:get('averageViewDuration'),
+          subsGained:get('subscribersGained'), likes:get('likes'),
+          shares:get('shares'), comments:get('comments')
+        });
       });
-    }catch(e){ console.warn('Analytics batch failed',e.message); }
+    }catch(e){ noteError('Analytics (watch time / retention)', e); }
+  }
+}
 
-    // CTR (impressions) — separate call as it needs different metrics
-    try{
-      const r2=await apiFetch(`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=${from}&endDate=${to}&metrics=impressions,impressionsClickThroughRate&dimensions=video&filters=${encodeURIComponent(filter)}&maxResults=200`);
-      if(r2.rows) r2.rows.forEach(row=>{
-        if(analyticsMap[row[0]]) analyticsMap[row[0]].ctr=row[2];
-        else analyticsMap[row[0]]={ctr:row[2]};
+// ─── Reporting API: thumbnail impressions + CTR ──────────────────────────────
+// The Analytics API has no impressions/CTR metrics. They live only in the
+// Reporting API's channel_reach_basic_a1 bulk report, which requires a
+// scheduled job. Job creation yields ~30 days of backfilled history plus
+// daily reports going forward. First data appears within ~48h of job creation.
+const REACH_REPORT_TYPE = 'channel_reach_basic_a1';
+const REPORTING_BASE = 'https://youtubereporting.googleapis.com/v1';
+let reachJobId = null, reachStatus = 'unknown';
+
+async function findOrNoteReachJob(){
+  const r = await apiFetch(`${REPORTING_BASE}/jobs`);
+  const jobs = r.jobs || [];
+  const job = jobs.filter(j => j.reportTypeId === REACH_REPORT_TYPE)[0];
+  return job ? job.id : null;
+}
+
+async function createReachJob(){
+  const r = await fetch(`${REPORTING_BASE}/jobs`, {
+    method:'POST',
+    headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},
+    body: JSON.stringify({reportTypeId: REACH_REPORT_TYPE, name: 'Reach (impressions + CTR)'})
+  });
+  if(!r.ok){
+    const t = await r.text();
+    let msg = t; try { const j=JSON.parse(t); if(j.error&&j.error.message) msg=j.error.message; } catch(e){}
+    throw new Error('HTTP '+r.status+': '+msg.slice(0,400));
+  }
+  const j = await r.json();
+  return j.id;
+}
+
+// Parse a report CSV. Column order is NOT guaranteed, so the header row is
+// authoritative — never assume positions.
+function parseReachCsv(text){
+  const lines = text.trim().split(/\r?\n/);
+  if(lines.length < 2) return [];
+  const header = lines[0].split(',').map(h=>h.trim());
+  const iVideo = header.indexOf('video_id');
+  const iImp   = header.indexOf('video_thumbnail_impressions');
+  const iCtr   = header.indexOf('video_thumbnail_impressions_ctr');
+  if(iVideo < 0 || iImp < 0) return [];
+  const out = [];
+  for(let i=1;i<lines.length;i++){
+    if(!lines[i]) continue;
+    const c = lines[i].split(',');
+    out.push({
+      video: c[iVideo],
+      impressions: parseFloat(c[iImp]) || 0,
+      ctr: iCtr >= 0 ? (parseFloat(c[iCtr]) || 0) : null
+    });
+  }
+  return out;
+}
+
+async function fetchReach(from, to){
+  reachStatus = 'unknown';
+  try {
+    reachJobId = await findOrNoteReachJob();
+  } catch(e){
+    noteError('Reporting API (jobs list)', e);
+    reachStatus = 'error';
+    return;
+  }
+
+  if(!reachJobId){
+    reachStatus = 'nojob';
+    return; // UI offers a button to create it; we don't create silently.
+  }
+
+  setProgress(62,'Loading impressions & CTR (Reporting API)...','');
+
+  let reports = [];
+  try {
+    let pageToken = '';
+    do {
+      const url = `${REPORTING_BASE}/jobs/${reachJobId}/reports?pageSize=100`
+                + (pageToken ? `&pageToken=${pageToken}` : '');
+      const r = await apiFetch(url);
+      reports = reports.concat(r.reports || []);
+      pageToken = r.nextPageToken || '';
+    } while(pageToken);
+  } catch(e){
+    noteError('Reporting API (reports list)', e);
+    reachStatus = 'error';
+    return;
+  }
+
+  if(!reports.length){ reachStatus = 'pending'; return; }
+
+  // Keep only reports overlapping the selected range, and when several reports
+  // cover the same period (backfill), keep the one with the newest createTime.
+  const fromMs = new Date(from+'T00:00:00Z').getTime();
+  const toMs   = new Date(to  +'T23:59:59Z').getTime();
+  const byPeriod = {};
+  reports.forEach(rep=>{
+    const s = new Date(rep.startTime).getTime();
+    const e = new Date(rep.endTime).getTime();
+    if(e < fromMs || s > toMs) return;
+    const key = rep.startTime+'|'+rep.endTime;
+    const prev = byPeriod[key];
+    if(!prev || new Date(rep.createTime) > new Date(prev.createTime)) byPeriod[key] = rep;
+  });
+  const wanted = Object.keys(byPeriod).map(k=>byPeriod[k]);
+
+  if(!wanted.length){ reachStatus = 'norange'; return; }
+
+  const totals = {}; // videoId -> {impressions, clicks}
+  let done = 0, failed = 0;
+  for(const rep of wanted){
+    try {
+      const r = await fetch(rep.downloadUrl, {headers:{Authorization:'Bearer '+accessToken}});
+      if(!r.ok) { failed++; continue; }
+      const text = await r.text();
+      parseReachCsv(text).forEach(row=>{
+        if(!totals[row.video]) totals[row.video] = {impressions:0, clicks:0};
+        totals[row.video].impressions += row.impressions;
+        // CTR is a percentage per day; convert to clicks so daily rows can be
+        // aggregated correctly, then recompute CTR over the whole range.
+        if(row.ctr !== null) totals[row.video].clicks += row.impressions * (row.ctr/100);
       });
-    }catch(e){ console.warn('CTR batch failed',e.message); }
+    } catch(e){ failed++; }
+    done++;
+    setProgress(62 + Math.round((done/wanted.length)*10),
+      `Loading impressions & CTR (${done}/${wanted.length} days)...`,'');
+  }
+
+  Object.keys(totals).forEach(vid=>{
+    const t = totals[vid];
+    analyticsMap[vid] = analyticsMap[vid] || {};
+    analyticsMap[vid].impressions = t.impressions;
+    analyticsMap[vid].ctr = t.impressions > 0 ? (t.clicks / t.impressions) * 100 : null;
+  });
+
+  reachStatus = failed && failed === wanted.length ? 'error' : 'ok';
+  if(failed) noteError('Reporting API (report download)', new Error(failed+' of '+wanted.length+' daily reports failed to download'));
+}
+
+function renderReachNotice(){
+  const box = document.getElementById('reach-notice');
+  if(!box) return;
+  let html = '';
+  if(reachStatus === 'nojob'){
+    html = `Impressions and CTR require a YouTube Reporting API job, which is not yet scheduled.
+      <button class="preset-btn" style="margin-left:8px" onclick="scheduleReachJob()">Schedule it now</button>
+      <div style="margin-top:6px;color:#555;">After scheduling, YouTube backfills roughly the previous 30 days and then posts a new report daily. First data typically appears within 48 hours.</div>`;
+  } else if(reachStatus === 'pending'){
+    html = `Reporting job is scheduled but no reports have been generated yet. The first report is usually available within 48 hours of creating the job.`;
+  } else if(reachStatus === 'norange'){
+    html = `The reporting job has data, but none of it falls inside the selected date range. Reports only exist from the job's creation date onward (plus ~30 days of backfill).`;
+  }
+  if(html){ box.innerHTML = html; box.classList.remove('hidden'); }
+  else { box.classList.add('hidden'); box.innerHTML=''; }
+}
+
+async function scheduleReachJob(){
+  const box = document.getElementById('reach-notice');
+  try {
+    if(box) box.textContent = 'Scheduling reporting job...';
+    reachJobId = await createReachJob();
+    if(box) box.innerHTML = `Reporting job created. YouTube will backfill roughly the previous 30 days and post daily reports going forward; the first data typically appears within 48 hours. Re-run "Load data" then.`;
+  } catch(e){
+    noteError('Reporting API (job create)', e);
+    if(box) box.textContent = 'Could not create the reporting job: ' + e.message;
   }
 }
 
@@ -630,8 +855,12 @@ async function fetchAnalytics(from,to){
 async function fetchVideoTraffic(from,to){
   if(!allVideos.length) return;
   const ids=allVideos.map(v=>v.id);
+  // The traffic source report errors if (videos x days in range) exceeds 50,000.
+  // Size batches from the actual range instead of hardcoding 50.
+  const days = Math.max(1, Math.round((new Date(to) - new Date(from))/864e5) + 1);
+  const batchSize = Math.max(1, Math.min(50, Math.floor(50000 / days)));
   const batches=[];
-  for(let i=0;i<ids.length;i+=50) batches.push(ids.slice(i,i+50));
+  for(let i=0;i<ids.length;i+=batchSize) batches.push(ids.slice(i,i+batchSize));
 
   for(let b=0;b<batches.length;b++){
     const pct=60+Math.round(((b+1)/batches.length)*25);
@@ -644,7 +873,7 @@ async function fetchVideoTraffic(from,to){
         if(!videoTrafficMap[vid]) videoTrafficMap[vid]=[];
         videoTrafficMap[vid].push({src,views});
       });
-    }catch(e){ console.warn('Video traffic batch failed',e.message); }
+    }catch(e){ noteError('Traffic sources (per video)', e); }
   }
 }
 
@@ -654,12 +883,12 @@ async function fetchChannelTrafficAndDemo(from,to){
   try{
     const r=await apiFetch(`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=${from}&endDate=${to}&metrics=views&dimensions=insightTrafficSourceType&sort=-views&maxResults=15`);
     trafficData=r.rows||[];
-  }catch(e){ trafficData=[]; console.warn('Channel traffic failed',e.message); }
+  }catch(e){ trafficData=[]; noteError('Traffic sources (channel)', e); }
 
   try{
     const r=await apiFetch(`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=${from}&endDate=${to}&metrics=viewerPercentage&dimensions=ageGroup,gender&sort=-viewerPercentage&maxResults=20`);
     demoData=r.rows||[];
-  }catch(e){ demoData=[]; console.warn('Demographics failed',e.message); }
+  }catch(e){ demoData=[]; noteError('Demographics', e); }
   setProgress(95,'Finalizing...','');
 }
 
@@ -667,11 +896,11 @@ function updateChannelAggregates(){
   const totalWM=Object.values(analyticsMap).reduce((s,a)=>s+(a.watchMinutes||0),0);
   const ctrs=Object.values(analyticsMap).filter(a=>a.ctr!=null).map(a=>a.ctr);
   const rets=Object.values(analyticsMap).filter(a=>a.avgViewPct!=null).map(a=>a.avgViewPct);
-  const revs=Object.values(analyticsMap).filter(a=>a.revenue!=null).map(a=>a.revenue);
+  const imps=Object.values(analyticsMap).filter(a=>a.impressions!=null).map(a=>a.impressions);
   document.getElementById('m-watchtime').textContent=fmtMin(totalWM);
   document.getElementById('m-ctr').textContent=ctrs.length?fmtPct(ctrs.reduce((a,b)=>a+b)/ctrs.length):'—';
   document.getElementById('m-retention').textContent=rets.length?fmtPct(rets.reduce((a,b)=>a+b)/rets.length):'—';
-  document.getElementById('m-revenue').textContent=revs.length?fmtMoney(revs.reduce((a,b)=>a+b)):'—';
+  document.getElementById('m-impressions').textContent=imps.length?fmt(imps.reduce((a,b)=>a+b)):'—';
 }
 
 // ─── Table ────────────────────────────────────────────────────────────────────
@@ -688,7 +917,7 @@ function getFilteredSorted(){
     if(sort==='ctr') return (ba.ctr||0)-(aa.ctr||0);
     if(sort==='retention') return (ba.avgViewPct||0)-(aa.avgViewPct||0);
     if(sort==='engagement'){ const ea=ea_=(parseInt(a.statistics?.viewCount||0)>0)?((parseInt(a.statistics?.likeCount||0)+parseInt(a.statistics?.commentCount||0))/parseInt(a.statistics?.viewCount))*100:0; const eb=(parseInt(b.statistics?.viewCount||0)>0)?((parseInt(b.statistics?.likeCount||0)+parseInt(b.statistics?.commentCount||0))/parseInt(b.statistics?.viewCount))*100:0; return eb-ea; }
-    if(sort==='revenue') return (ba.revenue||0)-(aa.revenue||0);
+    if(sort==='impressions') return (ba.impressions||0)-(aa.impressions||0);
     if(sort==='date') return new Date(b.snippet.publishedAt)-new Date(a.snippet.publishedAt);
     if(sort==='score') return calcScore(b)-calcScore(a);
     return 0;
@@ -728,7 +957,7 @@ function renderPage(){
       <td>${a.ctr!==undefined?fmtPct(a.ctr):'—'}</td>
       <td>${a.avgViewPct!==undefined?fmtPct(a.avgViewPct):'—'}</td>
       <td>${engRate!==null?fmtPct(engRate):'—'}</td>
-      <td>${a.revenue!==undefined?fmtMoney(a.revenue):'—'}</td>
+      <td>${a.impressions!==undefined?fmt(a.impressions):'—'}</td>
       <td><span class="score-badge ${scoreClass(score)}">${score}</span></td>
       <td><button class="btn" style="padding:4px 8px;font-size:11px;" onclick="openModal('${v.id}')">Detail</button></td>
     </tr>`;
@@ -780,7 +1009,7 @@ function openModal(videoId){
     ['CTR',a.ctr!==undefined?fmtPct(a.ctr):'—'],['Retention',a.avgViewPct!==undefined?fmtPct(a.avgViewPct):'—'],
     ['Likes',fmt(likes)],['Comments',fmt(comments)],
     ['Shares',fmt(a.shares)],['Subs gained',fmt(a.subsGained)],
-    ['Engagement',engRate],['Revenue',a.revenue!==undefined?fmtMoney(a.revenue):'—'],
+    ['Engagement',engRate],['Impressions',a.impressions!==undefined?fmt(a.impressions):'—'],
     ['CPM',a.cpm!==undefined?fmtMoney(a.cpm):'—'],['Score',score+'/100'],
   ].map(([l,val])=>`<div class="modal-metric"><div class="modal-metric-label">${l}</div><div class="modal-metric-value">${val}</div></div>`).join('');
 
@@ -822,7 +1051,7 @@ async function analyzeVideo(){
   const comments=parseInt(v.statistics?.commentCount||0);
   const engRate=views>0?((likes+comments)/views*100).toFixed(2):0;
   const trafficStr=vt.length?vt.sort((a,b)=>b.views-a.views).slice(0,5).map(r=>`${TRAFFIC_LABELS[r.src]||r.src}: ${fmt(r.views)} views`).join('\n'):'Not available';
-  const prompt=`You are a YouTube growth expert. Analyze this specific video and give 5 concise, actionable insights:\n\nTitle: ${v.snippet.title}\nPublished: ${new Date(v.snippet.publishedAt).toLocaleDateString()}\nViews: ${views}\nWatch time: ${fmtMin(a.watchMinutes)}\nCTR: ${a.ctr!==undefined?fmtPct(a.ctr):'unknown'}\nAvg retention: ${a.avgViewPct!==undefined?fmtPct(a.avgViewPct):'unknown'}\nLikes: ${likes}, Comments: ${comments}, Shares: ${fmt(a.shares)}\nEngagement rate: ${engRate}%\nSubscribers gained: ${a.subsGained||'unknown'}\nRevenue: ${a.revenue!==undefined?fmtMoney(a.revenue):'unknown'}\nTraffic sources:\n${trafficStr}\n\nAnalyze performance, explain why it performed this way, and give specific improvement tips. Plain text, no markdown.`;
+  const prompt=`You are a YouTube growth expert. Analyze this specific video and give 5 concise, actionable insights:\n\nTitle: ${v.snippet.title}\nPublished: ${new Date(v.snippet.publishedAt).toLocaleDateString()}\nViews: ${views}\nWatch time: ${fmtMin(a.watchMinutes)}\nCTR: ${a.ctr!==undefined?fmtPct(a.ctr):'unknown'}\nAvg retention: ${a.avgViewPct!==undefined?fmtPct(a.avgViewPct):'unknown'}\nLikes: ${likes}, Comments: ${comments}, Shares: ${fmt(a.shares)}\nEngagement rate: ${engRate}%\nSubscribers gained: ${a.subsGained||'unknown'}\nImpressions: ${a.impressions!==undefined?fmt(a.impressions):'unknown'}\nTraffic sources:\n${trafficStr}\n\nAnalyze performance, explain why it performed this way, and give specific improvement tips. Plain text, no markdown.`;
   out.className='analysis-box';
   out.textContent='✅ Analysis request sent to Claude chat above! Scroll up to see the response.';
   sendPrompt(prompt);
@@ -835,21 +1064,21 @@ async function runAnalysis(type){
   const s=channelData.statistics||{};
   const top10=[...allVideos].sort((a,b)=>parseInt(b.statistics?.viewCount||0)-parseInt(a.statistics?.viewCount||0)).slice(0,10);
   const bottom10=[...allVideos].sort((a,b)=>parseInt(a.statistics?.viewCount||0)-parseInt(b.statistics?.viewCount||0)).slice(0,10);
-  const topStr=top10.map(v=>`"${v.snippet.title}" — ${fmt(v.statistics?.viewCount)} views, CTR: ${fmtPct(analyticsMap[v.id]?.ctr)}, retention: ${fmtPct(analyticsMap[v.id]?.avgViewPct)}, revenue: ${fmtMoney(analyticsMap[v.id]?.revenue)}`).join('\n');
+  const topStr=top10.map(v=>`"${v.snippet.title}" — ${fmt(v.statistics?.viewCount)} views, CTR: ${fmtPct(analyticsMap[v.id]?.ctr)}, retention: ${fmtPct(analyticsMap[v.id]?.avgViewPct)}, impressions: ${fmt(analyticsMap[v.id]?.impressions)}`).join('\n');
   const bottomStr=bottom10.map(v=>`"${v.snippet.title}" — ${fmt(v.statistics?.viewCount)} views, CTR: ${fmtPct(analyticsMap[v.id]?.ctr)}, retention: ${fmtPct(analyticsMap[v.id]?.avgViewPct)}`).join('\n');
   const trafficStr=trafficData.map(r=>(TRAFFIC_LABELS[r[0]]||r[0])+': '+fmt(r[1])+' views').join('\n');
-  const totalRevenue=Object.values(analyticsMap).reduce((s,a)=>s+(a.revenue||0),0);
+  const totalImpressions=Object.values(analyticsMap).reduce((s,a)=>s+(a.impressions||0),0);
   const avgCTR=(()=>{ const c=Object.values(analyticsMap).filter(a=>a.ctr!=null).map(a=>a.ctr); return c.length?c.reduce((a,b)=>a+b)/c.length:null; })();
   const avgRet=(()=>{ const c=Object.values(analyticsMap).filter(a=>a.avgViewPct!=null).map(a=>a.avgViewPct); return c.length?c.reduce((a,b)=>a+b)/c.length:null; })();
   const dateRange=`${document.getElementById('date-from').value} to ${document.getElementById('date-to').value}`;
 
   const prompts={
-    overall:`You are a YouTube growth expert. Analyze this channel for the period ${dateRange} and give 7 specific actionable insights:\n\nChannel: ${channelData.snippet?.title}\nSubscribers: ${s.subscriberCount}\nVideos analyzed: ${allVideos.length}\nEst. revenue this period: ${fmtMoney(totalRevenue)}\nAvg CTR: ${fmtPct(avgCTR)}\nAvg retention: ${fmtPct(avgRet)}\n\nTop 10 videos:\n${topStr}\n\nTraffic sources:\n${trafficStr}\n\nPlain text, no markdown.`,
+    overall:`You are a YouTube growth expert. Analyze this channel for the period ${dateRange} and give 7 specific actionable insights:\n\nChannel: ${channelData.snippet?.title}\nSubscribers: ${s.subscriberCount}\nVideos analyzed: ${allVideos.length}\nTotal impressions this period: ${fmt(totalImpressions)}\nAvg CTR: ${fmtPct(avgCTR)}\nAvg retention: ${fmtPct(avgRet)}\n\nTop 10 videos:\n${topStr}\n\nTraffic sources:\n${trafficStr}\n\nPlain text, no markdown.`,
     growth:`You are a YouTube growth strategist. Give 7 specific growth strategies for the next 30-60 days based on this data (${dateRange}):\n\nChannel: ${channelData.snippet?.title}\nSubscribers: ${s.subscriberCount}\nAvg CTR: ${fmtPct(avgCTR)}\nAvg retention: ${fmtPct(avgRet)}\nTop videos:\n${topStr}\nTraffic:\n${trafficStr}\n\nPlain text, no markdown.`,
     content:`You are a YouTube content strategist. Suggest 10 specific video ideas based on what performed best (${dateRange}):\n\nChannel: ${channelData.snippet?.title}\nTop videos:\n${topStr}\n\nMake each idea hyper-specific with a suggested title. Plain text, no markdown.`,
     seo:`You are a YouTube SEO expert. Review the top performing titles and give specific SEO improvements (${dateRange}):\n\nAvg CTR: ${fmtPct(avgCTR)}\nTop videos:\n${topStr}\nTraffic sources:\n${trafficStr}\n\nRewrite 5 titles with better SEO, explain why, and suggest keyword strategies. Plain text, no markdown.`,
     underperform:`You are a YouTube analyst. Explain why these videos underperformed and give specific improvement tips (${dateRange}):\n\nChannel avg CTR: ${fmtPct(avgCTR)}\nChannel avg retention: ${fmtPct(avgRet)}\nUnderperformers:\n${bottomStr}\n\nPlain text, no markdown.`,
-    revenue:`You are a YouTube monetization expert. Analyze revenue and give 5 monetization improvement tips (${dateRange}):\n\nChannel: ${channelData.snippet?.title}\nSubscribers: ${s.subscriberCount}\nEst. revenue: ${fmtMoney(totalRevenue)}\nTop videos:\n${topStr}\n\nPlain text, no markdown.`,
+    reach:`You are a YouTube packaging expert. Analyze thumbnail impressions and click-through rate, and give 5 specific title/thumbnail improvements (${dateRange}):\n\nChannel: ${channelData.snippet?.title}\nTotal impressions: ${fmt(totalImpressions)}\nAvg CTR: ${fmtPct(avgCTR)}\nTop videos:\n${topStr}\n\nDistinguish low impressions (a demand/distribution problem) from low CTR (a packaging problem). Plain text, no markdown.`,
     traffic:`You are a YouTube growth expert. Analyze these traffic sources and give 5 specific strategies to improve discovery (${dateRange}):\n\nChannel: ${channelData.snippet?.title}\nTraffic sources:\n${trafficStr}\nAvg CTR: ${fmtPct(avgCTR)}\n\nExplain what the traffic data reveals and how to capitalize on it. Plain text, no markdown.`
   };
 
