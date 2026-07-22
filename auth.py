@@ -10,7 +10,7 @@ Credentials come from environment variables (GitHub Actions secrets in CI):
     YT_CLIENT_SECRET
     YT_REFRESH_TOKEN
 
-Mint the refresh token once via scripts/mint_token.py.
+Mint the refresh token once via mint_token.py.
 
 IMPORTANT: while the OAuth app's publishing status is "Testing", refresh tokens
 expire after 7 days and the collector will begin failing with invalid_grant.
@@ -60,7 +60,7 @@ class Credentials:
                 "Missing OAuth credentials: " + ", ".join(missing) + ".\n"
                 "Set them as environment variables locally, or as repository "
                 "secrets under Settings > Secrets and variables > Actions.\n"
-                "Mint a refresh token with: python scripts/mint_token.py"
+                "Mint a refresh token with: python mint_token.py"
             )
         self.client_id = client_id
         self.client_secret = client_secret
@@ -126,7 +126,7 @@ class Credentials:
                     "permanently.\n"
                     "  2. Access was revoked at myaccount.google.com/permissions.\n"
                     "  3. The token was minted against a different client ID.\n"
-                    "Re-run scripts/mint_token.py to issue a new one.\n"
+                    "Re-run mint_token.py to issue a new one.\n"
                     f"Response: {detail}"
                 ) from e
             raise AuthError(f"Token refresh failed (HTTP {e.code}): {detail}") from e

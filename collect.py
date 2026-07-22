@@ -17,10 +17,10 @@ report-type per day means writes never touch existing files, so a failed run can
 never corrupt history, and backfill corrections replace exactly one file.
 
 Usage:
-    python scripts/collect.py                 # normal daily run
-    python scripts/collect.py --create-jobs   # also create missing jobs
-    python scripts/collect.py --dry-run       # show what would happen
-    python scripts/collect.py --only channel_reach_basic_a1
+    python collect.py                 # normal daily run
+    python collect.py --create-jobs   # also create missing jobs
+    python collect.py --dry-run       # show what would happen
+    python collect.py --only channel_reach_basic_a1
 """
 
 import argparse

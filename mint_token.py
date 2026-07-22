@@ -7,7 +7,7 @@ no browser and no human. You run this once; the workflow then uses the result
 indefinitely (provided the OAuth app is Published rather than in Testing mode,
 where refresh tokens expire after 7 days).
 
-    python scripts/mint_token.py --client-id XXX --client-secret YYY
+    python mint_token.py --client-id XXX --client-secret YYY
 
 No third-party packages required; standard library only.
 
@@ -43,6 +43,7 @@ Advanced > Go to ... (unsafe). That is expected for a private single-user app.
 import argparse
 import http.server
 import json
+import os
 import secrets
 import socketserver
 import sys
@@ -53,8 +54,8 @@ import urllib.request
 
 try:
     from auth import SCOPES, TOKEN_URL, USER_AGENT
-except ImportError:  # allow running from repo root as well as scripts/
-    sys.path.insert(0, __file__.rsplit("/", 1)[0])
+except ImportError:  # allow running from any working directory
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from auth import SCOPES, TOKEN_URL, USER_AGENT
 
 AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
