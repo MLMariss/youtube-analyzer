@@ -7,10 +7,11 @@ produces a small set of pre-aggregated files:
 
     data/summary.json          per-video totals over several windows
     data/daily.json            channel-level daily series
-    data/traffic.json          traffic source breakdown per video
+    data/traffic.json          per traffic source, per video: views, watch
+                               time, average view duration, impressions, CTR
+    data/traffic_detail.json   top search terms and suggesting videos per source
     data/devices.json          device type and OS breakdown per video
     data/demographics.json     age and gender breakdown per video
-    data/reach_sources.json    impressions and CTR by traffic source per video
 
 Critically, CTR is recomputed as (total clicks / total impressions), never as
 an average of daily CTR values. Averaging percentages across days weights a
@@ -174,22 +175,74 @@ def build_daily_series():
     return series
 
 
+def traffic_acc():
+    return {"views": 0, "engaged_views": 0, "watch_time_minutes": 0.0,
+            "avd_weighted": 0.0, "impressions": 0.0, "clicks": 0.0,
+            "reach_seen": False}
+
+
 def build_traffic(since=None):
-    """Views by traffic source, per video and channel-wide."""
-    per_video = defaultdict(lambda: defaultdict(int))
-    channel = defaultdict(int)
+    """
+    The marketing-channel table: metrics per traffic source, per video.
+
+    Mirrors Studio's "Traffic source" report, except Studio breaks a single
+    video down at a time; this covers every video in one pass.
+
+    Views and watch time come from channel_traffic_source_a3, impressions and
+    CTR from channel_reach_combined_a1, joined on traffic_source_type.
+
+    Impressions are null, not zero, for sources YouTube attributes none to
+    (External, Direct, Shorts feed, Notifications). A measured zero and an
+    unmeasurable quantity must not render identically.
+    """
+    per_video = defaultdict(lambda: defaultdict(traffic_acc))
+    channel = defaultdict(traffic_acc)
+
+    def targets(vid, src):
+        out = [channel[src]]
+        if vid:
+            out.append(per_video[vid][src])
+        return out
+
     for day, rows in iter_shards("channel_traffic_source_a3", since):
         for row in rows:
-            vid = row.get("video_id")
             src = row.get("traffic_source_type") or "UNKNOWN"
             v = num(row.get("views"))
-            if vid:
-                per_video[vid][src] += v
-            channel[src] += v
+            for a in targets(row.get("video_id"), src):
+                a["views"] += v
+                a["engaged_views"] += num(row.get("engaged_views"))
+                a["watch_time_minutes"] += num(row.get("watch_time_minutes"))
+                # Weight duration by views, for the same reason as CTR.
+                a["avd_weighted"] += num(row.get("average_view_duration_seconds")) * v
+
+    for day, rows in iter_shards("channel_reach_combined_a1", since):
+        for row in rows:
+            src = row.get("traffic_source_type") or "UNKNOWN"
+            imp = num(row.get("video_thumbnail_impressions"))
+            ctr = row.get("video_thumbnail_impressions_ctr")
+            clicks = imp * (ctr / 100.0) if isinstance(ctr, (int, float)) else 0.0
+            for a in targets(row.get("video_id"), src):
+                a["reach_seen"] = True
+                a["impressions"] += imp
+                a["clicks"] += clicks
+
+    def formatted(sources):
+        out = {}
+        for src, a in sorted(sources.items(), key=lambda kv: -kv[1]["views"]):
+            views = a["views"]
+            out[src] = {
+                "views": views,
+                "engaged_views": a["engaged_views"],
+                "watch_time_minutes": round(a["watch_time_minutes"], 2),
+                "avg_view_seconds": round(a["avd_weighted"] / views, 1) if views else None,
+                "impressions": round(a["impressions"]) if a["reach_seen"] else None,
+                "ctr": round((a["clicks"] / a["impressions"]) * 100, 3) if a["impressions"] else None,
+            }
+        return out
+
     return {
-        "channel": dict(sorted(channel.items(), key=lambda kv: -kv[1])),
-        "videos": {vid: dict(sorted(s.items(), key=lambda kv: -kv[1]))
-                   for vid, s in per_video.items()},
+        "channel": formatted(channel),
+        "videos": {vid: formatted(s) for vid, s in per_video.items()},
     }
 
 
@@ -278,43 +331,42 @@ def build_demographics(since=None):
     }
 
 
-def build_reach_sources(since=None):
-    """
-    Thumbnail impressions and CTR by traffic source, per video and channel-wide.
+DETAIL_TOP_N = 15
 
-    CTR is rebuilt as summed clicks over summed impressions, never averaged --
-    same reason as everywhere else here. This is the breakdown that shows a
-    thumbnail underperforming specifically in the browse feed rather than
-    overall, which the plain reach report cannot distinguish.
-    """
-    per_video = defaultdict(lambda: defaultdict(lambda: [0.0, 0.0]))
-    channel = defaultdict(lambda: [0.0, 0.0])
 
-    for day, rows in iter_shards("channel_reach_combined_a1", since):
+def build_traffic_detail(since=None, top_n=DETAIL_TOP_N):
+    """
+    Top traffic_source_detail values per video and source.
+
+    This is the granular layer under the source table: for YT_SEARCH the detail
+    is the search term viewers typed, for RELATED_VIDEO the ID of the video that
+    suggested this one, for EXT_URL the referring domain.
+
+    Capped at the top values by views per (video, source) so 531 videos of
+    long-tail search terms stay small enough to ship to a browser.
+    """
+    per_video = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+    channel = defaultdict(lambda: defaultdict(int))
+
+    for day, rows in iter_shards("channel_traffic_source_a3", since):
         for row in rows:
-            vid = row.get("video_id")
+            detail = row.get("traffic_source_detail")
+            if not detail:
+                continue
             src = row.get("traffic_source_type") or "UNKNOWN"
-            imp = num(row.get("video_thumbnail_impressions"))
-            ctr = row.get("video_thumbnail_impressions_ctr")
-            clicks = imp * (ctr / 100.0) if isinstance(ctr, (int, float)) else 0.0
-            channel[src][0] += imp
-            channel[src][1] += clicks
+            vid = row.get("video_id")
+            v = num(row.get("views"))
+            channel[src][detail] += v
             if vid:
-                per_video[vid][src][0] += imp
-                per_video[vid][src][1] += clicks
+                per_video[vid][src][detail] += v
 
-    def formatted(sources):
-        out = {}
-        for src, (imp, clicks) in sorted(sources.items(), key=lambda kv: -kv[1][0]):
-            out[src] = {
-                "impressions": round(imp),
-                "ctr": round((clicks / imp) * 100, 3) if imp else None,
-            }
-        return out
+    def top(counts):
+        return dict(sorted(counts.items(), key=lambda kv: -kv[1])[:top_n])
 
     return {
-        "channel": formatted(channel),
-        "videos": {vid: formatted(s) for vid, s in per_video.items()},
+        "channel": {src: top(d) for src, d in channel.items()},
+        "videos": {vid: {src: top(d) for src, d in s.items()}
+                   for vid, s in per_video.items()},
     }
 
 
@@ -383,10 +435,10 @@ def main():
         "last_90d": build_demographics(since=cutoff(90)),
     })
 
-    write_json("reach_sources.json", {
+    write_json("traffic_detail.json", {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "all_time": build_reach_sources(),
-        "last_90d": build_reach_sources(since=cutoff(90)),
+        "all_time": build_traffic_detail(),
+        "last_90d": build_traffic_detail(since=cutoff(90)),
     })
 
     print("Done.")
