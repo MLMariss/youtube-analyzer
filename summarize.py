@@ -62,6 +62,21 @@ def num(v):
     return v if isinstance(v, (int, float)) else 0
 
 
+def source_key(row):
+    """
+    Normalise traffic_source_type into a stable string dict key.
+
+    The collector stores numeric CSV values as ints, so traffic_source_type
+    arrives as an int code (e.g. 0, 5, 9). Mixing those int keys with the
+    "UNKNOWN" string fallback breaks json.dump(sort_keys=True), which sorts
+    keys before coercing them to strings. Coerce to str here so every key is
+    the same type. Only a genuinely absent source becomes UNKNOWN -- code 0 is
+    a real source, so it must not be swallowed by a falsy check.
+    """
+    src = row.get("traffic_source_type")
+    return "UNKNOWN" if src is None else str(src)
+
+
 def build_video_totals(since=None):
     """
     Per-video aggregates.
@@ -206,7 +221,7 @@ def build_traffic(since=None):
 
     for day, rows in iter_shards("channel_traffic_source_a3", since):
         for row in rows:
-            src = row.get("traffic_source_type") or "UNKNOWN"
+            src = source_key(row)
             v = num(row.get("views"))
             for a in targets(row.get("video_id"), src):
                 a["views"] += v
@@ -217,7 +232,7 @@ def build_traffic(since=None):
 
     for day, rows in iter_shards("channel_reach_combined_a1", since):
         for row in rows:
-            src = row.get("traffic_source_type") or "UNKNOWN"
+            src = source_key(row)
             imp = num(row.get("video_thumbnail_impressions"))
             ctr = row.get("video_thumbnail_impressions_ctr")
             clicks = imp * (ctr / 100.0) if isinstance(ctr, (int, float)) else 0.0
@@ -353,7 +368,7 @@ def build_traffic_detail(since=None, top_n=DETAIL_TOP_N):
             detail = row.get("traffic_source_detail")
             if not detail:
                 continue
-            src = row.get("traffic_source_type") or "UNKNOWN"
+            src = source_key(row)
             vid = row.get("video_id")
             v = num(row.get("views"))
             channel[src][detail] += v
