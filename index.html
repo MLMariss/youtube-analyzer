@@ -192,7 +192,7 @@
   td.detail { text-align: left; white-space: normal; background: var(--surface-2); padding: 0; }
 
   .panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; padding: 16px; }
-  .panel-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .panel-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; overflow-x: auto; }
   .panel-box h3 {
     margin: 0 0 8px; font-size: 11px; font-weight: 650; color: var(--muted);
     text-transform: uppercase; letter-spacing: .05em;
@@ -201,6 +201,19 @@
   .panel-box th, .panel-box td { padding: 5px 7px; border-bottom: 1px solid var(--line); }
   .panel-box th:first-child, .panel-box td:first-child { min-width: 0; }
   .panel-box thead th { position: static; }
+  /* Fixed column widths so stacked breakdown tables (Device above OS, and the
+     panels next to each other) line their Views/Share columns up exactly. */
+  .panel-box table.mini { table-layout: fixed; }
+  .panel-box table.mini col.c-val   { width: 64px; }
+  .panel-box table.mini col.c-share { width: 54px; }
+  .panel-box table.mini col.c-src   { width: 38%; }
+  .panel-box table.mini td, .panel-box table.mini th { overflow: hidden; text-overflow: ellipsis; }
+  .panel-box table.mini + table.mini { margin-top: 10px; }
+  .panel-box td.grp {
+    vertical-align: top; color: var(--text-2); font-weight: 550;
+    border-right: 1px solid var(--line); white-space: normal;
+  }
+  .panel-box .muted { color: var(--muted); }
 
   .empty { color: var(--muted); font-size: 12px; font-style: italic; }
   .bar { height: 4px; background: var(--accent); border-radius: 999px; display: block; margin-top: 4px; opacity: .55; }
@@ -369,6 +382,67 @@ const sourceLabel = code => {
   const k = String(code);
   return SOURCE_LABELS[k] || (/^\d+$/.test(k) ? `Source ${k}` : k);
 };
+
+// ---- Device / OS / demographic decoding ------------------------------------
+// device_type and operating_system come from the Reporting API as integer
+// codes. Google no longer publishes the integer->name table (the docs show
+// string names now), so these were recovered from this channel's own data by
+// cross-referencing which OS runs on which device: the single biggest OS (2)
+// is desktop-only -> Windows, so its device (101) is Computer; OS 4 shows up on
+// phones, tablets and TVs but never desktop -> Android; the TV device carries
+// Chromecast (21). Codes we can't confirm (the long tail of smart-TV and
+// game-console OSes, all tiny) fall back to "OS N"/"Device N" so a raw number
+// is never shown on its own.
+const DEVICE_LABELS = {
+  '100': 'Unknown', '101': 'Computer', '102': 'TV',
+  '103': 'Game console', '104': 'Mobile phone', '105': 'Tablet',
+};
+const OS_LABELS = {
+  '1': 'Other', '2': 'Windows', '4': 'Android',
+  '5': 'iOS', '9': 'macOS', '21': 'Chromecast',
+};
+const deviceLabel = c => DEVICE_LABELS[String(c)] || `Device ${esc(c)}`;
+const osLabel = c => OS_LABELS[String(c)] || `OS ${esc(c)}`;
+
+const AGE_LABELS = {
+  'AGE_13_17': '13–17', 'AGE_18_24': '18–24', 'AGE_25_34': '25–34',
+  'AGE_35_44': '35–44', 'AGE_45_54': '45–54', 'AGE_55_64': '55–64',
+  'AGE_65_': '65+',
+};
+const GENDER_LABELS = {
+  'MALE': 'Male', 'FEMALE': 'Female',
+  'USER_SPECIFIED': 'User-specified', 'GENDER_OTHER': 'Other', 'UNKNOWN': 'Unknown',
+};
+// "AGE_25_34/MALE" -> "25–34 · Male".
+function demoLabel(key) {
+  const [age, gender] = String(key).split('/');
+  const a = AGE_LABELS[age] || esc(age);
+  const g = GENDER_LABELS[gender] || (gender ? esc(gender) : '');
+  return g ? `${a} · ${g}` : a;
+}
+
+// Browse-feature detail slugs are cryptic; name the common ones. Everything
+// else is shown exactly as YouTube returned it (a search term, a domain, …).
+const BROWSE_DETAIL = {
+  'what-to-watch': 'Home / What to watch',
+  '/my_subscriptions': 'Subscriptions feed',
+  'my-history': 'Watch history',
+  'uploaded_other': 'Your channel uploads',
+};
+const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
+const CHANNEL_ID_RE = /^UC[A-Za-z0-9_-]{22}$/;
+// A referrer detail is often an opaque video/channel ID, which is exactly the
+// "numbers mean nothing" problem — so link IDs out to the actual video/channel.
+function detailCell(detail) {
+  const d = String(detail);
+  if (BROWSE_DETAIL[d]) return esc(BROWSE_DETAIL[d]);
+  if (d === 'unknown' || d === 'NULL') return '<span class="muted">unknown</span>';
+  if (VIDEO_ID_RE.test(d))
+    return `<a href="https://www.youtube.com/watch?v=${encodeURIComponent(d)}" target="_blank" rel="noopener">${esc(d)}</a>`;
+  if (CHANNEL_ID_RE.test(d))
+    return `<a href="https://www.youtube.com/channel/${encodeURIComponent(d)}" target="_blank" rel="noopener">${esc(d)}</a>`;
+  return esc(d);
+}
 
 // ---- Metric definitions (YouTube documentation) ----------------------------
 const METRICS = {
@@ -742,13 +816,14 @@ function trafficTable(sources) {
       <td>${mins(d.watch_time_minutes)}</td>
       <td>${secs(d.avg_view_seconds)}</td>
       <td>${fmt(d.impressions)}</td>
+      <td>${d.clicks === null || d.clicks === undefined ? '—' : fmt(d.clicks)}</td>
       <td class="${ctrClass(d.ctr)}">${pct(d.ctr)}</td>
     </tr>`;
   }).join('');
   return `<table>
     <thead><tr>
       <th style="text-align:left">Source</th><th>Views</th><th>Share</th>
-      <th>Watch time</th><th>Avg view</th><th>Impressions</th><th>CTR</th>
+      <th>Watch time</th><th>Avg view</th><th>Impressions</th><th>Clicks</th><th>CTR</th>
     </tr></thead><tbody>${body}</tbody></table>`;
 }
 
@@ -761,18 +836,48 @@ function renderChannelTraffic() {
       Traffic sources · channel · ${esc(bucketLabel())}</h3>${tbl}</div></div>`;
 }
 
-function countTable(obj, label, cap) {
+// keyFn maps each raw key to already-safe display HTML (a decoded label).
+function countTable(obj, label, cap, keyFn) {
   const entries = Object.entries(obj || {});
   if (!entries.length) return null;
   const total = entries.reduce((s, [, v]) => s + v, 0) || 1;
+  const kf = keyFn || (k => esc(k));
   const rows = entries.slice(0, cap || 12).map(([k, v]) => `<tr>
-      <td style="text-align:left">${esc(k)}</td>
+      <td style="text-align:left">${kf(k)}</td>
       <td>${fmt(v)}</td>
       <td>${((v / total) * 100).toFixed(1)}%</td>
     </tr>`).join('');
-  return `<table><thead><tr>
+  return `<table class="mini">
+    <colgroup><col><col class="c-val"><col class="c-share"></colgroup>
+    <thead><tr>
       <th style="text-align:left">${esc(label)}</th><th>Views</th><th>Share</th>
     </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// Search terms & referrers, compacted: one row per (source, detail) pair with
+// the source shown once per group, instead of a header-plus-rows block per
+// source. Removes the empty section lines and keeps the whole panel short.
+function searchTermsTable(det) {
+  const srcs = Object.keys(det || {});
+  if (!srcs.length) return null;
+  const srcTotal = s => Object.values(det[s]).reduce((a, b) => a + b, 0);
+  srcs.sort((a, b) => srcTotal(b) - srcTotal(a));
+  let body = '';
+  for (const s of srcs) {
+    const items = Object.entries(det[s]).sort((a, b) => b[1] - a[1]);
+    items.forEach(([detail, v], i) => {
+      body += `<tr>
+        ${i === 0 ? `<td class="grp" rowspan="${items.length}">${esc(sourceLabel(s))}</td>` : ''}
+        <td style="text-align:left">${detailCell(detail)}</td>
+        <td>${fmt(v)}</td>
+      </tr>`;
+    });
+  }
+  return `<table class="mini">
+    <colgroup><col class="c-src"><col><col class="c-val"></colgroup>
+    <thead><tr><th style="text-align:left">Source</th>
+      <th style="text-align:left">Search term / referrer</th><th>Views</th></tr></thead>
+    <tbody>${body}</tbody></table>`;
 }
 
 function pending(what) {
@@ -783,23 +888,23 @@ function detailPanels(id) {
   const t = trafficTable(slice(TRAFFIC, id));
 
   const det = slice(TDETAIL, id) || {};
-  const detHtml = Object.keys(det).length
-    ? Object.keys(det).map(src =>
-        `<div style="margin-bottom:10px">${countTable(det[src], sourceLabel(src), 10) || ''}</div>`).join('')
-    : null;
+  const detHtml = searchTermsTable(det);
 
   const dev = slice(DEVICES, id);
   const devHtml = dev && (Object.keys(dev.device || {}).length || Object.keys(dev.os || {}).length)
-    ? (countTable(dev.device, 'Device', 8) || '') + (countTable(dev.os, 'OS', 8) || '')
+    ? (countTable(dev.device, 'Device', 8, deviceLabel) || '')
+      + (countTable(dev.os, 'Operating system', 8, osLabel) || '')
     : null;
 
   const demo = slice(DEMOGRAPHICS, id);
   const demoHtml = demo && Object.keys(demo).length
-    ? countTable(demo, 'Age / gender', 12)
+    ? countTable(demo, 'Age · gender', 12, demoLabel)
     : null;
 
+  // Traffic sources carries the most columns (through to Clicks and CTR), so it
+  // spans the full width on its own row; the other three share the grid below.
   return `<div class="panels">
-    <div class="panel-box"><h3>Traffic sources · ${esc(bucketLabel())}</h3>
+    <div class="panel-box" style="grid-column:1/-1"><h3>Traffic sources · ${esc(bucketLabel())}</h3>
       ${t || pending('traffic source')}</div>
     <div class="panel-box"><h3>Search terms &amp; referrers</h3>
       ${detHtml || pending('traffic detail')}</div>

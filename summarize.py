@@ -252,6 +252,10 @@ def build_traffic(since=None):
                 "watch_time_minutes": round(a["watch_time_minutes"], 2),
                 "avg_view_seconds": round(a["avd_weighted"] / views, 1) if views else None,
                 "impressions": round(a["impressions"]) if a["reach_seen"] else None,
+                # Actual thumbnail clicks (summed as impressions*ctr per day), so
+                # the table can show clicks alongside the impressions and CTR
+                # they are derived from. Null where impressions are unmeasured.
+                "clicks": round(a["clicks"]) if a["reach_seen"] else None,
                 "ctr": round((a["clicks"] / a["impressions"]) * 100, 3) if a["impressions"] else None,
             }
         return out
