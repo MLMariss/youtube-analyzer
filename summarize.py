@@ -103,10 +103,11 @@ def build_video_totals(since=None):
             ctr = row.get("video_thumbnail_impressions_ctr")
             a = acc[vid]
             a["impressions"] += imp
-            # Convert each day's CTR back into clicks so days can be summed,
-            # then recompute CTR over the whole window at the end.
+            # video_thumbnail_impressions_ctr is a 0-1 ratio (unlike the 0-100
+            # *_percentage metrics), so clicks = impressions * ctr. Summing
+            # clicks lets CTR be recomputed correctly over the whole window.
             if isinstance(ctr, (int, float)):
-                a["clicks"] += imp * (ctr / 100.0)
+                a["clicks"] += imp * ctr
             a["days"].add(day)
 
     # Core activity.
@@ -166,7 +167,7 @@ def build_daily_series():
             ctr = row.get("video_thumbnail_impressions_ctr")
             daily[day]["impressions"] += imp
             if isinstance(ctr, (int, float)):
-                daily[day]["clicks"] += imp * (ctr / 100.0)
+                daily[day]["clicks"] += imp * ctr
 
     for day, rows in iter_shards("channel_basic_a3"):
         for row in rows:
@@ -235,7 +236,7 @@ def build_traffic(since=None):
             src = source_key(row)
             imp = num(row.get("video_thumbnail_impressions"))
             ctr = row.get("video_thumbnail_impressions_ctr")
-            clicks = imp * (ctr / 100.0) if isinstance(ctr, (int, float)) else 0.0
+            clicks = imp * ctr if isinstance(ctr, (int, float)) else 0.0
             for a in targets(row.get("video_id"), src):
                 a["reach_seen"] = True
                 a["impressions"] += imp

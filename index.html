@@ -5,93 +5,259 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>MLMariss · YouTube analytics</title>
 <style>
+  /* Palette: validated data-viz reference instance (light + dark, theme-aware).
+     Dark values are declared under both the media query (OS setting) and the
+     [data-theme] scope (manual toggle), so the toggle wins either way. */
   :root {
-    --bg: #0f1115; --panel: #171a21; --line: #262b36;
-    --text: #e6e9ef; --muted: #949cad; --accent: #5b9dff;
-    --good: #4ec98a; --warn: #f0b34a; --bad: #e5675f;
+    color-scheme: light;
+    --plane:      #f9f9f7;   /* page background */
+    --surface:    #ffffff;   /* cards, table */
+    --surface-2:  #f4f4f1;   /* insets, expanded rows, hover */
+    --text:       #0b0b0b;
+    --text-2:     #52514e;
+    --muted:      #898781;
+    --grid:       #e1e0d9;
+    --line:       #e6e5df;
+    --baseline:   #c3c2b7;
+    --border:     rgba(11,11,11,0.10);
+    --accent:     #2a78d6;   /* series-1 blue */
+    --accent-100: #cde2fb;   /* sequential step 100 */
+    --accent-ink: #ffffff;   /* text on accent */
+    --good:       #0ca30c;
+    --warn:       #b8860b;   /* amber, contrast-safe on light */
+    --bad:        #d03b3b;
+    --shadow:     0 1px 2px rgba(11,11,11,.04), 0 2px 8px rgba(11,11,11,.04);
   }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --plane:     #0d0d0d;
+      --surface:   #1a1a19;
+      --surface-2: #232320;
+      --text:      #ffffff;
+      --text-2:    #c3c2b7;
+      --muted:     #898781;
+      --grid:      #2c2c2a;
+      --line:      #2c2c2a;
+      --baseline:  #383835;
+      --border:    rgba(255,255,255,0.10);
+      --accent:    #3987e5;
+      --accent-100:#184f95;
+      --accent-ink:#ffffff;
+      --good:      #3fc43f;
+      --warn:      #fab219;
+      --bad:       #ec6a6a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 2px 10px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --plane:     #0d0d0d;
+    --surface:   #1a1a19;
+    --surface-2: #232320;
+    --text:      #ffffff;
+    --text-2:    #c3c2b7;
+    --muted:     #898781;
+    --grid:      #2c2c2a;
+    --line:      #2c2c2a;
+    --baseline:  #383835;
+    --border:    rgba(255,255,255,0.10);
+    --accent:    #3987e5;
+    --accent-100:#184f95;
+    --accent-ink:#ffffff;
+    --good:      #3fc43f;
+    --warn:      #fab219;
+    --bad:       #ec6a6a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 2px 10px rgba(0,0,0,.3);
+  }
+
   * { box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0; background: var(--plane); color: var(--text);
+    font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
+
   header {
-    padding: 18px 24px; border-bottom: 1px solid var(--line);
-    display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;
+    padding: 16px 28px; border-bottom: 1px solid var(--line);
+    background: var(--surface);
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    position: sticky; top: 0; z-index: 20;
   }
-  h1 { font-size: 17px; margin: 0; font-weight: 600; }
+  .brand { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  h1 { font-size: 16px; margin: 0; font-weight: 650; letter-spacing: -0.01em; }
   .stamp { color: var(--muted); font-size: 12px; }
-  .wrap { padding: 20px 24px 60px; max-width: 1400px; }
-  .metrics { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+  .spacer { flex: 1 1 auto; }
+  .theme-toggle {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface-2); color: var(--text-2);
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 6px 12px; font-size: 12px; cursor: pointer;
+  }
+  .theme-toggle:hover { color: var(--text); }
+
+  /* Full-width fluid layout: content fills the viewport, no left-pinned cap. */
+  .wrap { padding: 22px 28px 90px; width: 100%; }
+
+  .metrics {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px; margin-bottom: 18px;
+  }
   .metric {
-    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
-    padding: 10px 14px; min-width: 130px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 16px; box-shadow: var(--shadow);
   }
-  .metric .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
-  .metric .value { font-size: 20px; font-weight: 600; margin-top: 2px; }
-  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  .metric .label {
+    color: var(--muted); font-size: 11px; text-transform: uppercase;
+    letter-spacing: .05em; display: flex; align-items: center; gap: 5px;
+  }
+  .metric .value {
+    font-size: 22px; font-weight: 650; margin-top: 4px;
+    font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+  }
+  .metric .sub { color: var(--muted); font-size: 11px; margin-top: 1px; }
+
+  .info {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 1px solid var(--muted); color: var(--muted);
+    font-size: 9px; font-weight: 700; cursor: help; flex: none;
+    font-style: normal; line-height: 1;
+  }
+  .info:hover { color: var(--text); border-color: var(--text); }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 16px;
+  }
+  .card-pad { padding: 14px 16px; }
+
+  .toolbar {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    padding: 12px 16px; border-bottom: 1px solid var(--line);
+  }
+  .toolbar .grp { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .lbl { color: var(--muted); font-size: 12px; }
+  .sep { width: 1px; align-self: stretch; background: var(--line); margin: 2px 4px; }
+
   button, select, input {
-    background: var(--panel); color: var(--text); border: 1px solid var(--line);
-    border-radius: 6px; padding: 6px 12px; font: inherit; cursor: pointer;
+    background: var(--surface); color: var(--text); border: 1px solid var(--border);
+    border-radius: 7px; padding: 6px 12px; font: inherit; cursor: pointer;
   }
-  button.active { background: var(--accent); border-color: var(--accent); color: #05070c; font-weight: 600; }
+  button:hover, select:hover { border-color: var(--baseline); }
+  .seg button { border-radius: 0; border-left-width: 0; }
+  .seg button:first-child { border-radius: 7px 0 0 7px; border-left-width: 1px; }
+  .seg button:last-child { border-radius: 0 7px 7px 0; }
+  button.active {
+    background: var(--accent); border-color: var(--accent);
+    color: var(--accent-ink); font-weight: 600;
+  }
   input[type=search], input[type=date], input[type=number] { cursor: text; }
-  input[type=search] { min-width: 200px; }
-  input[type=date] { min-width: 150px; }
+  input[type=search] { min-width: 190px; }
+  input[type=date] { min-width: 140px; }
   input[type=number] { width: 110px; }
-  .filters {
-    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
-    padding: 12px 14px; margin-bottom: 14px;
-    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  input:focus, select:focus, button:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 1px;
   }
-  .filters .lbl { color: var(--muted); font-size: 12px; }
-  .filters .sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 4px; }
   .chip {
-    background: #0b0d12; border: 1px solid var(--line); border-radius: 999px;
-    padding: 2px 10px; font-size: 12px; color: var(--muted);
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px;
+    padding: 3px 11px; font-size: 12px; color: var(--text-2);
   }
+
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-  th:first-child, td:first-child { text-align: left; white-space: normal; min-width: 260px; }
-  th { color: var(--muted); font-weight: 500; cursor: pointer; user-select: none; font-size: 12px; }
-  th:hover { color: var(--text); }
+  th, td {
+    text-align: right; padding: 9px 12px; border-bottom: 1px solid var(--line);
+    white-space: nowrap; font-variant-numeric: tabular-nums;
+  }
+  th:first-child, td:first-child {
+    text-align: left; white-space: normal; min-width: 260px; font-variant-numeric: normal;
+  }
+  thead th {
+    color: var(--muted); font-weight: 600; cursor: pointer; user-select: none;
+    font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+    position: sticky; top: 57px; background: var(--surface); z-index: 5;
+  }
+  thead th:hover { color: var(--text); }
   th.sorted { color: var(--accent); }
+  th .arrow { font-size: 9px; opacity: .8; }
   tbody tr.row { cursor: pointer; }
-  tbody tr.row:hover { background: #1c2029; }
-  tbody tr.row.open { background: #1c2029; }
-  .title-cell { display: flex; gap: 10px; align-items: center; }
-  .title-cell img { width: 64px; height: 36px; object-fit: cover; border-radius: 4px; flex: none; }
+  tbody tr.row:hover { background: var(--surface-2); }
+  tbody tr.row.open { background: var(--surface-2); }
+  .title-cell { display: flex; gap: 11px; align-items: center; }
+  .title-cell img { width: 68px; height: 38px; object-fit: cover; border-radius: 5px; flex: none; }
+  .title-cell .t { font-weight: 550; }
   .title-cell .sub { color: var(--muted); font-size: 11px; }
-  .caret { color: var(--muted); font-size: 10px; margin-right: 2px; }
-  td.detail { text-align: left; white-space: normal; background: #12151b; padding: 0; }
-  .panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; padding: 14px; }
-  .panel-box { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+  .caret { color: var(--muted); font-size: 10px; margin-right: 5px; display: inline-block; width: 8px; }
+  td.detail { text-align: left; white-space: normal; background: var(--surface-2); padding: 0; }
+
+  .panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; padding: 16px; }
+  .panel-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
   .panel-box h3 {
-    margin: 0 0 8px; font-size: 12px; font-weight: 600; color: var(--muted);
-    text-transform: uppercase; letter-spacing: .04em;
+    margin: 0 0 8px; font-size: 11px; font-weight: 650; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .05em;
   }
   .panel-box table { font-size: 12px; }
-  .panel-box th, .panel-box td { padding: 4px 6px; border-bottom: 1px solid #1e222b; }
+  .panel-box th, .panel-box td { padding: 5px 7px; border-bottom: 1px solid var(--line); }
   .panel-box th:first-child, .panel-box td:first-child { min-width: 0; }
+  .panel-box thead th { position: static; }
+
   .empty { color: var(--muted); font-size: 12px; font-style: italic; }
-  .bar { height: 4px; background: var(--accent); border-radius: 2px; display: block; margin-top: 3px; }
+  .bar { height: 4px; background: var(--accent); border-radius: 999px; display: block; margin-top: 4px; opacity: .55; }
+  .bar.wt { background: var(--accent); opacity: .35; }
+
   .notice {
-    background: var(--panel); border: 1px solid var(--line);
-    border-left: 3px solid var(--warn); border-radius: 8px;
-    padding: 14px 16px; margin-bottom: 16px; font-size: 13px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 3px solid var(--warn); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 16px; font-size: 13px; box-shadow: var(--shadow);
   }
   .notice.error { border-left-color: var(--bad); }
-  .notice code { background: #0b0d12; padding: 1px 5px; border-radius: 3px; }
+  .notice code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
   .hidden { display: none; }
   .good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
-  .spark { display: block; }
+
+  /* Chart */
+  .spark-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+  .spark-title { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 650; }
+  .spark-peak { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  svg.spark { display: block; width: 100%; height: 120px; overflow: visible; }
+  .sp-tip {
+    position: absolute; pointer-events: none; background: var(--text); color: var(--surface);
+    padding: 4px 8px; border-radius: 6px; font-size: 11px; white-space: nowrap;
+    transform: translate(-50%, -130%); opacity: 0; transition: opacity .08s; font-variant-numeric: tabular-nums;
+  }
+
+  /* Glossary */
+  details.glossary { margin-bottom: 16px; }
+  details.glossary > summary {
+    cursor: pointer; color: var(--text-2); font-size: 13px; padding: 10px 14px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    list-style: none; display: flex; align-items: center; gap: 8px; box-shadow: var(--shadow);
+  }
+  details.glossary > summary::-webkit-details-marker { display: none; }
+  details.glossary[open] > summary { border-radius: 10px 10px 0 0; }
+  .gloss-body {
+    background: var(--surface); border: 1px solid var(--border); border-top: 0;
+    border-radius: 0 0 10px 10px; padding: 4px 16px 14px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2px 24px;
+  }
+  .gloss-body dt { font-weight: 650; margin-top: 12px; font-size: 13px; }
+  .gloss-body dd { margin: 2px 0 0; color: var(--text-2); font-size: 12.5px; }
+  .gloss-body .src { color: var(--muted); font-size: 11px; }
+  .gloss-body a { color: var(--accent); }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>MLMariss · YouTube analytics</h1>
-  <span class="stamp" id="stamp">loading…</span>
+  <div class="brand">
+    <h1>MLMariss · YouTube analytics</h1>
+    <span class="stamp" id="stamp">loading…</span>
+  </div>
+  <span class="spacer"></span>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle light / dark">
+    <span id="theme-icon">◐</span><span id="theme-label">Theme</span>
+  </button>
 </header>
 
 <div class="wrap">
@@ -100,59 +266,66 @@
 
   <div class="metrics" id="metrics"></div>
 
-  <div class="controls">
-    <span class="lbl" style="color:var(--muted);font-size:12px;">Window:</span>
-    <button data-window="7d">7 days</button>
-    <button data-window="28d">28 days</button>
-    <button data-window="90d" class="active">90 days</button>
-    <button data-window="365d">365 days</button>
-    <button data-window="all">All time</button>
-  </div>
+  <details class="glossary" id="glossary">
+    <summary><span class="info">i</span> What do these metrics mean?</summary>
+    <dl class="gloss-body" id="gloss-body"></dl>
+  </details>
 
-  <div class="filters">
-    <input type="search" id="f-text" placeholder="Filter titles…" />
-    <span class="sep"></span>
-    <span class="lbl">Published</span>
-    <input type="date" id="f-from" title="Published on or after" />
-    <span class="lbl">→</span>
-    <input type="date" id="f-to" title="Published on or before" />
-    <span class="sep"></span>
-    <span class="lbl">Format</span>
-    <select id="f-format">
-      <option value="all">All</option>
-      <option value="short">Shorts (≤60s)</option>
-      <option value="long">Long-form</option>
-    </select>
-    <span class="sep"></span>
-    <span class="lbl">Traffic source</span>
-    <select id="f-source"><option value="all">Any</option></select>
-    <span class="sep"></span>
-    <span class="lbl">Min views</span>
-    <input type="number" id="f-minviews" min="0" step="10" placeholder="0" />
-    <button id="f-reset">Reset</button>
-    <span class="chip" id="f-count"></span>
-  </div>
+  <div class="card">
+    <div class="toolbar">
+      <div class="grp seg" role="group" aria-label="Time window">
+        <button data-window="7d">7 days</button>
+        <button data-window="28d">28 days</button>
+        <button data-window="90d" class="active">90 days</button>
+        <button data-window="365d">365 days</button>
+        <button data-window="all">All time</button>
+      </div>
+      <span class="spacer"></span>
+      <div class="grp">
+        <input type="search" id="f-text" placeholder="Filter titles…" />
+        <span class="sep"></span>
+        <span class="lbl">Published</span>
+        <input type="date" id="f-from" title="Published on or after" />
+        <span class="lbl">→</span>
+        <input type="date" id="f-to" title="Published on or before" />
+        <span class="sep"></span>
+        <span class="lbl">Format</span>
+        <select id="f-format">
+          <option value="all">All</option>
+          <option value="short">Shorts (≤60s)</option>
+          <option value="long">Long-form</option>
+        </select>
+        <span class="sep"></span>
+        <span class="lbl">Source</span>
+        <select id="f-source"><option value="all">Any</option></select>
+        <span class="sep"></span>
+        <span class="lbl">Min views</span>
+        <input type="number" id="f-minviews" min="0" step="10" placeholder="0" />
+        <button id="f-reset">Reset</button>
+        <span class="chip" id="f-count"></span>
+      </div>
+    </div>
 
-  <svg id="spark" class="spark hidden" width="100%" height="90"></svg>
+    <div class="card-pad" id="spark-wrap" style="position:relative">
+      <div class="spark-head">
+        <span class="spark-title">Impressions per day</span>
+        <span class="spark-peak" id="spark-peak"></span>
+      </div>
+      <svg id="spark" class="spark hidden"></svg>
+      <div class="sp-tip" id="sp-tip"></div>
+    </div>
+  </div>
 
   <div id="channel-traffic"></div>
 
-  <table id="tbl">
-    <thead>
-      <tr>
-        <th data-sort="title">Video</th>
-        <th data-sort="publishedTs">Published</th>
-        <th data-sort="impressions">Impressions</th>
-        <th data-sort="ctr">CTR</th>
-        <th data-sort="views">Views</th>
-        <th data-sort="avg_view_percentage">Retention</th>
-        <th data-sort="watch_time_minutes">Watch time</th>
-        <th data-sort="subscribers_gained">Subs</th>
-        <th data-sort="engagement">Engagement</th>
-      </tr>
-    </thead>
-    <tbody id="rows"></tbody>
-  </table>
+  <div class="card">
+    <table id="tbl">
+      <thead>
+        <tr id="head-row"></tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
 
 </div>
 
@@ -165,7 +338,72 @@ let currentWindow = '90d', sortKey = 'impressions', sortDir = -1;
 let expanded = null;
 const F = { text: '', from: '', to: '', format: 'all', source: 'all', minViews: 0 };
 
-const COLSPAN = 9;
+// ---- Traffic source labels -------------------------------------------------
+// The Reporting API encodes traffic_source_type as an integer code. This maps
+// the codes YouTube documents to readable names; unknown codes fall back to
+// "Source N" so nothing is ever a bare number.
+// Refs: developers.google.com/youtube/reporting/v1/reports/dimensions
+const SOURCE_LABELS = {
+  '0': 'Direct or unknown',
+  '1': 'YouTube advertising',
+  '3': 'Browse features',
+  '4': 'Channel pages',
+  '5': 'YouTube search',
+  '7': 'Suggested videos',
+  '8': 'Other YouTube features',
+  '9': 'External',
+  '11': 'Cards',
+  '14': 'Playlists',
+  '17': 'Notifications',
+  '18': 'Playlist page',
+  '19': 'Claimed content',
+  '20': 'End screens',
+  '24': 'Shorts feed',
+  '25': 'Product pages',
+  '26': 'Hashtag pages',
+  '27': 'Video remixes',
+  '28': 'Live redirects',
+  'UNKNOWN': 'Unknown',
+};
+const sourceLabel = code => {
+  const k = String(code);
+  return SOURCE_LABELS[k] || (/^\d+$/.test(k) ? `Source ${k}` : k);
+};
+
+// ---- Metric definitions (YouTube documentation) ----------------------------
+const METRICS = {
+  impressions: ['Impressions',
+    'How many times your thumbnails were shown to viewers on YouTube. Counts only YouTube surfaces (not external sites), when at least 50% of the thumbnail was on screen for more than one second.'],
+  ctr: ['Click-through rate (CTR)',
+    'The share of thumbnail impressions that turned into views — clicks ÷ impressions. Computed here as total clicks over total impressions across the window, never an average of daily rates.'],
+  views: ['Views', 'The number of legitimate views of your videos in the window.'],
+  avg_view_percentage: ['Retention (average % viewed)',
+    'The average percentage of the video that viewers watched. Can exceed 100% when parts are re-watched or looped.'],
+  watch_time_minutes: ['Watch time',
+    "Total minutes viewers spent watching. YouTube's primary discovery signal — it favours total watch time, not just views."],
+  wt_share: ['Watch-time share',
+    'This video’s share of the total watch time across the videos currently in view (after filters). Shows which uploads carry the channel. Custom metric, not from YouTube.'],
+  subscribers_gained: ['Subscribers gained',
+    'Subscribers gained that YouTube attributes to the video during the window (before subtracting any lost).'],
+  engagement: ['Engagement rate',
+    '(likes + comments + shares) ÷ views, as a percentage. A custom interaction rate — not an official YouTube metric.'],
+  avg_view_seconds: ['Average view duration',
+    'The average length of a single playback (time watched ÷ views).'],
+};
+
+const COLS = [
+  { key: 'title',              label: 'Video',      m: null },
+  { key: 'publishedTs',        label: 'Published',  m: null },
+  { key: 'impressions',        label: 'Impressions', m: 'impressions' },
+  { key: 'ctr',                label: 'CTR',        m: 'ctr' },
+  { key: 'views',              label: 'Views',      m: 'views' },
+  { key: 'avg_view_percentage',label: 'Retention',  m: 'avg_view_percentage' },
+  { key: 'watch_time_minutes', label: 'Watch time', m: 'watch_time_minutes' },
+  { key: 'wt_share',           label: 'WT share',   m: 'wt_share' },
+  { key: 'subscribers_gained', label: 'Subs',       m: 'subscribers_gained' },
+  { key: 'engagement',         label: 'Engagement', m: 'engagement' },
+];
+const COLSPAN = COLS.length;
 
 // Titles come from YouTube and search terms in traffic_detail.json are typed by
 // viewers, so everything interpolated into innerHTML must be escaped properly.
@@ -235,7 +473,61 @@ async function loadOptional(path) {
   try { return await loadJson(path); } catch (e) { return null; }
 }
 
+// ---- Theme -----------------------------------------------------------------
+function applyTheme(mode) {
+  // mode: 'light' | 'dark' | null(=follow system)
+  const root = document.documentElement;
+  if (mode) root.setAttribute('data-theme', mode);
+  else root.removeAttribute('data-theme');
+  const dark = mode ? mode === 'dark'
+    : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.getElementById('theme-icon').textContent = dark ? '☾' : '☀';
+  document.getElementById('theme-label').textContent = dark ? 'Dark' : 'Light';
+}
+function initTheme() {
+  const saved = localStorage.getItem('theme');
+  applyTheme(saved === 'light' || saved === 'dark' ? saved : null);
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const next = (cur ? cur === 'dark' : sysDark) ? 'light' : 'dark';
+    localStorage.setItem('theme', next);
+    applyTheme(next);
+    renderSpark(); // re-stroke with the new surface colors
+  });
+}
+
+function buildGlossary() {
+  const order = ['impressions','ctr','views','avg_view_percentage','watch_time_minutes',
+                 'wt_share','subscribers_gained','engagement','avg_view_seconds'];
+  document.getElementById('gloss-body').innerHTML = order.map(k => {
+    const [name, desc] = METRICS[k];
+    return `<div><dt>${esc(name)}</dt><dd>${esc(desc)}</dd></div>`;
+  }).join('') +
+    `<div style="grid-column:1/-1;margin-top:12px" class="src">Definitions follow YouTube's ` +
+    `<a href="https://support.google.com/youtube/answer/9002587" target="_blank" rel="noopener">Analytics help</a> and the ` +
+    `<a href="https://developers.google.com/youtube/reporting/v1/reports/metrics" target="_blank" rel="noopener">Reporting API metrics</a> reference.</div>`;
+}
+
+function buildHead() {
+  document.getElementById('head-row').innerHTML = COLS.map(c => {
+    const t = c.m ? ` title="${esc(METRICS[c.m][0])}: ${esc(METRICS[c.m][1])}"` : '';
+    return `<th data-sort="${c.key}"${t}>${esc(c.label)}</th>`;
+  }).join('');
+  document.querySelectorAll('[data-sort]').forEach(th => {
+    th.addEventListener('click', () => {
+      const k = th.dataset.sort;
+      if (sortKey === k) sortDir = -sortDir;
+      else { sortKey = k; sortDir = k === 'title' ? 1 : -1; }
+      render();
+    });
+  });
+}
+
 async function init() {
+  initTheme();
+  buildGlossary();
+  buildHead();
   try {
     SUMMARY = await loadJson('data/summary.json');
   } catch (e) {
@@ -270,14 +562,16 @@ async function init() {
 
 function populateSources() {
   const ch = slice(TRAFFIC, null) || {};
-  const names = Object.keys(ch);
+  const codes = Object.keys(ch);
   const sel = document.getElementById('f-source');
   const keep = sel.value;
+  // Sort options by readable label for a friendlier dropdown.
+  codes.sort((a, b) => sourceLabel(a).localeCompare(sourceLabel(b)));
   sel.innerHTML = '<option value="all">Any</option>' +
-    names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
-  if (names.includes(keep)) sel.value = keep;
+    codes.map(c => `<option value="${esc(c)}">${esc(sourceLabel(c))}</option>`).join('');
+  if (codes.includes(keep)) sel.value = keep;
   else { sel.value = 'all'; F.source = 'all'; }
-  sel.disabled = names.length === 0;
+  sel.disabled = codes.length === 0;
 }
 
 function allRows() {
@@ -328,6 +622,13 @@ function currentRows() {
     rows = rows.filter(r => (r.views || 0) >= F.minViews);
   }
 
+  // Watch-time share is relative to the visible set, so compute it after
+  // filtering and before sorting (so the column is sortable too).
+  const totalWt = rows.reduce((s, r) => s + (r.watch_time_minutes || 0), 0);
+  rows.forEach(r => {
+    r.wt_share = totalWt ? ((r.watch_time_minutes || 0) / totalWt) * 100 : null;
+  });
+
   rows.sort((a, b) => {
     let x = a[sortKey], y = b[sortKey];
     if (sortKey === 'title') return sortDir * String(x).localeCompare(String(y));
@@ -352,48 +653,89 @@ function renderMetrics() {
   const ctr = imps ? (clicks / imps) * 100 : null;
   const ch = SUMMARY.channel || {};
 
+  const info = k => `<span class="info" title="${esc(METRICS[k][0])}: ${esc(METRICS[k][1])}">i</span>`;
   const cards = [
-    ['Subscribers', fmt(ch.subscriber_count)],
-    ['Impressions', fmt(imps)],
-    ['CTR', pct(ctr)],
-    ['Views', fmt(views)],
-    ['Watch time', mins(wt)],
-    ['Subs gained', fmt(subs)],
-    ['Videos', fmt(vals.length)],
+    ['Subscribers', fmt(ch.subscriber_count), '', null],
+    ['Impressions', fmt(imps), '', 'impressions'],
+    ['CTR', pct(ctr), 'clicks ÷ impressions', 'ctr'],
+    ['Views', fmt(views), '', 'views'],
+    ['Watch time', mins(wt), '', 'watch_time_minutes'],
+    ['Subs gained', fmt(subs), '', 'subscribers_gained'],
+    ['Videos', fmt(vals.length), 'in current filter', null],
   ];
   document.getElementById('metrics').innerHTML = cards.map(
-    ([l, v]) => `<div class="metric"><div class="label">${l}</div><div class="value">${v}</div></div>`
+    ([l, v, sub, m]) => `<div class="metric">
+      <div class="label">${esc(l)}${m ? info(m) : ''}</div>
+      <div class="value">${v}</div>
+      ${sub ? `<div class="sub">${esc(sub)}</div>` : ''}
+    </div>`
   ).join('');
 }
 
+// ---- Sparkline with hover crosshair ----------------------------------------
+let SPARK_PTS = [];
 function renderSpark() {
   const svg = document.getElementById('spark');
-  if (!DAILY || !DAILY.series || DAILY.series.length < 2) { svg.classList.add('hidden'); return; }
+  const peakEl = document.getElementById('spark-peak');
+  if (!DAILY || !DAILY.series || DAILY.series.length < 2) { svg.classList.add('hidden'); peakEl.textContent = ''; return; }
   const days = currentWindow === 'all' ? DAILY.series.length
              : parseInt(currentWindow) || DAILY.series.length;
   const s = DAILY.series.slice(-days);
-  const W = 1200, H = 90, pad = 4;
+  const W = 1200, H = 120, padX = 6, padTop = 10, padBot = 16;
   const max = Math.max(...s.map(d => d.impressions || 0), 1);
-  const step = s.length > 1 ? (W - pad * 2) / (s.length - 1) : 0;
-  const pts = s.map((d, i) =>
-    `${pad + i * step},${H - pad - ((d.impressions || 0) / max) * (H - pad * 2)}`).join(' ');
+  const step = s.length > 1 ? (W - padX * 2) / (s.length - 1) : 0;
+  const yOf = v => H - padBot - ((v || 0) / max) * (H - padTop - padBot);
+  SPARK_PTS = s.map((d, i) => ({ x: padX + i * step, y: yOf(d.impressions), d }));
+  const line = SPARK_PTS.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const area = `${padX},${H - padBot} ${line} ${(padX + (s.length - 1) * step).toFixed(1)},${H - padBot}`;
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('preserveAspectRatio', 'none');
   svg.innerHTML =
-    `<polyline fill="none" stroke="var(--accent)" stroke-width="2" points="${pts}" />` +
-    `<text x="${pad}" y="12" fill="var(--muted)" font-size="11">` +
-    `impressions/day · peak ${fmt(max)}</text>`;
+    `<polygon points="${area}" fill="var(--accent-100)" opacity="0.5" />` +
+    `<line x1="${padX}" y1="${H - padBot}" x2="${W - padX}" y2="${H - padBot}" stroke="var(--baseline)" stroke-width="1" />` +
+    `<polyline fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="${line}" />` +
+    `<circle id="sp-dot" r="3.5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2" style="opacity:0" />` +
+    `<line id="sp-cross" y1="${padTop}" y2="${H - padBot}" stroke="var(--baseline)" stroke-width="1" style="opacity:0" />`;
+  peakEl.textContent = `peak ${fmt(max)} · ${s.length} days`;
   svg.classList.remove('hidden');
 }
 
+function sparkHover(evt) {
+  const svg = document.getElementById('spark');
+  if (svg.classList.contains('hidden') || !SPARK_PTS.length) return;
+  const rect = svg.getBoundingClientRect();
+  const vb = svg.viewBox.baseVal;
+  const xv = ((evt.clientX - rect.left) / rect.width) * vb.width;
+  let best = SPARK_PTS[0], bd = Infinity;
+  for (const p of SPARK_PTS) { const dd = Math.abs(p.x - xv); if (dd < bd) { bd = dd; best = p; } }
+  const dot = document.getElementById('sp-dot');
+  const cross = document.getElementById('sp-cross');
+  const tip = document.getElementById('sp-tip');
+  if (dot) { dot.setAttribute('cx', best.x); dot.setAttribute('cy', best.y); dot.style.opacity = 1; }
+  if (cross) { cross.setAttribute('x1', best.x); cross.setAttribute('x2', best.x); cross.style.opacity = 0.7; }
+  const px = rect.left + (best.x / vb.width) * rect.width - document.getElementById('spark-wrap').getBoundingClientRect().left;
+  const py = rect.top + (best.y / vb.height) * rect.height - document.getElementById('spark-wrap').getBoundingClientRect().top;
+  tip.style.left = px + 'px';
+  tip.style.top = py + 'px';
+  tip.style.opacity = 1;
+  tip.textContent = `${best.d.date}: ${fmt(best.d.impressions)} impressions`;
+}
+function sparkLeave() {
+  ['sp-dot', 'sp-cross'].forEach(id => { const e = document.getElementById(id); if (e) e.style.opacity = 0; });
+  document.getElementById('sp-tip').style.opacity = 0;
+}
+
 function trafficTable(sources) {
-  const names = Object.keys(sources || {});
-  if (!names.length) return null;
-  const total = names.reduce((s, n) => s + (sources[n].views || 0), 0) || 1;
-  const body = names.map(n => {
+  const codes = Object.keys(sources || {});
+  if (!codes.length) return null;
+  const total = codes.reduce((s, n) => s + (sources[n].views || 0), 0) || 1;
+  // Sort rows by views desc so the biggest sources lead.
+  codes.sort((a, b) => (sources[b].views || 0) - (sources[a].views || 0));
+  const body = codes.map(n => {
     const d = sources[n];
     const share = ((d.views || 0) / total) * 100;
     return `<tr>
-      <td style="text-align:left">${esc(n)}
+      <td style="text-align:left">${esc(sourceLabel(n))}
         <span class="bar" style="width:${Math.max(share, 1)}%"></span></td>
       <td>${fmt(d.views)}</td>
       <td>${share.toFixed(1)}%</td>
@@ -414,8 +756,9 @@ function renderChannelTraffic() {
   const el = document.getElementById('channel-traffic');
   const tbl = trafficTable(slice(TRAFFIC, null));
   if (!tbl) { el.innerHTML = ''; return; }
-  el.innerHTML = `<div class="panel-box" style="margin:14px 0">
-    <h3>Traffic sources · channel · ${esc(bucketLabel())}</h3>${tbl}</div>`;
+  el.innerHTML = `<div class="card"><div class="card-pad">
+    <h3 style="margin:0 0 10px;font-size:11px;font-weight:650;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">
+      Traffic sources · channel · ${esc(bucketLabel())}</h3>${tbl}</div></div>`;
 }
 
 function countTable(obj, label, cap) {
@@ -442,7 +785,7 @@ function detailPanels(id) {
   const det = slice(TDETAIL, id) || {};
   const detHtml = Object.keys(det).length
     ? Object.keys(det).map(src =>
-        `<div style="margin-bottom:10px">${countTable(det[src], src, 10) || ''}</div>`).join('')
+        `<div style="margin-bottom:10px">${countTable(det[src], sourceLabel(src), 10) || ''}</div>`).join('')
     : null;
 
   const dev = slice(DEVICES, id);
@@ -479,8 +822,11 @@ function render() {
   document.getElementById('f-count').textContent =
     `${rows.length} of ${allRows().length} videos`;
 
-  document.querySelectorAll('[data-sort]').forEach(th =>
-    th.classList.toggle('sorted', th.dataset.sort === sortKey));
+  document.querySelectorAll('[data-sort]').forEach(th => {
+    const on = th.dataset.sort === sortKey;
+    th.classList.toggle('sorted', on);
+    th.innerHTML = th.textContent.replace(/ [▲▼]$/, '') + (on ? ` <span class="arrow">${sortDir < 0 ? '▼' : '▲'}</span>` : '');
+  });
 
   const html = rows.map(r => {
     const open = expanded === r.id;
@@ -492,7 +838,7 @@ function render() {
         <div class="title-cell">
           ${r.thumb ? `<img src="${esc(r.thumb)}" alt="" loading="lazy">` : ''}
           <div>
-            <div><span class="caret">${open ? '▼' : '▶'}</span>${esc(r.title || r.id)}</div>
+            <div><span class="caret">${open ? '▼' : '▶'}</span><span class="t">${esc(r.title || r.id)}</span></div>
             <div class="sub">${esc(sub)}</div>
           </div>
         </div>
@@ -503,6 +849,8 @@ function render() {
       <td>${fmt(r.views)}</td>
       <td>${pct(r.avg_view_percentage)}</td>
       <td>${mins(r.watch_time_minutes)}</td>
+      <td>${r.wt_share === null || r.wt_share === undefined ? '—'
+            : `${r.wt_share.toFixed(1)}%<span class="bar wt" style="width:${Math.max(r.wt_share, 1)}%"></span>`}</td>
       <td>${fmt(r.subscribers_gained)}</td>
       <td>${pct(r.engagement)}</td>
     </tr>` + (open
@@ -532,15 +880,6 @@ document.querySelectorAll('[data-window]').forEach(b => {
   });
 });
 
-document.querySelectorAll('[data-sort]').forEach(th => {
-  th.addEventListener('click', () => {
-    const k = th.dataset.sort;
-    if (sortKey === k) sortDir = -sortDir;
-    else { sortKey = k; sortDir = k === 'title' ? 1 : -1; }
-    render();
-  });
-});
-
 // Clicking a row opens its breakdown; clicking it again closes it.
 document.getElementById('rows').addEventListener('click', e => {
   const tr = e.target.closest('tr.row');
@@ -548,6 +887,13 @@ document.getElementById('rows').addEventListener('click', e => {
   expanded = expanded === tr.dataset.id ? null : tr.dataset.id;
   render();
 });
+
+// Sparkline hover
+(() => {
+  const svg = document.getElementById('spark');
+  svg.addEventListener('mousemove', sparkHover);
+  svg.addEventListener('mouseleave', sparkLeave);
+})();
 
 const on = (id, ev, fn) => document.getElementById(id).addEventListener(ev, fn);
 on('f-text', 'input', e => { F.text = e.target.value; renderMetrics(); render(); });
