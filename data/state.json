@@ -345,6 +345,11 @@
         "create_time": "2026-07-23T04:15:51.110020Z",
         "report_id": "20257773433",
         "row_count": 522
+      },
+      "2026-07-22": {
+        "create_time": "2026-07-24T10:43:21.836455Z",
+        "report_id": "20262708916",
+        "row_count": 492
       }
     },
     "channel_cards_a1": {
@@ -496,6 +501,11 @@
       "2026-07-21": {
         "create_time": "2026-07-23T01:57:05.019521Z",
         "report_id": "17529763581",
+        "row_count": 1
+      },
+      "2026-07-22": {
+        "create_time": "2026-07-24T09:22:29.137147Z",
+        "report_id": "17533343470",
         "row_count": 1
       }
     },
@@ -649,6 +659,11 @@
         "create_time": "2026-07-23T04:35:05.613612Z",
         "report_id": "20257957461",
         "row_count": 726
+      },
+      "2026-07-22": {
+        "create_time": "2026-07-24T10:55:04.255872Z",
+        "report_id": "20262832010",
+        "row_count": 670
       }
     },
     "channel_demographics_a1": {
@@ -801,6 +816,11 @@
         "create_time": "2026-07-23T04:42:06.217153Z",
         "report_id": "20258109781",
         "row_count": 203
+      },
+      "2026-07-22": {
+        "create_time": "2026-07-24T10:01:43.020141Z",
+        "report_id": "20262376813",
+        "row_count": 173
       }
     },
     "channel_device_os_a3": {
@@ -953,6 +973,11 @@
         "create_time": "2026-07-23T02:53:46.340734Z",
         "report_id": "17530317162",
         "row_count": 632
+      },
+      "2026-07-22": {
+        "create_time": "2026-07-24T10:01:48.296916Z",
+        "report_id": "17533891206",
+        "row_count": 575
       }
     },
     "channel_playback_location_a3": {
@@ -1105,6 +1130,11 @@
         "create_time": "2026-07-23T02:50:05.560051Z",
         "report_id": "20256427424",
         "row_count": 525
+      },
+      "2026-07-22": {
+        "create_time": "2026-07-24T10:44:51.531104Z",
+        "report_id": "20262738214",
+        "row_count": 490
       }
     },
     "channel_province_a3": {
@@ -1257,6 +1287,11 @@
         "create_time": "2026-07-23T03:51:30.394674Z",
         "report_id": "20257461104",
         "row_count": 203
+      },
+      "2026-07-22": {
+        "create_time": "2026-07-24T11:38:05.926195Z",
+        "report_id": "17534654514",
+        "row_count": 173
       }
     },
     "channel_reach_basic_a1": {
@@ -1409,6 +1444,11 @@
         "create_time": "2026-07-23T02:01:22.691653Z",
         "report_id": "17529827870",
         "row_count": 346
+      },
+      "2026-07-22": {
+        "create_time": "2026-07-24T09:59:41.268515Z",
+        "report_id": "17533878684",
+        "row_count": 313
       }
     },
     "channel_reach_combined_a1": {
@@ -1561,6 +1601,11 @@
         "create_time": "2026-07-23T04:55:58.801131Z",
         "report_id": "20258190193",
         "row_count": 3080
+      },
+      "2026-07-22": {
+        "create_time": "2026-07-24T10:16:38.888749Z",
+        "report_id": "17534024345",
+        "row_count": 1892
       }
     },
     "channel_subtitles_a3": {
@@ -1713,6 +1758,11 @@
         "create_time": "2026-07-23T04:13:27.819956Z",
         "report_id": "20257760276",
         "row_count": 537
+      },
+      "2026-07-22": {
+        "create_time": "2026-07-24T08:57:04.674462Z",
+        "report_id": "17533042381",
+        "row_count": 507
       }
     },
     "channel_traffic_source_a3": {
@@ -1865,6 +1915,11 @@
         "create_time": "2026-07-23T02:22:47.778425Z",
         "report_id": "17530125989",
         "row_count": 649
+      },
+      "2026-07-22": {
+        "create_time": "2026-07-24T09:54:08.474014Z",
+        "report_id": "17533853656",
+        "row_count": 606
       }
     },
     "playlist_basic_a2": {
@@ -2017,6 +2072,11 @@
         "create_time": "2026-07-23T04:45:22.530798Z",
         "report_id": "20258020717",
         "row_count": 9
+      },
+      "2026-07-22": {
+        "create_time": "2026-07-24T09:06:08.325365Z",
+        "report_id": "17533084735",
+        "row_count": 14
       }
     },
     "playlist_combined_a2": {
@@ -2169,6 +2229,11 @@
         "create_time": "2026-07-23T04:54:06.334945Z",
         "report_id": "20258185294",
         "row_count": 10
+      },
+      "2026-07-22": {
+        "create_time": "2026-07-24T10:36:36.345932Z",
+        "report_id": "20262672998",
+        "row_count": 14
       }
     },
     "playlist_device_os_a2": {
@@ -2321,6 +2386,11 @@
         "create_time": "2026-07-23T05:38:37.898925Z",
         "report_id": "20258371925",
         "row_count": 10
+      },
+      "2026-07-22": {
+        "create_time": "2026-07-24T11:37:04.861347Z",
+        "report_id": "20263163021",
+        "row_count": 14
       }
     },
     "playlist_playback_location_a2": {
@@ -2429,6 +2499,11 @@
         "report_id": "17530820382",
         "row_count": 14
       },
+      "2026-07-13": {
+        "create_time": "2026-07-23T08:50:06.073928Z",
+        "report_id": "17530789697",
+        "row_count": 6
+      },
       "2026-07-14": {
         "create_time": "2026-07-23T04:44:42.632347Z",
         "report_id": "20258111527",
@@ -2468,6 +2543,11 @@
         "create_time": "2026-07-23T03:49:08.226925Z",
         "report_id": "20257411309",
         "row_count": 9
+      },
+      "2026-07-22": {
+        "create_time": "2026-07-24T09:23:09.541165Z",
+        "report_id": "17533344904",
+        "row_count": 14
       }
     },
     "playlist_province_a2": {
@@ -2620,6 +2700,11 @@
         "create_time": "2026-07-23T04:04:16.880572Z",
         "report_id": "20257623021",
         "row_count": 9
+      },
+      "2026-07-22": {
+        "create_time": "2026-07-24T11:34:46.205604Z",
+        "report_id": "20263141331",
+        "row_count": 6
       }
     },
     "playlist_traffic_source_a2": {
@@ -2772,6 +2857,11 @@
         "create_time": "2026-07-23T03:25:27.089307Z",
         "report_id": "17530459012",
         "row_count": 10
+      },
+      "2026-07-22": {
+        "create_time": "2026-07-24T10:00:39.839385Z",
+        "report_id": "17533910252",
+        "row_count": 14
       }
     }
   },
@@ -2794,7 +2884,7 @@
     "playlist_province_a2": "0c217b96-e686-44cc-9daf-7651980893b0",
     "playlist_traffic_source_a2": "2f9ca6e0-4576-40ed-98ba-9cb41adb4726"
   },
-  "last_run": "2026-07-24T06:59:48.404617+00:00",
+  "last_run": "2026-07-25T05:21:04.352615+00:00",
   "runs": [
     {
       "at": "2026-07-22T14:15:44.295460+00:00",
@@ -2807,6 +2897,12 @@
       "backfilled": 0,
       "failed": 1,
       "new": 480
+    },
+    {
+      "at": "2026-07-25T05:21:04.352615+00:00",
+      "backfilled": 0,
+      "failed": 0,
+      "new": 18
     }
   ]
 }
