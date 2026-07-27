@@ -347,6 +347,57 @@ Take the GS only where the gap is genuinely ≤€50 — at proline.lv (+€39) 
 
 **The "€1,148 floor" was a phantom — lead closed.** An earlier draft flagged a salidzini.lv listing advertising an RTX 5080 "no €1,148" and suggested chasing it. RD Electronics' product page resolves it: the Phoenix is **€1,387.24** for consumers and **€1,146.48 "Juridiskām personām"** — the VAT-excluded business price. €1,146.48 × 1.21 = €1,387.24 exactly. There is no €1,148 consumer card. Comparison sites surfacing B2B prices next to consumer ones is the same trap as the labsveikals "PVN 0%" entry.
 
+### 8.6 FINAL — full Dateks.lv RTX 5080 range, and the pick
+
+All 16 listings, prices incl. VAT. Composite = +78% over the RTX 3080 on every one; the silicon is identical, so this is decided purely on cooler class, clock, warranty and stock.
+
+| Model | Price | €/pt | Clock | Cooler | Warr. | Stock |
+|---|---|---|---|---|---|---|
+| MSI Ventus 3X OC | €1,299.00 | 16.65 | 2640 | Standard | 2 y | today (1) |
+| **▶ Palit GamingPro OC** | **€1,358.06** | **17.41** | **2700** | **High-End** | **3 y** | **today (1)** |
+| Gigabyte WINDFORCE OC | €1,370.61 | 17.57 | 2670 | Standard | 3 y | today (8) |
+| PNY EPIC-X | €1,393.91 | 17.87 | ⚠ 2300 | Standard | 3 y | 10.08 |
+| PNY | €1,410.99 | 18.09 | 2620 | High-End | 3 y | 10.08 |
+| Inno3D X3 | €1,413.37 | 18.12 | 2617 | Standard | 2 y | 03.08 |
+| PNY Slim | €1,430.87 | 18.34 | 2730 | Standard | 3 y | 10.08 |
+| Palit GamingPro (non-OC) | €1,439.83 | 18.46 | 2617 | High-End | 3 y | 28.07 (10) |
+| Zotac SOLID CORE | €1,451.49 | 18.61 | 2617 | High-End | **5 y** | 10.08 |
+| Zotac AMP Extreme | €1,484.42 | 19.03 | 2670 | High-End | 5 y | 10.08 |
+| Zotac SOLID OC White | €1,484.51 | 19.03 | 2640 | High-End | 5 y | 10.08 |
+| PNY | €1,496.13 | 19.18 | ⚠ 2300 | Standard | 3 y | 10.08 |
+| Gigabyte GAMING OC | €1,510.48 | 19.37 | 2730 | High-End | 3 y | 10.08 (1) |
+| Inno3D X3 OC | €1,514.87 | 19.42 | 2640 | Standard | 2 y | 10.08 |
+| Zotac SOLID CORE OC | €1,514.93 | 19.42 | 2640 | High-End | 5 y | 30.07 (>50) |
+| MSI Gaming Trio OC | €1,518.37 | 19.47 | 2700 | High-End | 3 y | today (2) |
+
+#### The pick: Palit GamingPro OC, €1,358.06
+
+Part number **NE75080S19T2-GB2031A**. The **S** in that string is the Golden Sample bin — the identical designation to the Gainward Phoenix GS (NE75080**S**19T2-GB2031**X**). Palit and Gainward are one company, Palit Microsystems; these are the same board with different shrouds.
+
+**This card is the Phoenix GS that RD Electronics lists at €1,748.22 — €390.16 cheaper.**
+
+Against the €1,299 Ventus, **€59.06** buys:
+
+- **High-End cooler** instead of Standard, on a 360 W card
+- **2700 MHz** vs 2640 — highest clock of anything under €1,400 here
+- **3-year warranty** instead of MSI's 2-year statutory minimum
+- Same-day availability
+
+That supersedes the §8.5 recommendation of the Gainward Phoenix at €1,387.24: this is a better bin, a better cooler class, and €29 cheaper.
+
+#### Fallback and alternatives
+
+- **Palit stock is 1 unit.** If it goes, take **Gigabyte WINDFORCE OC €1,370.61** — 8 units, same day, 3-year warranty. It is €12.55 more for a Standard cooler and 2670 MHz, so strictly a downgrade, but it is the only other 3-year card in stock today.
+- **Warranty priority: Zotac SOLID CORE €1,451.49** — High-End cooler and **5 years** (3+2 registered), €93 over the Palit, but reference 2617 MHz clock and no stock until 10.08.
+
+#### Avoid
+
+- **Both PNY cards listing 2300 MHz** (€1,393.91, €1,496.13) — that is *below* the 2617 MHz reference boost. Either a listing error or a cut-down card; do not buy unverified.
+- **Palit GamingPro non-OC at €1,439.83** — **€81.77 more than the OC version** with a lower 2617 MHz clock. A pricing anomaly; the OC model is strictly better and cheaper.
+- **MSI Gaming Trio OC €1,518.37** — same 2700 MHz and High-End cooler as the Palit for **€160 more**, and MSI's 2-year warranty.
+- **Gigabyte GAMING OC €1,510.48** — €152 over the Palit for +30 MHz (~1%).
+- **Inno3D X3 / X3 OC** — Standard cooler and 2-year warranty at €1,413–1,515.
+
 ### 8.6 Verified cheapest: MSI Ventus 3X OC at Dateks.lv — €1,299
 
 Confirmed on the storefront: **MSI GeForce RTX 5080 16GB Ventus 3X OC (V531-095R), €1,073.55 bez PVN / €1,299.00 ar PVN.** €1,073.55 × 1.21 = €1,299.00. **€1,299 is the consumer price**; €1,073.55 applies only to a company purchase — and the page notes warranty drops to **1 year** for legal entities.
