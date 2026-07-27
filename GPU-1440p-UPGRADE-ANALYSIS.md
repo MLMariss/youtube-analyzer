@@ -347,6 +347,30 @@ Take the GS only where the gap is genuinely ≤€50 — at proline.lv (+€39) 
 
 **The "€1,148 floor" was a phantom — lead closed.** An earlier draft flagged a salidzini.lv listing advertising an RTX 5080 "no €1,148" and suggested chasing it. RD Electronics' product page resolves it: the Phoenix is **€1,387.24** for consumers and **€1,146.48 "Juridiskām personām"** — the VAT-excluded business price. €1,146.48 × 1.21 = €1,387.24 exactly. There is no €1,148 consumer card. Comparison sites surfacing B2B prices next to consumer ones is the same trap as the labsveikals "PVN 0%" entry.
 
+### 8.6 Verified cheapest: MSI Ventus 3X OC at Dateks.lv — €1,299
+
+Confirmed on the storefront: **MSI GeForce RTX 5080 16GB Ventus 3X OC (V531-095R), €1,073.55 bez PVN / €1,299.00 ar PVN.** €1,073.55 × 1.21 = €1,299.00. **€1,299 is the consumer price**; €1,073.55 applies only to a company purchase — and the page notes warranty drops to **1 year** for legal entities.
+
+At €1,299 this is **€16.65/point**, the cheapest verified 5080 in this market — €88.24 (6.4%) below the Gainward Phoenix at RD Electronics. It ships **today**, versus 7 August for the Gainward. Stock is **1 unit**.
+
+**But it is the cheapest price, not the best card.** Three things the listing understates:
+
+| Factor | MSI Ventus 3X OC | Gainward Phoenix |
+|---|---|---|
+| Warranty | **2 years** (page-stated; EU statutory minimum) | **3 years** |
+| Product tier | Ventus = MSI's **entry** line (Ventus < Inspire < Gaming Trio < Suprim); page lists "Standard Cooler" | Mid-tier |
+| Rated boost | 2640 MHz (+23 over reference) | 2617 MHz |
+| **Sustained clock in review** | **2654 MHz** | — |
+| vs Founders Edition sustained | **2736 MHz — the Ventus runs ~3% slower than NVIDIA's own reference cooler** | — |
+
+Reviews report elevated temperatures and fan noise versus premium multi-slot designs. On a **360 W** card that is the expected outcome of an entry-tier cooler, and the ~3% sustained-clock deficit quietly gives back part of the €88 saving in performance.
+
+**The trade, stated plainly:** €88 saved and delivery today, against one year less warranty and a cooler that sustains lower clocks than the reference card.
+
+**Recommendation:** this baseline has been on an RTX 3080 since 2020 — a six-year hold. Against a hold that long, **€88 is ~€15/year, and the third warranty year plus the better-sustaining cooler are worth more than that.** The Gainward Phoenix at €1,387.24 remains the better *card*; the Ventus is the right call only if €88 or immediate availability is the binding constraint.
+
+**Cross-border is dead for this SKU.** German listings for the Ventus 3X OC ran ~€1,249 against €1,299 locally — a **€50** gap, not the €130–230 estimated in §8.4. For this card, buy locally.
+
 ### 8.6 Effect on the upgrade case
 
 At real Baltic pricing the RTX 5080 spans **€16.49/point at the floor to €22.41/point at a well-rated seller**, against the €14.86 originally claimed. The realistic figure for a seller worth buying from is **€17.79/point**.
