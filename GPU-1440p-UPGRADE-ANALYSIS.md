@@ -168,21 +168,115 @@ Leak-quality, so directional only. The +7–16% performance bump fails your own 
 
 ---
 
-## 7. Conclusions
+## 7. European pricing — the shortlist against real money
 
-**Buy one of these three:**
+**Why Eurozone-only is the right call:** importing from the US or UK adds import VAT (19–27% depending on member state) plus duty and broker handling on top of a price that is already quoted ex-tax. That routinely erases a 15–20% headline saving and leaves you with no EU warranty path. Every price below is **Eurozone retail, VAT included**, from German retailers (19% VAT, typically the cheapest in the bloc) that ship EU-wide with no customs event.
 
-1. **RTX 5080 — +78% composite.** The only current-gen card that sustains native 120 fps at 1440p ultra with no upscaling dependency. Best model: **MSI Suprim SOC** or **ASUS TUF OC**.
-2. **RTX 5070 Ti — +51% composite.** Clears 120 fps with DLSS Quality in essentially everything, 16 GB, full warranty. Best model: **ASUS TUF Gaming OC** or **MSI Ventus 3X OC** if space is tight.
-3. **RTX 4080 Super — +59% composite.** Outranks the 5070 Ti on silicon now that FG is excluded. Only worth it at a real used-market discount, and accept the warranty risk.
+Prices as of late July 2026. GPU pricing is volatile — treat these as ±5%.
 
-**The AMD question:** the **RX 9070 XT** is 6th on gaming merit (+36% raster+RT) and 9th once your 0.2 rendering weight applies (+20%). It is a genuinely good raster card knocked out by one fifth of the scoring formula. Decide whether 0.2 reflects how little you actually render — if it doesn't, it belongs back on the shortlist, with the **Sapphire Nitro+** or **PowerColor Red Devil**.
+### 7.1 The shortlist priced
 
-**Don't buy:** RTX 5070, RTX 4070 Super, RTX 3090 Ti, RX 9070, RX 7900 XT. A ~20% uplift against a 120 Hz panel is not perceptible — you'd be paying to go from 75 fps to 90 fps.
+| GPU | EU street price | Composite | **€ per point** | Status |
+|---|---|---|---|---|
+| **RTX 5070 Ti** | **€845–897** | +51% | **€16.6** | New, full warranty |
+| RTX 4080 Super | €868 used / €1,359 new | +59% | €14.7 used | Used only — new price is a remnant, ignore it |
+| **RTX 5080** | **€1,219–1,249** | +78% | **€15.6** | New, full warranty |
+| RTX 4090 | €2,239 used / €2,310 new | +121% | €18.5 | Used, no warranty |
+| RTX 5090 | €3,450–4,387 | +168% | €23.2 | New — but see below |
 
-**The honest caveat, unchanged:** at 1440p these uplifts are the smallest they will ever look, and without frame generation there is no multiplier to fall back on. **The real argument for upgrading is the 10 GB frame buffer, not the fps number** — anything below the 5070 Ti is hard to justify on throughput alone.
+Cheapest verified sources: **Mindfactory €1,219**, Alternate €1,229, Proshop €1,239 for the RTX 5080. RTX 5070 Ti bottoms out at **€844.90**, ~€897 on Amazon.de.
 
-**Next stage:** re-run with price. The 5070 Ti vs 4080 Super vs 9070 XT ordering is decided almost entirely on cost.
+### 7.2 The finding that decides this
+
+**The RTX 5080 is better value per unit of performance than the RTX 5070 Ti** — €15.6/point versus €16.6/point. That inverts the normal rule where the cheaper card wins on value.
+
+Look at the *marginal* rate, which is what actually matters when deciding whether to stretch:
+
+| Step-up | Extra cost | Extra performance | Marginal rate |
+|---|---|---|---|
+| **5070 Ti → 5080** | **+€374** | **+27 pp** | **€13.9 / pp** ✅ |
+| 5080 → 4090 (used) | +€1,020 | +43 pp | €23.7 / pp ❌ |
+| 5080 → 5090 | +€2,681 | +90 pp | €29.8 / pp ❌ |
+
+The €374 step from the 5070 Ti to the 5080 buys performance at **€13.9/pp — cheaper than the average rate of either card**. That is a genuinely rare situation and it is the clearest "pay a bit more, get meaningfully more" case in the entire lineup. It also happens to be the step that takes you from *needing upscaling to hit 120 fps* to *not needing it*.
+
+Both step-ups above the 5080 do the opposite: you pay roughly **double the marginal rate** for performance you cannot use at 1440p.
+
+### 7.3 Cards eliminated on price
+
+- **RTX 5090 — eliminated.** €3,450–4,387 against a €2,229 MSRP, i.e. **55–95% over MSRP**. Worst €/point in the comparison (€23.2) and it is CPU-bound at 1440p anyway. You would be paying a 3.2× premium over a 5080 for performance your monitor cannot show.
+- **RTX 4090 — eliminated.** €2,239 used. Costs **84% more than an RTX 5080 for 24% more performance**, on 4-year-old silicon with no warranty. The value case died when 5080 prices normalised.
+- **RTX 4080 Super — conditional.** €868 used is the best raw €/point on the board (€14.7), and it out-scores the 5070 Ti. But: no warranty, EOL platform, unknown thermal history, and it is only €23 cheaper than a brand-new RTX 5070 Ti. **Only worth it below ~€750.** At €868, buy the 5070 Ti instead.
+
+### 7.4 Do not overpay for the board partner model
+
+This matters more than usual, because premium RTX 5080 variants destroy the exact advantage that makes the 5080 the smart pick:
+
+| RTX 5080 model | Price | € per point | Verdict |
+|---|---|---|---|
+| **Zotac Solid OC (3.5-slot)** | ~€1,219 | **€15.6** | ✅ **Budget pick.** Cheapest better-than-reference cooler |
+| **ASUS TUF OC** | ~€1,249–1,299 | €16.0–16.7 | ✅ **Best buy.** 60–62 °C at 1100 rpm, quiet, minimal premium |
+| Gigabyte Aorus Master | ~€1,350–1,420 | €17.3–18.2 | ⚪ Excellent cooler, premium starts to bite |
+| MSI Suprim SOC | ~€1,400–1,459 | €17.9–18.7 | ⚪ Best-in-class cooling, but you're paying €200 for silence |
+| ASUS ROG Astral OC | ~€1,550+ | €19.9+ | ❌ Louder than the FE, single-digit gains |
+| **ASUS Noctua** | **€1,699** | **€21.8** | ❌ **€21.8/pt — as bad as a 5090.** Avoid entirely |
+
+**A €1,699 RTX 5080 is worse value than a €1,219 RTX 5080 by 40%, for the same silicon.** Stay at the €1,219–1,299 end or the whole argument for stepping up collapses.
+
+For the RTX 5070 Ti, model choice barely matters — all variants sit within 57 MHz / 2–3 fps. Buy the cheapest of **MSI Ventus 3X OC**, **Gigabyte Windforce/Eagle OC**, or **ASUS TUF Gaming OC** at €845–900. Do not pay above ~€920 for any 5070 Ti.
+
+### 7.5 Footnote: the RX 9070 XT on price
+
+Dropped from this round, but it is the cheapest entry to the tier and price changes its case: **€640** (ASRock Challenger) to €660, against a €689 MSRP.
+
+- On your composite (0.2 rendering): **€32.0/point — by far the worst on the board.**
+- On raster+RT only: **€17.8/point — competitive with the 5070 Ti's €18.8.**
+
+So the 0.2 rendering coefficient is worth roughly **€14/point** in this decision. If that weight is honest, the 9070 XT is out. If it isn't, the 9070 XT at €640 is the budget entry — **Sapphire Pulse** or **ASRock Challenger** at the low end, **PowerColor Red Devil** or **Sapphire Nitro+** around €720–800.
+
+### 7.6 The timing risk now has a price tag
+
+The SUPER refresh lands ~**October 2026**, roughly one quarter out, and reportedly EOLs the non-Super 5080 and 5070 Ti immediately. Buying a €1,219 16 GB RTX 5080 weeks before a **24 GB** RTX 5080 SUPER arrives at a rumoured $999–1,199 is a real financial risk — not because of the +9–16% performance, which fails your own cut-off rule, but because **50% more VRAM is exactly the thing this upgrade is meant to fix.**
+
+Counter-argument, and it is a serious one: RTX 50 launch pricing in Europe ran far above MSRP for months. The 5090 is *still* 55–95% over MSRP eighteen months in. A €999 rumoured MSRP could easily mean €1,400+ on European shelves in October. **A €1,219 RTX 5080 available today may well beat a nominally cheaper SUPER you cannot actually buy until 2027.**
+
+---
+
+## 8. Conclusions
+
+### The two cards worth buying
+
+**🥈 Budget option — RTX 5070 Ti, €845–900**
+Cheapest of MSI Ventus 3X OC / Gigabyte Windforce OC / ASUS TUF Gaming OC. +51% composite, 16 GB, full warranty. Clears 120 fps at 1440p with DLSS Quality in essentially everything. €16.6/point. **Do not pay over €920.**
+
+**🥇 Smart step-up — RTX 5080, €1,219–1,299**
+Zotac Solid OC (3.5-slot) at €1,219, or ASUS TUF OC at ~€1,249–1,299 for better cooling. +78% composite, €15.6/point.
+
+**This is the recommendation.** The €374 step-up is the single best-value move on the board:
+
+- It buys performance at **€13.9/pp — a *better* rate than either card's own average**, which almost never happens.
+- The 5080 has better absolute €/point than the cheaper card (€15.6 vs €16.6).
+- It is the exact step from *needing upscaling to reach 120 fps* to *not needing it*.
+- 16 GB properly solves the 10 GB frame-buffer problem that is the real reason to upgrade.
+
+**Critical caveat: buy at the €1,219–1,299 end.** A €1,699 Noctua edition is €21.8/point — as bad as a 5090 — for identical silicon. Every argument above collapses if you overpay for the cooler.
+
+### Eliminated on price
+
+| GPU | Why |
+|---|---|
+| **RTX 5090** | €3,450–4,387 vs €2,229 MSRP. Worst €/point (€23.2), CPU-bound at 1440p. 3.2× a 5080 for performance your monitor can't show |
+| **RTX 4090** | €2,239 used. 84% more than a 5080 for 24% more performance, no warranty, 4-year-old silicon |
+| **RTX 4080 Super** | Best raw €/point (€14.7) but only €23 cheaper than a *new* 5070 Ti. Only buy below ~€750 |
+
+### Open question for you
+
+The **RX 9070 XT at €640** is the cheapest way into the tier. Your 0.2 rendering coefficient costs it €14/point — €17.8/pt on gaming merit alone, €32.0/pt with the rendering weight applied. **That one coefficient is the entire decision.** If you genuinely almost never render, it belongs back on the list; if 0.2 is honest, it stays out.
+
+### Standing caveats
+
+- At 1440p these uplifts are the smallest they will ever look, and with frame generation excluded there is no multiplier to fall back on. **The real argument for upgrading remains the 10 GB frame buffer, not the fps number.**
+- The SUPER refresh is ~3 months out with 24 GB. Real risk — but European RTX 50 street prices have run far above MSRP for eighteen months, so a nominally cheaper SUPER may not be buyable until 2027.
 
 ---
 
@@ -201,4 +295,15 @@ Leak-quality, so directional only. The +7–16% performance bump fails your own 
 - [Notebookcheck — RX 9070 XT vs RTX 5070 Ti, 55 games](https://www.notebookcheck.net/RX-9070-XT-vs-RTX-5070-Ti-battle-in-55-games-shows-5-performance-delta-with-some-big-wins-and-losses-for-Radeon-GPU.982678.0.html)
 - [GamersNexus — RTX 5080 Founders Edition Review](https://gamersnexus.net/gpus/nvidia-geforce-rtx-5080-founders-edition-review-benchmarks-vs-5090-7900-xtx-4080-more)
 - [Blender Open Data](https://opendata.blender.org/devices/NVIDIA%20GeForce%20RTX%205070%20Ti/)
+- [Best Value GPU — RTX 5080 EU price tracker](https://bestvaluegpu.com/en-eu/history/new-and-used-rtx-5080-price-history-and-specs/)
+- [Best Value GPU — RTX 5070 Ti EU price tracker](https://bestvaluegpu.com/en-eu/history/new-and-used-rtx-5070-ti-price-history-and-specs/)
+- [Best Value GPU — RTX 4080 Super EU price tracker](https://bestvaluegpu.com/en-eu/history/new-and-used-rtx-4080-super-price-history-and-specs/)
+- [Best Value GPU — RTX 4090 EU price tracker](https://bestvaluegpu.com/en-eu/history/new-and-used-rtx-4090-price-history-and-specs/)
+- [Best Value GPU — RTX 5090 EU price tracker](https://bestvaluegpu.com/en-eu/history/new-and-used-rtx-5090-price-history-and-specs/)
+- [Best Value GPU — RX 9070 XT EU price tracker](https://bestvaluegpu.com/en-eu/history/new-and-used-rx-9070-xt-price-history-and-specs/)
+- [GPUTracker EU — RTX 5080 listings](https://www.gputracker.eu/en/search/category/1/graphics-cards/facet/2/graphics-chip/nvidia-rtx-5080)
+- [TechPowerUp — RX 9070/9070 XT fall below MSRP in Germany](https://www.techpowerup.com/347952/amd-radeon-rx-9070-and-rx-9070-xt-fall-below-msrp-in-germany)
+- [Tom's Hardware — NVIDIA cuts RTX 50 series prices in Europe](https://www.tomshardware.com/pc-components/gpus/nvidia-has-cut-some-rtx-50-series-prices-in-europe-rtx-5090-5080-and-5070-reduced-by-almost-10-percent-likely-prompted-by-falling-u-s-dollar)
+- [VideoCardz — ASUS Noctua RTX 5080 at EUR 1699](https://videocardz.com/newz/noctua-rtx-5080-graphics-card-officially-priced-at-eur1699-60-over-nvidias-current-msrp)
+- [DropReference — graphics card price evolution 2026](https://dropreference.com/en/blog/news/evolution-price-graphics-card-march-2026)
 - [TweakTown — RTX 50 SUPER refresh leaks](https://www.tweaktown.com/news/107546/heres-the-full-leaked-details-on-rtx-5080-super-rtx-5070-ti-super-rtx-5070-super-in-october/index.html)
