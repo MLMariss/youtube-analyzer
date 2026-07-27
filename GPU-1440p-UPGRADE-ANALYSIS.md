@@ -174,6 +174,8 @@ Leak-quality, so directional only. The +7–16% performance bump fails your own 
 
 Prices as of late July 2026. GPU pricing is volatile — treat these as ±5%.
 
+> ⚠ **Market caveat:** the prices in this section are **German** (Geizhals/Mindfactory/Alternate). Baltic retail runs materially higher — see §8, where the RTX 5080 floor is €1,286 locally rather than the €1,159 quoted here. The RTX 5070 Ti figure of €845 is German-sourced too and needs local verification before the step-up maths below can be trusted. Germany is intra-EU, so buying there is customs-free and remains a live option.
+
 ### 7.1 The shortlist priced
 
 | GPU | EU street price | Composite | **€ per point** | Status |
@@ -242,71 +244,80 @@ Counter-argument, and it is a serious one: RTX 50 launch pricing in Europe ran f
 
 ---
 
-## 8. RTX 5080 board partner deep-dive — which one to actually buy
+## 8. RTX 5080 board partner deep-dive — corrected against real listings
 
-**Correction to §7.4:** that section estimated the ASUS TUF OC at ~€1,249–1,299 and the Zotac Solid OC at ~€1,219. Geizhals listings show the real figures are **€1,372 for the TUF OC** and **€1,567 for the Solid OC** (the €1,229 Zotac is the *Solid CORE OC*, a different card). The TUF is therefore **not** the value pick it looked like. The floor for an RTX 5080 is also lower than stated — **€1,159, not €1,219.** The table below supersedes §7.4.
+### 8.0 Two errors in the previous version of this section
 
-### 8.1 Every RTX 5080 variant, priced (Geizhals DE, late July 2026)
+**Error 1 — SKU/price conflation.** The previous draft headlined "Gainward Phoenix GS — €1,159." That was wrong. €1,159 was the *cheapest Gainward RTX 5080 listing of any kind*, which is the plain **Phoenix**. The specs quoted alongside it — vapor chamber, dual BIOS, high factory OC — came from TechPowerUp's review of the **Phoenix GS**, a different SKU. Price from one card, features from another.
 
-RTX 5080 composite = **+78%** over your RTX 3080, identical on every card here — the silicon is the same, factory OC differences are worth 2–3 fps.
+They are distinguishable by part number:
 
-| Model | Price | €/point | vs cheapest | Warranty | Verdict |
-|---|---|---|---|---|---|
-| **Gainward Phoenix / Phoenix GS** | **€1,159** | **€14.86** | — | 3 yr | 🥇 **Best buy** |
-| Palit GamingPro | €1,189 | €15.24 | +€30 | 3 yr | ✅ Same company as Gainward |
-| **Gigabyte Windforce / Gaming OC** | €1,199 | €15.37 | +€40 | 3 yr | ✅ Solid alternative |
-| INNO3D X3 | €1,218 | €15.62 | +€59 | 2–3 yr | ⚪ No reason over the above |
-| **Zotac Solid CORE OC** | €1,229.90 | €15.77 | +€71 | **3+2 yr** | 🥈 **Warranty pick** |
-| MSI Ventus 3X OC | €1,249 | €16.01 | +€90 | **2 yr** | ❌ Costs more, covered least |
-| Zotac Solid OC White | €1,336 | €17.13 | +€177 | 3+2 yr | ❌ Paying €106 for white |
-| ASUS TUF Gaming OC | €1,372 | €17.59 | +€213 | 3 yr | ❌ **+18% for 2–3 fps** |
-| MSI Ventus 3X OC Plus | €1,515 | €19.43 | +€356 | 2 yr | ❌ No |
-| Zotac Solid OC | €1,567 | €20.09 | +€408 | 3+2 yr | ❌ No |
-| ASUS Noctua | €1,699 | €21.78 | +€540 | 3 yr | ❌ Worst €/point on the board |
-
-**The spread is €540 — 47% — for the same GPU.** Nothing in that range buys more than 2–3 fps.
-
-### 8.2 Why the cheapest card is also the best-engineered one
-
-This is unusual and it is the core finding. The **Gainward Phoenix GS** is not a stripped-down budget board:
-
-| Feature | Gainward Phoenix GS |
-|---|---|
-| Cooling | **Vapor chamber** — not a heatpipe stack. Premium-tier hardware |
-| Fans | Double ball-bearing, zero-RPM idle |
-| BIOS | Dual BIOS |
-| Factory OC | High — reviewers note it "levels up to some premium custom designs" |
-| Warranty | 3 years, carry-in via the seller |
-| **Defect rate (first 24 months)** | **0.4% — the lowest of any GPU brand measured** |
-
-That last row is the one people miss. Across brand-level failure-rate data, **Gainward has the lowest defect rate of all major GPU manufacturers at 0.4%**, with sibling brand Palit next at 0.8%. You are not trading reliability for the low price — on the available evidence you are getting the most reliable brand *and* the lowest price simultaneously.
-
-**Naming caveat before you buy:** Gainward sells a plain **Phoenix** and a higher-binned **Phoenix GS** ("Golden Sample"). The €1,159 Geizhals floor may be the plain Phoenix. Check which variant the listing is — the GS typically runs €20–40 more and is worth it for the better bin, but either is fine at this price level.
-
-### 8.3 The three cards worth considering
-
-**🥇 Gainward RTX 5080 Phoenix GS — €1,159.** Cheapest 5080 in Germany, vapor-chamber cooling, dual BIOS, zero-RPM idle, 3-year warranty, best-in-industry 0.4% defect rate. €14.86/point.
-
-**🥈 Zotac RTX 5080 Solid CORE OC — €1,229.90.** Pay **€71 for two extra years of warranty** (3+2 with registration — the longest coverage of any brand here). On a €1,200 part held 4–5 years, that is a rational insurance purchase, not a markup. Take this if you keep GPUs a long time.
-
-**🥉 Gigabyte RTX 5080 Windforce / Gaming OC — €1,199.** €40 over the Gainward, 3-year warranty, well-reviewed cooler. A fine pick if Gainward stock is out.
-
-### 8.4 What to actively avoid, and why
-
-- **MSI Ventus 3X OC (€1,249)** — the worst structural deal here. It costs €90 more than the Gainward while carrying **only the 2-year statutory minimum warranty**, the shortest of any brand listed. More money, less coverage. (MSI's warranty does follow the serial number rather than the receipt, which helps resale — not enough to offset it.)
-- **ASUS TUF Gaming OC (€1,372)** — a genuinely excellent cooler (60–62 °C at 1100 rpm) but **€213 / 18% over the Gainward for 2–3 fps**. It was my pick last round on estimated pricing; at its real price it no longer makes sense.
-- **ASUS Noctua (€1,699)** — €21.78/point, statistically as bad as an RTX 5090. It is the quietest 5080 made and that is the only reason it exists. €540 for silence.
-- **Zotac Solid OC (€1,567)** — do not confuse with the **Solid CORE OC** at €1,229.90. Nearly identical card, €337 apart.
-
-### 8.5 What this does to the upgrade case
-
-With the real floor at €1,159 rather than €1,219, the step up from the RTX 5070 Ti improves further:
-
-| Step | Cost | Gain | Marginal rate |
+| SKU | Part number | Boost | Cooling / features |
 |---|---|---|---|
-| RTX 5070 Ti (€845) → **Gainward RTX 5080 (€1,159)** | **+€314** | +27 pp | **€11.6 / pp** |
+| Gainward RTX 5080 **Phoenix** | NE75080**0**19T2-GB2031X | **2617 MHz** (reference) | Triple fan, no factory OC |
+| Gainward RTX 5080 **Phoenix GS** | NE75080**S**19T2-GB2031X | **2700 MHz** (+83 MHz) | Vapor chamber, dual BIOS, ball-bearing fans, RGB |
 
-€314 is the whole difference between the budget tier and the card that clears **native 1440p 120 fps with no upscaling**, at the best marginal rate anywhere in this analysis.
+**+83 MHz is ~3% on clock — worth 1–2 fps.** The GS premium buys the cooler and the bin, not meaningful performance.
+
+**Error 2 — wrong market, and this one matters more.** The whole §7/§8 price table was built on German Geizhals listings. Against real Baltic retail listings the floor is **€1,286**, not €1,159 — a **€127 gap** — and the rest of the table shifts with it. The German-derived €14.86/point headline does not exist in this market.
+
+The "GS runs €20–40 more" line was also a guess presented as guidance, not a figure taken from listings.
+
+### 8.1 Real Baltic listings (from retailer comparison data, July 2026)
+
+Composite = **+78%** over the RTX 3080, identical across every card here.
+
+| Listing | Shop rating | Price | €/point |
+|---|---|---|---|
+| **Phoenix (plain)** | proline.lv ★★☆☆☆ (310) | **€1,286** | €16.49 |
+| **Phoenix GS** | proline.lv ★★☆☆☆ (310) | **€1,325** | €16.99 |
+| **Phoenix GS** | semikom.lv ★★★★☆ (26) | **€1,346.88** | €17.27 |
+| Phoenix | balticdata.lv ★★★☆☆ (118) | €1,354.95 | €17.37 |
+| Phoenix | semikom.lv ★★★★☆ (26) | €1,358.06 | €17.41 |
+| Phoenix | smartech.ee ★★☆☆☆ (29) | €1,381.35 | €17.71 |
+| **Phoenix** | **rdveikals.lv ★★★★☆ (6.9K)** | **€1,387.24** | €17.79 |
+| ASUS TUF Gaming OC | kurpirkt range low | ~€1,400 | €17.95 |
+| **Phoenix GS** | **rdveikals.lv ★★★★☆ (6.9K)** | **€1,425** | €18.27 |
+| Phoenix | tera.lv ★★★★☆ (667) | €1,435.92 | €18.41 |
+| Phoenix GS | nopirkt.lv ★★☆☆☆ (531) | €1,445.30 | €18.53 |
+| Phoenix | 1a.lv / ksenukai.lv | €1,519 | €19.47 |
+| MSI Gaming Trio OC | dateks.lv | €1,649.34 | €21.15 |
+| ASUS ROG Astral OC | dateks.lv | €1,793.04 | €22.99 |
+| ⚠ Phoenix GS "PVN 0%" | labsveikals.lv | **€1,913 w/ VAT** | €24.53 |
+
+### 8.2 The GS premium is inconsistent — do not treat it as a tier
+
+- At the cheapest shop: GS €1,325 vs Phoenix €1,286 = **+€39**.
+- At semikom.lv the **GS (€1,346.88) is €11 CHEAPER than that same shop's plain Phoenix (€1,358.06)**.
+- At rdveikals.lv the gap is +€38 (€1,425 vs €1,387).
+
+There is no consistent GS surcharge. **Search both part numbers and buy whichever specific SKU is cheapest at a shop you trust** — the GS is worth having when it is within ~€40, and there are listings where it costs nothing extra.
+
+### 8.3 Two traps in these listings
+
+**The "PVN 0%" trap.** The labsveikals.lv Phoenix GS shows **€1,581.24 marked PVN 0%** — VAT excluded. With 21% Latvian VAT that is **€1,913**, making it the most expensive card on the page while it displays mid-table. Always confirm VAT is included before comparing.
+
+**Shop rating vs price.** The two cheapest listings for both SKUs are proline.lv at **★★☆☆☆ (310 reviews)**. The cheapest well-rated option is **rdveikals.lv at ★★★★☆ (6.9K reviews)** — €1,387 Phoenix / €1,425 GS, i.e. **~€100 more than the floor**. On a €1,300+ purchase with a 3-year warranty that will be claimed through the seller, that is a defensible €100.
+
+### 8.4 The cross-border option is the real saving
+
+Latvia and Germany are both EU and eurozone. Buying from **Mindfactory, Alternate, Caseking, Computeruniverse or Proshop** is an intra-EU sale — **no customs, no import VAT, no broker fee**. The earlier "stay in the eurozone to avoid customs" constraint rules out the US and UK; it does not rule out Germany.
+
+German listings for the same cards run roughly **€1,159–1,250**, against a Baltic floor of €1,286 and a well-rated Baltic price of €1,387. That is a **€130–230 saving**, which exceeds the entire GS-vs-Phoenix question by a factor of three to six.
+
+**Caveat, stated plainly:** those German figures come from search-surfaced Geizhals summaries that could not be fetched and verified directly, and this section exists because search-derived pricing was already wrong once. Treat €1,159 as a lead to verify on Geizhals directly, not as a confirmed price. Weigh it against slower delivery and cross-border RMA handling.
+
+### 8.5 Recommendation for this market
+
+1. **Verify the German cross-border price first.** €130–230 is the largest single saving available and dwarfs every other variable in this section.
+2. **Domestically, buy from rdveikals.lv** — Phoenix €1,387 or **Phoenix GS €1,425**. Take the GS at +€38 for the vapor chamber and dual BIOS; the +83 MHz is irrelevant.
+3. **Only go to proline.lv (€1,286 / €1,325) if you accept a ★★ seller** on a card whose warranty runs through that seller.
+4. **Check salidzini.lv** — it advertises a GeForce RTX 5080 from **€1,148**, below every listing here. Worth confirming which SKU and seller that is.
+5. **Avoid** the labsveikals.lv PVN 0% listing (€1,913 real), MSI Gaming Trio (€1,649) and ROG Astral (€1,793).
+
+### 8.6 Effect on the upgrade case
+
+At real Baltic pricing the RTX 5080 lands at **€16.5–18.3/point** rather than the €14.86 previously claimed. The 5080 remains the right card and the ranking in §2 is unaffected — that is a performance ranking and no price error touches it. But the margin over the RTX 5070 Ti is thinner than §7.5 stated, and the RTX 5070 Ti figure of €845 is itself German-sourced and needs the same local verification before the step-up maths can be trusted here.
 
 ---
 
@@ -317,8 +328,8 @@ With the real floor at €1,159 rather than €1,219, the step up from the RTX 5
 **🥈 Budget option — RTX 5070 Ti, €845–900**
 Cheapest of MSI Ventus 3X OC / Gigabyte Windforce OC / ASUS TUF Gaming OC. +51% composite, 16 GB, full warranty. Clears 120 fps at 1440p with DLSS Quality in essentially everything. €16.6/point. **Do not pay over €920.**
 
-**🥇 Smart step-up — RTX 5080, €1,159**
-**Gainward Phoenix GS at €1,159** — cheapest on the market, vapor chamber, and the lowest defect rate of any GPU brand (0.4%). +78% composite, €14.86/point. See §8 for the full board partner breakdown.
+**🥇 Smart step-up — RTX 5080, €1,286–1,425 (Baltic retail)**
+Gainward **Phoenix GS** (NE75080S19T2) — vapor chamber, dual BIOS, and Gainward has the lowest defect rate of any GPU brand (0.4%). €16.5–18.3/point at real local pricing. **€1,325 at proline.lv (★★) or €1,425 at rdveikals.lv (★★★★, 6.9K reviews).** German cross-border may save €130–230 — see §8.
 
 **This is the recommendation.** The €374 step-up is the single best-value move on the board:
 
@@ -327,7 +338,7 @@ Cheapest of MSI Ventus 3X OC / Gigabyte Windforce OC / ASUS TUF Gaming OC. +51% 
 - It is the exact step from *needing upscaling to reach 120 fps* to *not needing it*.
 - 16 GB properly solves the 10 GB frame-buffer problem that is the real reason to upgrade.
 
-**Critical caveat: buy at the €1,159–1,230 end.** The same GPU spans €1,159 to €1,699 — a 47% spread for 2–3 fps. A €1,699 Noctua edition is €21.8/point, as bad as a 5090. Every argument above collapses if you overpay for the cooler. **§8 has the model-by-model table.**
+**Critical caveat: the same GPU spans €1,286 to €1,913 in Baltic retail** — a 49% spread for 2–3 fps. Every argument above collapses if you overpay for the cooler, and one listing hides 21% VAT. **§8 has the corrected model-by-model table and the traps.**
 
 ### Eliminated on price
 
@@ -387,4 +398,12 @@ The **RX 9070 XT at €640** is the cheapest way into the tier. Your 0.2 renderi
 - [TweakTown — GPU failure rates and warranty claim times by brand](https://www.tweaktown.com/news/93052/heres-look-at-gpu-failure-rates-and-warranty-claim-times-for-all-major-brands/index.html)
 - [ZOTAC — product warranty policy (3+2 years)](https://www.zotac.com/ro/page/product-warranty-policy)
 - [Guru3D — Gainward & Palit three-year warranty](https://www.guru3d.com/story/gainward-palit-increase-warranty-three-years/)
+- [Salidzini.lv — GeForce RTX 5080 price comparison](https://www.salidzini.lv/cena?q=geforce+rtx+5080)
+- [KurPirkt.lv — RTX 5080 ASUS TUF price range](https://www.kurpirkt.lv/cena.php?q=rtx+5080+asus+tuf)
+- [RD Electronics — RTX 5080 listings](https://www.rdveikals.lv/categories/lv/417/sort/5/filter/0_0_0_398826/page/1/Videokartes.html)
+- [Dateks.lv — ASUS RTX 5080 ROG Astral OC](https://www.dateks.lv/en/cenas/videokartes/1186873-asus-geforce-rtx-5080-16gb-gddr7-rog-astral-oc-dlss-4-)
+- [PCPartPicker — Gainward Phoenix GS (NE75080S19T2-GB2031X)](https://pcpartpicker.com/product/G3bypg/gainward-phoenix-gs-geforce-rtx-5080-16-gb-video-card-ne75080s19t2-gb2031x)
+- [PCPartPicker — Gainward Phoenix (NE75080019T2-GB2031X)](https://pcpartpicker.com/product/Lr62FT/gainward-phoenix-geforce-rtx-5080-16-gb-video-card-ne75080019t2-gb2031x)
+- [TechPowerUp GPU DB — Gainward RTX 5080 Phoenix GS V1 specs](https://www.techpowerup.com/gpu-specs/gainward-rtx-5080-phoenix-gs-v1.b12813)
+- [Gainward — Phoenix series product page](https://www.gainward.com/main/vgapc.php?fanseries=PHOENIX&lang=en)
 - [TweakTown — RTX 50 SUPER refresh leaks](https://www.tweaktown.com/news/107546/heres-the-full-leaked-details-on-rtx-5080-super-rtx-5070-ti-super-rtx-5070-super-in-october/index.html)
