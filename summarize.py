@@ -396,6 +396,15 @@ def cutoff(days):
     return (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
 
 
+def by_window(builder, **kwargs):
+    """Build a breakdown for every time window the dashboard offers, keyed by
+    the same window names as summary.json (7d/28d/90d/365d/all), so the channel
+    traffic table and per-video drilldowns can follow the window buttons instead
+    of being pinned to a single 90-day view."""
+    return {name: builder(since=cutoff(days), **kwargs)
+            for name, days in WINDOWS.items()}
+
+
 def write_json(name, payload):
     os.makedirs(DATA_DIR, exist_ok=True)
     path = os.path.join(DATA_DIR, name)
@@ -439,26 +448,22 @@ def main():
 
     write_json("traffic.json", {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "all_time": build_traffic(),
-        "last_90d": build_traffic(since=cutoff(90)),
+        **by_window(build_traffic),
     })
 
     write_json("devices.json", {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "all_time": build_device_os(),
-        "last_90d": build_device_os(since=cutoff(90)),
+        **by_window(build_device_os),
     })
 
     write_json("demographics.json", {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "all_time": build_demographics(),
-        "last_90d": build_demographics(since=cutoff(90)),
+        **by_window(build_demographics),
     })
 
     write_json("traffic_detail.json", {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "all_time": build_traffic_detail(),
-        "last_90d": build_traffic_detail(since=cutoff(90)),
+        **by_window(build_traffic_detail),
     })
 
     print("Done.")
