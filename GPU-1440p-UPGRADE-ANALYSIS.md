@@ -242,24 +242,92 @@ Counter-argument, and it is a serious one: RTX 50 launch pricing in Europe ran f
 
 ---
 
-## 8. Conclusions
+## 8. RTX 5080 board partner deep-dive — which one to actually buy
+
+**Correction to §7.4:** that section estimated the ASUS TUF OC at ~€1,249–1,299 and the Zotac Solid OC at ~€1,219. Geizhals listings show the real figures are **€1,372 for the TUF OC** and **€1,567 for the Solid OC** (the €1,229 Zotac is the *Solid CORE OC*, a different card). The TUF is therefore **not** the value pick it looked like. The floor for an RTX 5080 is also lower than stated — **€1,159, not €1,219.** The table below supersedes §7.4.
+
+### 8.1 Every RTX 5080 variant, priced (Geizhals DE, late July 2026)
+
+RTX 5080 composite = **+78%** over your RTX 3080, identical on every card here — the silicon is the same, factory OC differences are worth 2–3 fps.
+
+| Model | Price | €/point | vs cheapest | Warranty | Verdict |
+|---|---|---|---|---|---|
+| **Gainward Phoenix / Phoenix GS** | **€1,159** | **€14.86** | — | 3 yr | 🥇 **Best buy** |
+| Palit GamingPro | €1,189 | €15.24 | +€30 | 3 yr | ✅ Same company as Gainward |
+| **Gigabyte Windforce / Gaming OC** | €1,199 | €15.37 | +€40 | 3 yr | ✅ Solid alternative |
+| INNO3D X3 | €1,218 | €15.62 | +€59 | 2–3 yr | ⚪ No reason over the above |
+| **Zotac Solid CORE OC** | €1,229.90 | €15.77 | +€71 | **3+2 yr** | 🥈 **Warranty pick** |
+| MSI Ventus 3X OC | €1,249 | €16.01 | +€90 | **2 yr** | ❌ Costs more, covered least |
+| Zotac Solid OC White | €1,336 | €17.13 | +€177 | 3+2 yr | ❌ Paying €106 for white |
+| ASUS TUF Gaming OC | €1,372 | €17.59 | +€213 | 3 yr | ❌ **+18% for 2–3 fps** |
+| MSI Ventus 3X OC Plus | €1,515 | €19.43 | +€356 | 2 yr | ❌ No |
+| Zotac Solid OC | €1,567 | €20.09 | +€408 | 3+2 yr | ❌ No |
+| ASUS Noctua | €1,699 | €21.78 | +€540 | 3 yr | ❌ Worst €/point on the board |
+
+**The spread is €540 — 47% — for the same GPU.** Nothing in that range buys more than 2–3 fps.
+
+### 8.2 Why the cheapest card is also the best-engineered one
+
+This is unusual and it is the core finding. The **Gainward Phoenix GS** is not a stripped-down budget board:
+
+| Feature | Gainward Phoenix GS |
+|---|---|
+| Cooling | **Vapor chamber** — not a heatpipe stack. Premium-tier hardware |
+| Fans | Double ball-bearing, zero-RPM idle |
+| BIOS | Dual BIOS |
+| Factory OC | High — reviewers note it "levels up to some premium custom designs" |
+| Warranty | 3 years, carry-in via the seller |
+| **Defect rate (first 24 months)** | **0.4% — the lowest of any GPU brand measured** |
+
+That last row is the one people miss. Across brand-level failure-rate data, **Gainward has the lowest defect rate of all major GPU manufacturers at 0.4%**, with sibling brand Palit next at 0.8%. You are not trading reliability for the low price — on the available evidence you are getting the most reliable brand *and* the lowest price simultaneously.
+
+**Naming caveat before you buy:** Gainward sells a plain **Phoenix** and a higher-binned **Phoenix GS** ("Golden Sample"). The €1,159 Geizhals floor may be the plain Phoenix. Check which variant the listing is — the GS typically runs €20–40 more and is worth it for the better bin, but either is fine at this price level.
+
+### 8.3 The three cards worth considering
+
+**🥇 Gainward RTX 5080 Phoenix GS — €1,159.** Cheapest 5080 in Germany, vapor-chamber cooling, dual BIOS, zero-RPM idle, 3-year warranty, best-in-industry 0.4% defect rate. €14.86/point.
+
+**🥈 Zotac RTX 5080 Solid CORE OC — €1,229.90.** Pay **€71 for two extra years of warranty** (3+2 with registration — the longest coverage of any brand here). On a €1,200 part held 4–5 years, that is a rational insurance purchase, not a markup. Take this if you keep GPUs a long time.
+
+**🥉 Gigabyte RTX 5080 Windforce / Gaming OC — €1,199.** €40 over the Gainward, 3-year warranty, well-reviewed cooler. A fine pick if Gainward stock is out.
+
+### 8.4 What to actively avoid, and why
+
+- **MSI Ventus 3X OC (€1,249)** — the worst structural deal here. It costs €90 more than the Gainward while carrying **only the 2-year statutory minimum warranty**, the shortest of any brand listed. More money, less coverage. (MSI's warranty does follow the serial number rather than the receipt, which helps resale — not enough to offset it.)
+- **ASUS TUF Gaming OC (€1,372)** — a genuinely excellent cooler (60–62 °C at 1100 rpm) but **€213 / 18% over the Gainward for 2–3 fps**. It was my pick last round on estimated pricing; at its real price it no longer makes sense.
+- **ASUS Noctua (€1,699)** — €21.78/point, statistically as bad as an RTX 5090. It is the quietest 5080 made and that is the only reason it exists. €540 for silence.
+- **Zotac Solid OC (€1,567)** — do not confuse with the **Solid CORE OC** at €1,229.90. Nearly identical card, €337 apart.
+
+### 8.5 What this does to the upgrade case
+
+With the real floor at €1,159 rather than €1,219, the step up from the RTX 5070 Ti improves further:
+
+| Step | Cost | Gain | Marginal rate |
+|---|---|---|---|
+| RTX 5070 Ti (€845) → **Gainward RTX 5080 (€1,159)** | **+€314** | +27 pp | **€11.6 / pp** |
+
+€314 is the whole difference between the budget tier and the card that clears **native 1440p 120 fps with no upscaling**, at the best marginal rate anywhere in this analysis.
+
+---
+
+## 9. Conclusions
 
 ### The two cards worth buying
 
 **🥈 Budget option — RTX 5070 Ti, €845–900**
 Cheapest of MSI Ventus 3X OC / Gigabyte Windforce OC / ASUS TUF Gaming OC. +51% composite, 16 GB, full warranty. Clears 120 fps at 1440p with DLSS Quality in essentially everything. €16.6/point. **Do not pay over €920.**
 
-**🥇 Smart step-up — RTX 5080, €1,219–1,299**
-Zotac Solid OC (3.5-slot) at €1,219, or ASUS TUF OC at ~€1,249–1,299 for better cooling. +78% composite, €15.6/point.
+**🥇 Smart step-up — RTX 5080, €1,159**
+**Gainward Phoenix GS at €1,159** — cheapest on the market, vapor chamber, and the lowest defect rate of any GPU brand (0.4%). +78% composite, €14.86/point. See §8 for the full board partner breakdown.
 
 **This is the recommendation.** The €374 step-up is the single best-value move on the board:
 
-- It buys performance at **€13.9/pp — a *better* rate than either card's own average**, which almost never happens.
+- It buys performance at **€11.6/pp — a *better* rate than either card's own average**, which almost never happens.
 - The 5080 has better absolute €/point than the cheaper card (€15.6 vs €16.6).
 - It is the exact step from *needing upscaling to reach 120 fps* to *not needing it*.
 - 16 GB properly solves the 10 GB frame-buffer problem that is the real reason to upgrade.
 
-**Critical caveat: buy at the €1,219–1,299 end.** A €1,699 Noctua edition is €21.8/point — as bad as a 5090 — for identical silicon. Every argument above collapses if you overpay for the cooler.
+**Critical caveat: buy at the €1,159–1,230 end.** The same GPU spans €1,159 to €1,699 — a 47% spread for 2–3 fps. A €1,699 Noctua edition is €21.8/point, as bad as a 5090. Every argument above collapses if you overpay for the cooler. **§8 has the model-by-model table.**
 
 ### Eliminated on price
 
@@ -306,4 +374,17 @@ The **RX 9070 XT at €640** is the cheapest way into the tier. Your 0.2 renderi
 - [Tom's Hardware — NVIDIA cuts RTX 50 series prices in Europe](https://www.tomshardware.com/pc-components/gpus/nvidia-has-cut-some-rtx-50-series-prices-in-europe-rtx-5090-5080-and-5070-reduced-by-almost-10-percent-likely-prompted-by-falling-u-s-dollar)
 - [VideoCardz — ASUS Noctua RTX 5080 at EUR 1699](https://videocardz.com/newz/noctua-rtx-5080-graphics-card-officially-priced-at-eur1699-60-over-nvidias-current-msrp)
 - [DropReference — graphics card price evolution 2026](https://dropreference.com/en/blog/news/evolution-price-graphics-card-march-2026)
+- [Geizhals DE — Gainward RTX 5080 listings](https://geizhals.de/gainward-geforce-rtx-5080-v186837.html)
+- [Geizhals DE — Palit RTX 5080 listings](https://geizhals.de/palit-geforce-rtx-5080-v186847.html)
+- [Geizhals DE — Gigabyte RTX 5080 listings](https://geizhals.de/gigabyte-geforce-rtx-5080-v186706.html)
+- [Geizhals DE — INNO3D RTX 5080 listings](https://geizhals.de/inno3d-geforce-rtx-5080-v186865.html)
+- [Geizhals DE — Zotac RTX 5080 Solid CORE OC](https://geizhals.de/zotac-gaming-geforce-rtx-5080-solid-core-oc-zt-b50800j2-10p-a3417016.html)
+- [Geizhals DE — ASUS TUF Gaming RTX 5080 OC](https://geizhals.de/asus-tuf-gaming-geforce-rtx-5080-oc-90yv0m30-m0na00-a3382457.html)
+- [Geizhals DE — MSI RTX 5080 Ventus 3X OC](https://geizhals.de/msi-geforce-rtx-5080-16g-ventus-3x-oc-a3382121.html)
+- [TechPowerUp — Gainward RTX 5080 Phoenix GS Review](https://www.techpowerup.com/review/gainward-geforce-rtx-5080-phoenix-gs/)
+- [TechPowerUp — Gainward Phoenix GS, Temperatures & Fan Noise](https://www.techpowerup.com/review/gainward-geforce-rtx-5080-phoenix-gs/39.html)
+- [TechPowerUp — Gigabyte RTX 5080 Gaming OC, Cooler Performance](https://www.techpowerup.com/review/gigabyte-geforce-rtx-5080-gaming-oc/40.html)
+- [TweakTown — GPU failure rates and warranty claim times by brand](https://www.tweaktown.com/news/93052/heres-look-at-gpu-failure-rates-and-warranty-claim-times-for-all-major-brands/index.html)
+- [ZOTAC — product warranty policy (3+2 years)](https://www.zotac.com/ro/page/product-warranty-policy)
+- [Guru3D — Gainward & Palit three-year warranty](https://www.guru3d.com/story/gainward-palit-increase-warranty-three-years/)
 - [TweakTown — RTX 50 SUPER refresh leaks](https://www.tweaktown.com/news/107546/heres-the-full-leaked-details-on-rtx-5080-super-rtx-5070-ti-super-rtx-5070-super-in-october/index.html)
