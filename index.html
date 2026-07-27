@@ -528,17 +528,19 @@ function durationSeconds(iso) {
   return (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0);
 }
 
-// The breakdown files carry only all_time and last_90d, not every window, so
-// short windows read last_90d and long ones read all_time.
-function bucket() {
-  return (currentWindow === '365d' || currentWindow === 'all') ? 'all_time' : 'last_90d';
-}
+// The breakdown files (traffic / devices / demographics / detail) are keyed by
+// the same window names as summary.json, so every breakdown follows the active
+// time-window button instead of a fixed 90-day view.
+const WINDOW_LABELS = {
+  '7d': 'last 7 days', '28d': 'last 28 days', '90d': 'last 90 days',
+  '365d': 'last 365 days', 'all': 'all time',
+};
 function bucketLabel() {
-  return bucket() === 'all_time' ? 'all time' : 'last 90 days';
+  return WINDOW_LABELS[currentWindow] || currentWindow;
 }
 function slice(file, id) {
   if (!file) return null;
-  const b = file[bucket()];
+  const b = file[currentWindow];
   if (!b) return null;
   return id ? (b.videos || {})[id] : (b.channel || null);
 }
