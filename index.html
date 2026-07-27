@@ -354,7 +354,8 @@
 // the GitHub Actions collector writes data/*.json and this page just reads it.
 let SUMMARY = null, DAILY = null, TRAFFIC = null, TDETAIL = null,
     DEVICES = null, DEMOGRAPHICS = null;
-let currentWindow = '90d', sortKey = 'impressions', sortDir = -1;
+// Default sort: newest uploads first, so the table opens on your latest videos.
+let currentWindow = '90d', sortKey = 'publishedTs', sortDir = -1;
 let expanded = null;
 const F = { text: '', from: '', to: '', format: 'all', source: 'all', minViews: 0 };
 
