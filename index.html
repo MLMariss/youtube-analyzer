@@ -298,6 +298,13 @@
         <input type="search" id="f-text" placeholder="Filter titles…" />
         <span class="sep"></span>
         <span class="lbl">Published</span>
+        <div class="grp seg" role="group" aria-label="Publish-date preset">
+          <button type="button" data-pub="all" class="active">Any</button>
+          <button type="button" data-pub="7">7d</button>
+          <button type="button" data-pub="28">28d</button>
+          <button type="button" data-pub="90">90d</button>
+          <button type="button" data-pub="365">1y</button>
+        </div>
         <input type="date" id="f-from" title="Published on or after" />
         <span class="lbl">→</span>
         <input type="date" id="f-to" title="Published on or before" />
@@ -347,7 +354,8 @@
 // the GitHub Actions collector writes data/*.json and this page just reads it.
 let SUMMARY = null, DAILY = null, TRAFFIC = null, TDETAIL = null,
     DEVICES = null, DEMOGRAPHICS = null;
-let currentWindow = '90d', sortKey = 'impressions', sortDir = -1;
+// Default sort: newest uploads first, so the table opens on your latest videos.
+let currentWindow = '90d', sortKey = 'publishedTs', sortDir = -1;
 let expanded = null;
 const F = { text: '', from: '', to: '', format: 'all', source: 'all', minViews: 0 };
 
@@ -437,8 +445,13 @@ function detailCell(detail) {
   const d = String(detail);
   if (BROWSE_DETAIL[d]) return esc(BROWSE_DETAIL[d]);
   if (d === 'unknown' || d === 'NULL') return '<span class="muted">unknown</span>';
-  if (VIDEO_ID_RE.test(d))
-    return `<a href="https://www.youtube.com/watch?v=${encodeURIComponent(d)}" target="_blank" rel="noopener">${esc(d)}</a>`;
+  if (VIDEO_ID_RE.test(d)) {
+    // Prefer the video's title when it is one of our own uploads; external
+    // videos aren't in video_meta, so those keep the raw ID as the link text.
+    const meta = (SUMMARY && SUMMARY.video_meta) || {};
+    const title = meta[d] && meta[d].title;
+    return `<a href="https://www.youtube.com/watch?v=${encodeURIComponent(d)}" target="_blank" rel="noopener">${title ? esc(title) : esc(d)}</a>`;
+  }
   if (CHANNEL_ID_RE.test(d))
     return `<a href="https://www.youtube.com/channel/${encodeURIComponent(d)}" target="_blank" rel="noopener">${esc(d)}</a>`;
   return esc(d);
@@ -836,11 +849,29 @@ function renderChannelTraffic() {
       Traffic sources · channel · ${esc(bucketLabel())}</h3>${tbl}</div></div>`;
 }
 
+// Age brackets and genders come back from the API in an arbitrary order; these
+// give the "Age · gender" table a logical run from youngest to oldest (oldest
+// at the bottom), male before female within a bracket.
+const AGE_ORDER = ['AGE_13_17', 'AGE_18_24', 'AGE_25_34', 'AGE_35_44',
+                   'AGE_45_54', 'AGE_55_64', 'AGE_65_'];
+const GENDER_ORDER = ['MALE', 'FEMALE', 'USER_SPECIFIED', 'GENDER_OTHER', 'UNKNOWN'];
+const rank = (arr, k) => { const i = arr.indexOf(k); return i < 0 ? 99 : i; };
+function demoSort(a, b) {
+  const [aAge, aG] = String(a[0]).split('/');
+  const [bAge, bG] = String(b[0]).split('/');
+  return rank(AGE_ORDER, aAge) - rank(AGE_ORDER, bAge)
+      || rank(GENDER_ORDER, aG) - rank(GENDER_ORDER, bG);
+}
+
 // keyFn maps each raw key to already-safe display HTML (a decoded label).
-function countTable(obj, label, cap, keyFn) {
+// sortFn orders the rows; it defaults to views-descending so the most impactful
+// entries lead, and callers pass their own comparator when a different order
+// (e.g. by age) reads better.
+function countTable(obj, label, cap, keyFn, sortFn) {
   const entries = Object.entries(obj || {});
   if (!entries.length) return null;
   const total = entries.reduce((s, [, v]) => s + v, 0) || 1;
+  entries.sort(sortFn || ((a, b) => b[1] - a[1]));
   const kf = keyFn || (k => esc(k));
   const rows = entries.slice(0, cap || 12).map(([k, v]) => `<tr>
       <td style="text-align:left">${kf(k)}</td>
@@ -898,7 +929,7 @@ function detailPanels(id) {
 
   const demo = slice(DEMOGRAPHICS, id);
   const demoHtml = demo && Object.keys(demo).length
-    ? countTable(demo, 'Age · gender', 12, demoLabel)
+    ? countTable(demo, 'Age · gender', 20, demoLabel, demoSort)
     : null;
 
   // Traffic sources carries the most columns (through to Clicks and CTR), so it
@@ -968,6 +999,34 @@ function render() {
     `No videos match these filters.</td></tr>`;
 }
 
+// ---- Published-date quick presets ------------------------------------------
+// The two date pickers set an exact published range; these buttons fill them in
+// for the common "last N days" cases so you don't have to pick dates by hand.
+// "Any" clears the range. Note this filters *which videos* are listed by their
+// upload date — it is separate from the time-window buttons above, which choose
+// the period the metrics themselves are measured over.
+const ymd = d => d.toISOString().slice(0, 10);
+function setPubPreset(val) {
+  document.querySelectorAll('[data-pub]').forEach(x =>
+    x.classList.toggle('active', x.dataset.pub === val));
+  if (val === 'all') {
+    F.from = ''; F.to = '';
+  } else {
+    const from = new Date();
+    from.setUTCDate(from.getUTCDate() - parseInt(val, 10));
+    F.from = ymd(from); F.to = '';
+  }
+  document.getElementById('f-from').value = F.from;
+  document.getElementById('f-to').value = F.to;
+  renderMetrics(); render();
+}
+// A hand-edited range no longer matches a preset, so light "Any" only when the
+// range is empty and drop the highlight from every button otherwise.
+function syncPubPreset() {
+  document.querySelectorAll('[data-pub]').forEach(x =>
+    x.classList.toggle('active', x.dataset.pub === 'all' && !F.from && !F.to));
+}
+
 function refreshAll() {
   populateSources();
   renderMetrics();
@@ -1002,8 +1061,10 @@ document.getElementById('rows').addEventListener('click', e => {
 
 const on = (id, ev, fn) => document.getElementById(id).addEventListener(ev, fn);
 on('f-text', 'input', e => { F.text = e.target.value; renderMetrics(); render(); });
-on('f-from', 'change', e => { F.from = e.target.value; renderMetrics(); render(); });
-on('f-to', 'change', e => { F.to = e.target.value; renderMetrics(); render(); });
+on('f-from', 'change', e => { F.from = e.target.value; syncPubPreset(); renderMetrics(); render(); });
+on('f-to', 'change', e => { F.to = e.target.value; syncPubPreset(); renderMetrics(); render(); });
+document.querySelectorAll('[data-pub]').forEach(b =>
+  b.addEventListener('click', () => setPubPreset(b.dataset.pub)));
 on('f-format', 'change', e => { F.format = e.target.value; renderMetrics(); render(); });
 on('f-source', 'change', e => { F.source = e.target.value; renderMetrics(); render(); });
 on('f-minviews', 'input', e => {
@@ -1014,6 +1075,7 @@ on('f-reset', 'click', () => {
   ['f-text', 'f-from', 'f-to', 'f-minviews'].forEach(i => document.getElementById(i).value = '');
   document.getElementById('f-format').value = 'all';
   document.getElementById('f-source').value = 'all';
+  syncPubPreset();
   expanded = null;
   refreshAll();
 });

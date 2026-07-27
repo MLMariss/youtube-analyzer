@@ -108,6 +108,26 @@ data/
   state.json      which reports have been archived
 ```
 
+## Dashboard
+
+`index.html` is a static, read-only page that reads the JSON in `data/`. No
+build step, no login — open it (or serve the folder) and it renders.
+
+- **Time window** (`7 days … All time`) sets the period the metrics are
+  *measured* over. Windows longer than the collected history read the same
+  totals, so with only a couple of months of data `90 days`, `365 days` and
+  `All time` will match until more history accumulates.
+- **Published filter** narrows *which videos* are listed by upload date. Quick
+  presets (`Any / 7d / 28d / 90d / 1y`) fill the range; the two date pickers set
+  an exact span. Editing a date by hand clears the active preset.
+- Other filters: title search, format (Shorts / long-form), traffic source, and
+  minimum views. **Reset** clears them all.
+- The table opens sorted by **newest upload first**; every column header is
+  sortable.
+- Clicking a row expands a per-video drilldown: traffic sources, search terms &
+  referrers (own-channel referrers show the video title), device & OS and age &
+  gender (both ordered so the breakdown reads top-down and youngest-to-oldest).
+
 ## Manual use
 
 ```bash
