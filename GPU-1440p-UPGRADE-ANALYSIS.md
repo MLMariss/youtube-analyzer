@@ -343,7 +343,9 @@ Take the GS only where the gap is genuinely ≤€50 — at proline.lv (+€39) 
 
 **Cheapest is always proline.lv at ★★☆☆☆ (310 reviews).** It holds the floor for both SKUs (€1,286 / €1,325) and the gap to the cheapest well-rated seller is ~€100. Warranty is carry-in through the seller, so the rating is not cosmetic.
 
-**Stock timing.** semikom.lv shows the GS as arriving **17.08.2026** — listed prices are not always immediately available stock.
+**Stock timing.** semikom.lv shows the GS as arriving **17.08.2026**; RD Electronics offers the Phoenix for collection from 7 August. Listed prices are not always immediately available stock.
+
+**The "€1,148 floor" was a phantom — lead closed.** An earlier draft flagged a salidzini.lv listing advertising an RTX 5080 "no €1,148" and suggested chasing it. RD Electronics' product page resolves it: the Phoenix is **€1,387.24** for consumers and **€1,146.48 "Juridiskām personām"** — the VAT-excluded business price. €1,146.48 × 1.21 = €1,387.24 exactly. There is no €1,148 consumer card. Comparison sites surfacing B2B prices next to consumer ones is the same trap as the labsveikals "PVN 0%" entry.
 
 ### 8.6 Effect on the upgrade case
 
@@ -360,15 +362,16 @@ The ranking in §2 is unaffected — that is a performance ranking and no price 
 **🥈 Budget option — RTX 5070 Ti, €845–900**
 Cheapest of MSI Ventus 3X OC / Gigabyte Windforce OC / ASUS TUF Gaming OC. +51% composite, 16 GB, full warranty. Clears 120 fps at 1440p with DLSS Quality in essentially everything. €16.6/point. **Do not pay over €920.**
 
-**🥇 Smart step-up — RTX 5080, €1,286–1,425 (Baltic retail)**
-Gainward **Phoenix GS** (NE75080S19T2) — vapor chamber, dual BIOS, and Gainward has the lowest defect rate of any GPU brand (0.4%). €16.5–18.3/point at real local pricing. **€1,325 at proline.lv (★★) or €1,425 at rdveikals.lv (★★★★, 6.9K reviews).** German cross-border may save €130–230 — see §8.
+**🥇 Smart step-up — RTX 5080, €1,387.24 (verified Baltic retail)**
+Gainward **Phoenix**, the plain non-GS SKU (NE75080019T2), at **rdveikals.lv / RD Electronics (★★★★, 6.9K reviews)** — €17.79/point, price confirmed on their storefront. Gainward has the lowest defect rate of any GPU brand (0.4%).
 
-**This is the recommendation.** The €374 step-up is the single best-value move on the board:
+**Not the GS at that retailer** — it is €1,748.22 there, a €360.98 premium for +83 MHz. The GS is only worth taking where the gap is ≤€50, which in these listings means proline.lv (★★) at €1,325.
 
-- It buys performance at **€11.6/pp — a *better* rate than either card's own average**, which almost never happens.
-- The 5080 has better absolute €/point than the cheaper card (€15.6 vs €16.6).
+**The 5080 is still the right card**, for reasons untouched by any pricing error:
+
 - It is the exact step from *needing upscaling to reach 120 fps* to *not needing it*.
 - 16 GB properly solves the 10 GB frame-buffer problem that is the real reason to upgrade.
+- ⚠ **But the step-up maths no longer holds locally.** The "€374 for +27pp" figure came from German pricing. The RTX 5070 Ti price above is German-sourced and unverified here — check it locally before treating the step-up as good value.
 
 **Critical caveat: the same GPU spans €1,286 to €1,913 in Baltic retail** — a 49% spread for 2–3 fps. Every argument above collapses if you overpay for the cooler, and one listing hides 21% VAT. **§8 has the corrected model-by-model table and the traps.**
 
