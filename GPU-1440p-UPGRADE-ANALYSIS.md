@@ -263,61 +263,93 @@ They are distinguishable by part number:
 
 The "GS runs €20–40 more" line was also a guess presented as guidance, not a figure taken from listings.
 
-### 8.1 Real Baltic listings (from retailer comparison data, July 2026)
+### 8.1 Correction: shop/price mapping was misaligned
 
-Composite = **+78%** over the RTX 3080, identical across every card here.
+The previous version of this table bound prices to the wrong retailers. On the comparison grid each **shop badge sits above the product it belongs to**; the badges were read as belonging to the row above, shifting every shop by one row. Confirmed against semikom.lv's own storefront, which lists the Phoenix GS at **€1,592.87** — not the €1,346.88 previously attributed to it.
 
-| Listing | Shop rating | Price | €/point |
+The consequence: the claim that "semikom.lv sells the GS cheaper than its own plain Phoenix" was an artefact of the misalignment and is false. semikom's GS is **€184.73 more** than its Phoenix.
+
+Prices marked *(shop unidentified)* sit in a partially cropped row whose badges are not visible — they are real listings but cannot be attributed to a retailer.
+
+### 8.2 Gainward RTX 5080 — corrected listings
+
+Composite = **+78%** over the RTX 3080, identical on both SKUs.
+
+**Phoenix GS** (NE75080S19T2-GB2031X, 2700 MHz):
+
+| Shop | Rating | Price | €/point |
 |---|---|---|---|
-| **Phoenix (plain)** | proline.lv ★★☆☆☆ (310) | **€1,286** | €16.49 |
-| **Phoenix GS** | proline.lv ★★☆☆☆ (310) | **€1,325** | €16.99 |
-| **Phoenix GS** | semikom.lv ★★★★☆ (26) | **€1,346.88** | €17.27 |
-| Phoenix | balticdata.lv ★★★☆☆ (118) | €1,354.95 | €17.37 |
-| Phoenix | semikom.lv ★★★★☆ (26) | €1,358.06 | €17.41 |
-| Phoenix | smartech.ee ★★☆☆☆ (29) | €1,381.35 | €17.71 |
-| **Phoenix** | **rdveikals.lv ★★★★☆ (6.9K)** | **€1,387.24** | €17.79 |
-| ASUS TUF Gaming OC | kurpirkt range low | ~€1,400 | €17.95 |
-| **Phoenix GS** | **rdveikals.lv ★★★★☆ (6.9K)** | **€1,425** | €18.27 |
-| Phoenix | tera.lv ★★★★☆ (667) | €1,435.92 | €18.41 |
-| Phoenix GS | nopirkt.lv ★★☆☆☆ (531) | €1,445.30 | €18.53 |
-| Phoenix | 1a.lv / ksenukai.lv | €1,519 | €19.47 |
-| MSI Gaming Trio OC | dateks.lv | €1,649.34 | €21.15 |
-| ASUS ROG Astral OC | dateks.lv | €1,793.04 | €22.99 |
-| ⚠ Phoenix GS "PVN 0%" | labsveikals.lv | **€1,913 w/ VAT** | €24.53 |
+| **proline.lv** | ★★☆☆☆ (310) | **€1,325.00** | €16.99 |
+| proline.lv | ★★☆☆☆ | €1,484.00 | €19.03 |
+| dt24.lv | ★★★★★ (88) | €1,556.80 | €19.96 |
+| **semikom.lv** | ★★★★☆ (26) | **€1,592.87** | €20.42 |
+| nopirkt.lv | ★★☆☆☆ (531) | €1,607.31 | €20.61 |
+| xmarket.lv | ★★★☆☆ (54) | €1,649.00 | €21.14 |
+| 707.lv | ★★★★★ (560) | €1,688.70 | €21.65 |
+| eltek.lv | ★★★★☆ (1K) | €1,698.65 | €21.78 |
+| euromobile.lv | ★★☆☆☆ (415) | €1,709.80 | €21.92 |
+| bigbox.lv | ★★★★☆ (722) | €1,715.54 | €21.99 |
+| signe.lv | ★★★★☆ (403) | €1,739.68 | €22.30 |
+| **rdveikals.lv** | ★★★★☆ (6.9K) | **€1,748.22** | €22.41 |
+| nopirkt.lv | ★★☆☆☆ | €1,756.45 | €22.52 |
+| 220.lv | ★★★★☆ (8.7K) | €1,829.70 | €23.46 |
+| ⚠ labsveikals.lv | ★★★★☆ (509) | €1,581.24 **PVN 0% → €1,913** | €24.53 |
 
-### 8.2 The GS premium is inconsistent — do not treat it as a tier
+**Phoenix** (NE75080019T2-GB2031X, 2617 MHz):
 
-- At the cheapest shop: GS €1,325 vs Phoenix €1,286 = **+€39**.
-- At semikom.lv the **GS (€1,346.88) is €11 CHEAPER than that same shop's plain Phoenix (€1,358.06)**.
-- At rdveikals.lv the gap is +€38 (€1,425 vs €1,387).
+| Shop | Rating | Price | €/point |
+|---|---|---|---|
+| **proline.lv** | ★★☆☆☆ (310) | **€1,286.00** | €16.49 |
+| balticdata.lv | ★★★☆☆ (118) | €1,354.95 | €17.37 |
+| smartech.ee | ★★☆☆☆ (29) | €1,381.35 | €17.71 |
+| **rdveikals.lv** | ★★★★☆ (6.9K) | **€1,387.24** | **€17.79** |
+| semikom.lv | ★★★★☆ (26) | €1,408.14 | €18.05 |
+| tera.lv | ★★★★☆ (667) | €1,435.92 | €18.41 |
+| proline.lv | ★★☆☆☆ | €1,440.00 | €18.46 |
+| 1a.lv | ★★★★☆ (4.2K) | €1,519.00 | €19.47 |
+| ksenukai.lv | ★★★☆☆ (513) | €1,519.00 | €19.47 |
+| nopirkt.lv | ★★☆☆☆ (531) | €1,572.02 | €20.15 |
+| euromobile.lv | ★★☆☆☆ | €1,687.80 | €21.638 |
+| 707.lv | ★★★★★ (560) | €1,893.10 | €24.27 |
+| electrobase.lv | ★★★☆☆ (33) | €1,963.23 | €25.17 |
 
-There is no consistent GS surcharge. **Search both part numbers and buy whichever specific SKU is cheapest at a shop you trust** — the GS is worth having when it is within ~€40, and there are listings where it costs nothing extra.
+### 8.3 The GS premium — same shop, both SKUs
 
-### 8.3 Two traps in these listings
+This is what the earlier "€20–40 more" guess got wrong. Comparing within a single retailer:
 
-**The "PVN 0%" trap.** The labsveikals.lv Phoenix GS shows **€1,581.24 marked PVN 0%** — VAT excluded. With 21% Latvian VAT that is **€1,913**, making it the most expensive card on the page while it displays mid-table. Always confirm VAT is included before comparing.
+| Shop | Phoenix | Phoenix GS | GS premium |
+|---|---|---|---|
+| 707.lv | €1,893.10 | €1,688.70 | **−€204.40** |
+| euromobile.lv | €1,687.80 | €1,709.80 | +€22.00 |
+| nopirkt.lv | €1,572.02 | €1,607.31 | +€35.29 |
+| **proline.lv** | €1,286.00 | €1,325.00 | **+€39.00** |
+| proline.lv (2nd listing) | €1,440.00 | €1,484.00 | +€44.00 |
+| **semikom.lv** | €1,408.14 | €1,592.87 | **+€184.73** |
+| **rdveikals.lv** | €1,387.24 | €1,748.22 | **+€360.98** |
 
-**Shop rating vs price.** The two cheapest listings for both SKUs are proline.lv at **★★☆☆☆ (310 reviews)**. The cheapest well-rated option is **rdveikals.lv at ★★★★☆ (6.9K reviews)** — €1,387 Phoenix / €1,425 GS, i.e. **~€100 more than the floor**. On a €1,300+ purchase with a 3-year warranty that will be claimed through the seller, that is a defensible €100.
+**The premium ranges from −€204 to +€361 for the same +83 MHz.** The €20–40 figure held at exactly one retailer. There is no GS surcharge to generalise about — it must be checked per shop, per day.
 
-### 8.4 The cross-border option is the real saving
+### 8.4 This reverses the recommendation: buy the plain Phoenix
 
-Latvia and Germany are both EU and eurozone. Buying from **Mindfactory, Alternate, Caseking, Computeruniverse or Proshop** is an intra-EU sale — **no customs, no import VAT, no broker fee**. The earlier "stay in the eurozone to avoid customs" constraint rules out the US and UK; it does not rule out Germany.
+At the two best-rated retailers the GS costs **€185–361 extra** for **+83 MHz (~1–2 fps)** plus a vapor chamber and dual BIOS. That is not worth it. At rdveikals.lv the GS reaches **€22.41/point** — as poor as a ROG Astral.
 
-German listings for the same cards run roughly **€1,159–1,250**, against a Baltic floor of €1,286 and a well-rated Baltic price of €1,387. That is a **€130–230 saving**, which exceeds the entire GS-vs-Phoenix question by a factor of three to six.
+**The plain Phoenix at rdveikals.lv, €1,387.24 (★★★★, 6.9K reviews), €17.79/point** is the best combination of price and seller reliability in these listings.
 
-**Caveat, stated plainly:** those German figures come from search-surfaced Geizhals summaries that could not be fetched and verified directly, and this section exists because search-derived pricing was already wrong once. Treat €1,159 as a lead to verify on Geizhals directly, not as a confirmed price. Weigh it against slower delivery and cross-border RMA handling.
+Take the GS only where the gap is genuinely ≤€50 — at proline.lv (+€39) or nopirkt.lv (+€35) — and only if you accept a ★★ seller.
 
-### 8.5 Recommendation for this market
+### 8.5 Traps
 
-1. **Verify the German cross-border price first.** €130–230 is the largest single saving available and dwarfs every other variable in this section.
-2. **Domestically, buy from rdveikals.lv** — Phoenix €1,387 or **Phoenix GS €1,425**. Take the GS at +€38 for the vapor chamber and dual BIOS; the +83 MHz is irrelevant.
-3. **Only go to proline.lv (€1,286 / €1,325) if you accept a ★★ seller** on a card whose warranty runs through that seller.
-4. **Check salidzini.lv** — it advertises a GeForce RTX 5080 from **€1,148**, below every listing here. Worth confirming which SKU and seller that is.
-5. **Avoid** the labsveikals.lv PVN 0% listing (€1,913 real), MSI Gaming Trio (€1,649) and ROG Astral (€1,793).
+**"PVN 0%" listings.** labsveikals.lv shows the GS at €1,581.24 **excluding VAT**. With 21% Latvian VAT that is **€1,913** — the most expensive GS on the page, displayed as if mid-priced.
+
+**Cheapest is always proline.lv at ★★☆☆☆ (310 reviews).** It holds the floor for both SKUs (€1,286 / €1,325) and the gap to the cheapest well-rated seller is ~€100. Warranty is carry-in through the seller, so the rating is not cosmetic.
+
+**Stock timing.** semikom.lv shows the GS as arriving **17.08.2026** — listed prices are not always immediately available stock.
 
 ### 8.6 Effect on the upgrade case
 
-At real Baltic pricing the RTX 5080 lands at **€16.5–18.3/point** rather than the €14.86 previously claimed. The 5080 remains the right card and the ranking in §2 is unaffected — that is a performance ranking and no price error touches it. But the margin over the RTX 5070 Ti is thinner than §7.5 stated, and the RTX 5070 Ti figure of €845 is itself German-sourced and needs the same local verification before the step-up maths can be trusted here.
+At real Baltic pricing the RTX 5080 spans **€16.49/point at the floor to €22.41/point at a well-rated seller**, against the €14.86 originally claimed. The realistic figure for a seller worth buying from is **€17.79/point**.
+
+The ranking in §2 is unaffected — that is a performance ranking and no price error touches it. But the step-up case in §7.5 was built on German pricing and does not survive locally: the RTX 5070 Ti figure of €845 is German-sourced and unverified here. **Until local 5070 Ti pricing is checked, the "€314 for +27pp" argument should not be relied on in this market.**
 
 ---
 
