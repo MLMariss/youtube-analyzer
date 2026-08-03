@@ -1203,6 +1203,11 @@
         "create_time": "2026-08-02T00:40:47.998734Z",
         "report_id": "17545094158",
         "row_count": 791
+      },
+      "2026-08-01": {
+        "create_time": "2026-08-03T05:33:36.224822Z",
+        "report_id": "17546075005",
+        "row_count": 1003
       }
     },
     "channel_playback_location_a3": {
@@ -3649,7 +3654,7 @@
     "playlist_province_a2": "0c217b96-e686-44cc-9daf-7651980893b0",
     "playlist_traffic_source_a2": "2f9ca6e0-4576-40ed-98ba-9cb41adb4726"
   },
-  "last_run": "2026-08-02T05:34:43.385708+00:00",
+  "last_run": "2026-08-03T05:51:02.771705+00:00",
   "runs": [
     {
       "at": "2026-07-22T14:15:44.295460+00:00",
@@ -3716,6 +3721,12 @@
       "backfilled": 0,
       "failed": 0,
       "new": 44
+    },
+    {
+      "at": "2026-08-03T05:51:02.771705+00:00",
+      "backfilled": 0,
+      "failed": 0,
+      "new": 1
     }
   ]
 }
