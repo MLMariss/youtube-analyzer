@@ -405,6 +405,11 @@
         "create_time": "2026-08-04T12:20:36.344408Z",
         "report_id": "20294877562",
         "row_count": 682
+      },
+      "2026-08-03": {
+        "create_time": "2026-08-05T05:26:53.443572Z",
+        "report_id": "20299570400",
+        "row_count": 758
       }
     },
     "channel_cards_a1": {
@@ -834,6 +839,11 @@
         "create_time": "2026-08-04T13:25:01.402174Z",
         "report_id": "20295309731",
         "row_count": 1615
+      },
+      "2026-08-03": {
+        "create_time": "2026-08-05T06:23:00.410717Z",
+        "report_id": "20300277565",
+        "row_count": 1939
       }
     },
     "channel_demographics_a1": {
@@ -1480,6 +1490,11 @@
         "create_time": "2026-08-04T08:33:26.068934Z",
         "report_id": "17547619922",
         "row_count": 793
+      },
+      "2026-08-03": {
+        "create_time": "2026-08-05T05:44:32.928907Z",
+        "report_id": "20299879220",
+        "row_count": 873
       }
     },
     "channel_province_a3": {
@@ -2560,6 +2575,11 @@
         "create_time": "2026-08-04T09:03:19.456998Z",
         "report_id": "20293564208",
         "row_count": 1261
+      },
+      "2026-08-03": {
+        "create_time": "2026-08-05T06:12:45.196370Z",
+        "report_id": "20300188606",
+        "row_count": 1421
       }
     },
     "playlist_basic_a2": {
@@ -3206,6 +3226,11 @@
         "create_time": "2026-08-04T08:34:38.097001Z",
         "report_id": "20293349397",
         "row_count": 16
+      },
+      "2026-08-03": {
+        "create_time": "2026-08-05T06:00:47.528969Z",
+        "report_id": "20300038909",
+        "row_count": 9
       }
     },
     "playlist_playback_location_a2": {
@@ -3852,6 +3877,11 @@
         "create_time": "2026-08-04T13:06:11.030050Z",
         "report_id": "20295216341",
         "row_count": 18
+      },
+      "2026-08-03": {
+        "create_time": "2026-08-05T06:16:17.516532Z",
+        "report_id": "20300234636",
+        "row_count": 9
       }
     }
   },
@@ -3874,7 +3904,7 @@
     "playlist_province_a2": "0c217b96-e686-44cc-9daf-7651980893b0",
     "playlist_traffic_source_a2": "2f9ca6e0-4576-40ed-98ba-9cb41adb4726"
   },
-  "last_run": "2026-08-05T05:22:06.758063+00:00",
+  "last_run": "2026-08-06T05:24:33.999942+00:00",
   "runs": [
     {
       "at": "2026-07-22T14:15:44.295460+00:00",
@@ -3959,6 +3989,12 @@
       "backfilled": 0,
       "failed": 0,
       "new": 28
+    },
+    {
+      "at": "2026-08-06T05:24:33.999942+00:00",
+      "backfilled": 0,
+      "failed": 0,
+      "new": 6
     }
   ]
 }
