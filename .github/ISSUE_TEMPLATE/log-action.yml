@@ -1,0 +1,44 @@
+name: Log an action
+description: Record something you changed on a video, so the collector can measure whether it helped.
+title: "Action: "
+labels: ["action"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The dashboard fills this in. The collector compares the video 7, 14 and 28 days after
+        the date below with the same number of days before it, and posts each result here.
+        Title, description, tag and thumbnail changes are also picked up without logging them;
+        log those anyway if you want the result posted here.
+  - type: input
+    id: video
+    attributes:
+      label: Video
+      description: The video ID, or any YouTube or YouTube Studio link to it.
+    validations:
+      required: true
+  - type: input
+    id: action
+    attributes:
+      label: What did you do?
+      description: >-
+        Thumbnail / Test & Compare, Title, Description, Tags, Pinned comment, End screen / cards,
+        Playlist, Follow-up video or Short, Community post, Replied to comments,
+        Outside promotion, or Other.
+    validations:
+      required: true
+  - type: input
+    id: situation
+    attributes:
+      label: Situation
+      description: What the dashboard saw (packaging, clicks, wave, losing or conversation). Leave as it is.
+  - type: input
+    id: date
+    attributes:
+      label: Date (if not today)
+      description: YYYY-MM-DD, the day the change went live.
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: What exactly changed, for example the new title or what the new thumbnail shows.

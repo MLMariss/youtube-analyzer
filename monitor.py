@@ -1,25 +1,34 @@
 #!/usr/bin/env python3
 """
-Flag the videos that need attention, for the dashboard's "Needs attention" panel.
+Flag the videos whose own numbers changed enough to act on, for the
+dashboard's "Needs attention" panel.
 
-YouTube Studio watches new uploads; nothing watches the back catalogue. This
-compares each video's last seven complete days with the 28 days before them
-and writes the changes worth acting on to data/attention.json:
+Every video is compared with itself, never with a channel average: this week
+(the last seven complete days) against last week, and against the week before
+for slower climbs. A change counts only when it is
 
-    rising        older videos picking up views or impressions, with what drove
-                  it (search terms, suggesting videos, outside sites)
-    falling       established videos losing their traffic, and from where
-    ctr_drop      established videos losing thumbnail clicks
-    new_uploads   recent uploads against the channel's other uploads at the
-                  same age
-    reaction      dislike, comment and unsubscribe spikes
-    moving_today  same-day jumps in the public view counter, ahead of the two
-                  to three days the analytics reports run behind
-    topics        search terms, outside sites and other channels' videos
-                  sending far more views than usual
+  - clearly bigger than that video's normal week-to-week swing,
+  - still there with the week's single biggest day taken out, so one random
+    spike cannot trigger it, and
+  - still holding over the last three days.
 
-Windows end on the same "data through" day as summarize.py, so the panel and
-the rest of the dashboard always describe the same days.
+Changes are then sorted by what to do about them:
+
+    packaging     impressions up but CTR down: the reach is there, the clicks are not
+    clicks        CTR down while impressions held
+    wave          impressions or views up: the topic is waking up
+    losing        impressions or views down
+    conversation  comments or dislikes well above last week
+
+Three or more videos of one game moving the same way become a single game
+card. Early signals that are not confirmed yet are listed apart: videos up
+three days running, games whose videos spiked together on one day, and
+same-day jumps in the public view counter.
+
+Each card carries concrete next steps; actions.py records what was done and
+measures whether it helped, and those results are shown next to the steps.
+
+Writes data/attention.json.
 
 Usage:
     python monitor.py
@@ -27,81 +36,43 @@ Usage:
 
 import json
 import os
+import re
 import statistics
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+import actions
+from signals import SWING, Z_CLEAR, building_up, ctr_change, ctr_of, weekly_change, z_count
 from report_types import CHANNEL_REPORTS
 from summarize import DATA_DIR, data_through, iter_shards, num, source_key, write_json
 
-RECENT_DAYS = 7
-BASELINE_DAYS = 28
-SERIES_DAYS = 56          # sparkline length on the dashboard
-BACK_CATALOGUE_AGE = 30   # days since publishing before a video counts as back catalogue
-NEW_UPLOAD_DAYS = 28
+MIN_AGE_DAYS = 21     # launches are YouTube Studio's job; the climb test needs three weeks
+SERIES_DAYS = 28      # sparkline length on the dashboard
 
-# Thresholds were calibrated by replaying these rules over every day from late
-# July to late October 2026. On a typical day they flag about two rising
-# videos, one rising search term and four falling videos; on a busy day (a
-# game update, a trailer) up to about 25 rising videos.
-RISE_RATIO = 2.0            # recent daily rate at least this multiple of the usual
-RISE_MIN_VIEWS = 25         # views in the recent week
-RISE_VIEWS_FLOOR = 1.0      # usual views/day counts as at least this
-RISE_MIN_IMPRESSIONS = 300
-RISE_IMPRESSIONS_FLOOR = 10.0
-FALL_MIN_USUAL = 8.0        # usual views/day; smaller videos swing too much
-FALL_RATIO = 0.5
-CTR_MIN_RECENT_IMPRESSIONS = 1000
-CTR_MIN_USUAL_IMPRESSIONS = 2000
-CTR_DROP_RATIO = 0.75
-# CTR naturally dips when YouTube widens a video's audience; a drop only means
-# something while impressions stay roughly level.
-CTR_MAX_IMPRESSION_GROWTH = 1.5
-TOPIC_RATIO = 3.0
-TOPIC_FLOOR = 0.5           # usual views/day counts as at least this
-TODAY_MIN = 20              # views/day by the public counter
-TODAY_RATIO = 3.0
-TODAY_FLOOR = 2.0
-COHORT_MIN = 5              # earlier uploads needed for a same-format comparison
-SHORTS_MAX_SECONDS = 60     # matches the dashboard's Shorts filter
-STALE_RUN_HOURS = 36
-STALE_DATA_DAYS = 5
+GAME_MIN = 3          # videos of one game moving the same way become one game card
+FLARE_MIN = 4         # a game "flares" when at least this many of its videos,
+FLARE_SHARE = 0.3     # and this share of those with impressions,
+FLARE_FACTOR = 3.0    # spike to three times their usual day
+FLARE_DAYS = 3        # on the same day, within the last three days
+TOPIC_MIN = 10        # views this week before a search term, site or video counts
+FALL_FROM = {"impressions": 100, "views": 7}   # weekly level a fall must start from
+TODAY_MIN = 10        # views/day by the public counter
 
-SEARCH, SUGGESTED, EXTERNAL = "5", "7", "9"
-# Traffic sources whose details are channel-wide topics: name, minimum recent views.
-TOPIC_SOURCES = {SEARCH: ("search", 15), EXTERNAL: ("external", 10), SUGGESTED: ("suggested", 15)}
-
-SCALE = RECENT_DAYS / BASELINE_DAYS   # baseline total -> expected recent total
+SEARCH, BROWSE, SUGGESTED, EXTERNAL = "5", "3", "7", "9"
+PLAYLIST_SOURCES = ("14", "18")   # Playlists, Playlist page
+TOPIC_SOURCES = {SEARCH: "search", EXTERNAL: "external", SUGGESTED: "suggested"}
 
 
 def iso(d):
     return d.strftime("%Y-%m-%d")
 
 
-def parse_duration(value):
-    """ISO 8601 duration ("PT12M39S") to seconds, or None."""
-    if not value or not value.startswith("P"):
-        return None
-    total, number = 0, ""
-    for ch in value[1:]:
-        if ch.isdigit():
-            number += ch
-        elif ch in "DHMS" and number:
-            total += int(number) * {"D": 86400, "H": 3600, "M": 60, "S": 1}[ch]
-            number = ""
-    return total
-
-
-def rates(recent, baseline):
-    """Daily rates for the recent week and the baseline."""
-    return {"before": round(baseline / BASELINE_DAYS, 1), "now": round(recent / RECENT_DAYS, 1)}
-
-
-def ctr(m):
-    return round(m["clicks"] / m["impressions"] * 100, 2) if m["impressions"] else None
+def span(end, days):
+    """The `days` dates ending on `end`, oldest first."""
+    return [iso(end - timedelta(days=i)) for i in range(days - 1, -1, -1)]
 
 
 # ------------------------------------------------------------------ loading
@@ -122,8 +93,6 @@ def load_daily(through):
             m["likes"] += num(row.get("likes"))
             m["dislikes"] += num(row.get("dislikes"))
             m["comments"] += num(row.get("comments"))
-            m["subscribers_gained"] += num(row.get("subscribers_gained"))
-            m["subscribers_lost"] += num(row.get("subscribers_lost"))
             m["avg_view_pct_weighted"] += num(row.get("average_view_duration_percentage")) * views
     for day, rows in iter_shards("channel_reach_basic_a1", until=through):
         for row in rows:
@@ -140,228 +109,308 @@ def load_daily(through):
     return daily
 
 
-def window(days, since, until):
-    out = defaultdict(float)
-    for day, m in days.items():
-        if since <= day <= until:
-            for k, x in m.items():
-                out[k] += x
-    return out
-
-
-def load_traffic(recent_from, baseline_from, through):
+def load_sources(report, metric, since, this_from, last_from, through, topics=False):
     """
-    Views by traffic source and by source detail, split into [recent, baseline].
-
-    Returns per-video sources, per-video details, and channel-wide totals per
-    (source, detail) for the topic lists.
+    This week's and last week's totals ([this, last]) by video and traffic
+    source, and by video, source and detail. With `topics`, also channel-wide
+    daily totals per (source, detail) since `since`, and this week's totals
+    per video for each of them.
     """
-    sources = defaultdict(lambda: defaultdict(lambda: [0.0, 0.0]))
-    details = defaultdict(lambda: defaultdict(lambda: [0.0, 0.0]))
-    topics = defaultdict(lambda: {"totals": [0.0, 0.0], "videos": defaultdict(float)})
-    for day, rows in iter_shards("channel_traffic_source_a3", baseline_from, through):
-        i = 0 if day >= recent_from else 1
+    by_source = defaultdict(lambda: defaultdict(lambda: [0.0, 0.0]))
+    by_detail = defaultdict(lambda: defaultdict(lambda: [0.0, 0.0]))
+    topic_daily = defaultdict(lambda: defaultdict(float))
+    topic_videos = defaultdict(lambda: defaultdict(float))
+    for day, rows in iter_shards(report, since, through):
+        week = 0 if day >= this_from else 1 if day >= last_from else None
         for row in rows:
             vid = row.get("video_id")
             src = source_key(row)
-            views = num(row.get("views"))
+            n = num(row.get(metric))
             detail = row.get("traffic_source_detail")
-            # The collector turns numeric-looking CSV values into numbers, so a
-            # search for "2077" arrives as an int. Search terms differ only in
-            # case far too often to count separately.
+            # Numeric-looking CSV values arrive as numbers (a search for
+            # "2077"), and search terms differ only in case far too often.
             detail = None if detail is None else str(detail)
+            if detail and detail.strip().lower() in ("unknown", "null"):
+                detail = None   # YouTube's placeholder for terms it withholds: no information
             if detail and src == SEARCH:
                 detail = detail.lower()
-            if vid:
-                sources[vid][src][i] += views
+            if vid and week is not None:
+                by_source[vid][src][week] += n
                 if detail:
-                    details[(vid, src)][detail][i] += views
-            if detail and src in TOPIC_SOURCES:
-                t = topics[(src, detail)]
-                t["totals"][i] += views
-                if vid and i == 0:
-                    t["videos"][vid] += views
-    return sources, details, topics
+                    by_detail[(vid, src)][detail][week] += n
+            if topics and detail and src in TOPIC_SOURCES:
+                topic_daily[(src, detail)][day] += n
+                if vid and week == 0:
+                    topic_videos[(src, detail)][vid] += n
+    return by_source, by_detail, topic_daily, topic_videos
+
+
+# ------------------------------------------------------------------ games
+
+GAME_LEAD = re.compile(r"^(?:let'?s play|lets play|how to|guide:?)\s+", re.I)
+GAME_SPLIT = re.compile(r"\s*(?::|\||\s-\s|\s–\s|!|\?)\s*")
+SEQUEL = re.compile(r"^(?:\d{1,2}|[ivx]+)$")   # "6" or "ii"; a year is not a sequel
+# Opening words that never name a game.
+NOT_A_GAME = {"the", "a", "an", "new", "best", "top", "my", "why", "what", "this", "these", "i", "is",
+              "how", "all", "every", "only", "full", "first", "free", "gaming", "game", "games", "tips"}
+
+
+def game_names(titles):
+    """
+    Game names: how titles start ("Tropico 6: ...", "Whiskerwood: ..."), kept
+    when three or more titles mention them anywhere ("How To Skip Taxes in
+    Whiskerwood"). Returns {key: display name}, longest first so "tropico 6"
+    wins over "tropico" when a title matches both.
+    """
+    titles = list(titles)
+    lows = [t.lower() for t in titles]
+    shown = defaultdict(Counter)
+    for title in titles:
+        lead = GAME_SPLIT.split(GAME_LEAD.sub("", title.strip()))[0].strip()
+        words = lead.split()
+        if 1 <= len(words) <= 4 and words[0].lower() not in NOT_A_GAME:
+            shown[" ".join(words).lower()][" ".join(words)] += 1
+
+    def mentions(key):
+        pattern = re.compile(r"(?<![a-z0-9])" + re.escape(key) + r"(?![a-z0-9])")
+        return sum(1 for t in lows if pattern.search(t))
+
+    def extends(key, other):
+        """A DLC, edition or subtitle of `other`; a sequel number ("tropico 6") is a game of its own."""
+        if not key.startswith(other + " "):
+            return False
+        return not SEQUEL.match(key[len(other) + 1:].split()[0])
+
+    keys = [k for k in shown if len(k) >= 4 and mentions(k) >= 3]
+    keys = [k for k in keys if not any(extends(k, o) for o in keys if o != k)]
+    keys.sort(key=len, reverse=True)
+    return {k: shown[k].most_common(1)[0][0] for k in keys}
+
+
+def game_of(title, names):
+    low = (title or "").lower()
+    for key in names:
+        if re.search(r"(?<![a-z0-9])" + re.escape(key) + r"(?![a-z0-9])", low):
+            return key
+    return None
 
 
 # ------------------------------------------------------------------ signals
 
-def drivers(vid, direction, sources, details):
-    """
-    The traffic sources behind a rise (direction 1) or a fall (-1), each with
-    its top details: search terms, suggesting videos, referring sites.
-    """
+def evaluate(days, end):
+    """Every signal for one video over the 21 days ending on `end`."""
+    dates = span(end, 21)
+    series = lambda m: [days.get(d, {}).get(m, 0.0) for d in dates]
+    sig = {}
+    for m in ("impressions", "views"):
+        values = series(m)
+        direction, how, z = weekly_change(values, SWING[m])
+        sig[m] = {"weeks": [round(sum(values[:7])), round(sum(values[7:14])), round(sum(values[14:]))],
+                  "dir": direction, "how": how, "z": round(z, 1),
+                  "building": building_up(values[7:], SWING[m])}
+    clicks, imps = series("clicks"), series("impressions")
+    direction, z = ctr_change(sum(clicks[14:]), sum(imps[14:]), sum(clicks[7:14]), sum(imps[7:14]))
+    last, this, recent = ctr_of(clicks[7:14], imps[7:14]), ctr_of(clicks[14:], imps[14:]), ctr_of(clicks[-3:], imps[-3:])
+    # The last three days must agree, as for the counts.
+    if direction and (recent is None or last is None or (recent - last) * direction < 0):
+        direction = 0
+    sig["ctr"] = {"last": last, "this": this, "dir": direction, "z": round(z, 1)}
+    for m, minimum in (("comments", 5), ("dislikes", 3)):
+        values = series(m)
+        w1, w0 = sum(values[7:14]), sum(values[14:])
+        up = w0 >= minimum and z_count(w0, w1, SWING[m]) >= Z_CLEAR
+        sig[m] = {"last": round(w1), "this": round(w0), "dir": 1 if up else 0}
+    return sig
+
+
+def situation(sig):
+    imp, views, ctr = sig["impressions"]["dir"], sig["views"]["dir"], sig["ctr"]["dir"]
+    if imp > 0 and ctr < 0:
+        return "packaging"
+    if ctr < 0:
+        return "clicks"
+    if imp > 0 or views > 0:
+        return "wave"
+    # A fall is only worth acting on from a level worth protecting, and fewer
+    # impressions while views still grow is not losing anything.
+    falling = [m for m in ("impressions", "views") if sig[m]["dir"] < 0
+               and sig[m]["weeks"][0 if sig[m]["how"] == "slide" else 1] >= FALL_FROM[m]]
+    if falling and not (falling == ["impressions"] and sig["views"]["weeks"][2] > sig["views"]["weeks"][1]):
+        return "losing"
+    if sig["comments"]["dir"] > 0 or sig["dislikes"]["dir"] > 0:
+        return "conversation"
+    return None
+
+
+def drivers(vid, direction, by_source, by_detail):
+    """The traffic sources behind a change, each with its top details."""
     found = []
-    for src, (r, b) in sources.get(vid, {}).items():
-        gain = r - b * SCALE
-        if gain * direction >= 1:
-            found.append((abs(gain), src, r, b, gain))
+    for src, (now, before) in by_source.get(vid, {}).items():
+        if (now - before) * direction >= 1:
+            found.append((abs(now - before), src, now, before))
     found.sort(reverse=True)
     total = sum(f[0] for f in found)
     out = []
-    for size, src, r, b, gain in found[:2]:
+    for size, src, now, before in found[:2]:
         if out and size < 0.2 * total:
             break
-        top = []
-        for detail, (dr, db) in details.get((vid, src), {}).items():
-            dg = dr - db * SCALE
-            # Under one view of change is noise, and would show as "+0".
-            if dg * direction >= 1:
-                top.append((abs(dg), detail, dr, db, dg))
-        top.sort(reverse=True)
-        out.append({
-            "source": src, "gain": round(gain), **rates(r, b),
-            "details": [{"detail": d, "gain": round(g), **rates(dr, db)}
-                        for _, d, dr, db, g in top[:3]],
-        })
+        top = sorted(((abs(dn - db), d, dn, db) for d, (dn, db) in by_detail.get((vid, src), {}).items()
+                      if (dn - db) * direction >= 1), reverse=True)[:3]
+        out.append({"source": src, "this": round(now), "last": round(before),
+                    "details": [{"detail": d, "this": round(dn), "last": round(db)} for _, d, dn, db in top]})
     return out
 
 
-def rising_and_falling(windows, ages, sources, details):
-    rising, falling, ctr_drop = [], [], []
-    for vid, (r, b) in windows.items():
-        age = ages.get(vid)
-        if age is None or age < BACK_CATALOGUE_AGE:
-            continue
-        # Falls and CTR drops are only measured once the whole baseline lies
-        # past the launch month: every video decays from its launch spike, and
-        # launch CTR is inflated by subscribers clicking through notifications.
-        settled = age >= BACK_CATALOGUE_AGE + RECENT_DAYS + BASELINE_DAYS
-        base = {
-            "video_id": vid,
-            "views": rates(r["views"], b["views"]),
-            "impressions": rates(r["impressions"], b["impressions"]),
-            "ctr": {"before": ctr(b), "now": ctr(r)},
-            "gain": round(r["views"] - b["views"] * SCALE),
-        }
-        views_up = (r["views"] >= RISE_MIN_VIEWS and r["views"] / RECENT_DAYS
-                    >= RISE_RATIO * max(b["views"] / BASELINE_DAYS, RISE_VIEWS_FLOOR))
-        impressions_up = (r["impressions"] >= RISE_MIN_IMPRESSIONS and r["impressions"] / RECENT_DAYS
-                          >= RISE_RATIO * max(b["impressions"] / BASELINE_DAYS, RISE_IMPRESSIONS_FLOOR))
-        if views_up or impressions_up:
-            rising.append({**base, "trigger": "views" if views_up else "impressions",
-                           "drivers": drivers(vid, 1, sources, details)})
-        elif (settled and b["views"] / BASELINE_DAYS >= FALL_MIN_USUAL
-              and r["views"] / RECENT_DAYS <= FALL_RATIO * b["views"] / BASELINE_DAYS):
-            falling.append({**base, "drivers": drivers(vid, -1, sources, details)})
-
-        if (settled and r["impressions"] >= CTR_MIN_RECENT_IMPRESSIONS
-                and b["impressions"] >= CTR_MIN_USUAL_IMPRESSIONS and b["clicks"]
-                and ctr(r) <= CTR_DROP_RATIO * ctr(b)
-                and r["impressions"] / RECENT_DAYS
-                <= CTR_MAX_IMPRESSION_GROWTH * b["impressions"] / BASELINE_DAYS):
-            ctr_drop.append(base)
-
-    rising.sort(key=lambda e: (-e["gain"], -e["impressions"]["now"]))
-    falling.sort(key=lambda e: e["gain"])
-    ctr_drop.sort(key=lambda e: -e["impressions"]["now"])
-    return rising, falling, ctr_drop
+def first_detail(drv, source):
+    for d in drv:
+        if d["source"] == source and d["details"]:
+            return d["details"][0]["detail"]
+    return None
 
 
-def reactions(windows, ages):
-    """Dislike, comment and unsubscribe spikes, in weekly counts (they are small)."""
-    out = []
-    for vid, (r, b) in windows.items():
-        age = ages.get(vid, 0)
-        kinds = []
-        dislike_rate = r["dislikes"] / max(r["likes"], 1)
-        usual_dislike_rate = b["dislikes"] / max(b["likes"], 1)
-        if r["dislikes"] >= 3 and dislike_rate >= max(2 * usual_dislike_rate, 0.1):
-            kinds.append("dislikes")
-        # New videos always draw comments; only an older video's surge is news.
-        if (age >= 14 and r["comments"] >= 5
-                and r["comments"] / RECENT_DAYS >= 3 * max(b["comments"] / BASELINE_DAYS, 0.2)):
-            kinds.append("comments")
-        if (r["subscribers_lost"] >= 3 and r["subscribers_lost"] > r["subscribers_gained"]
-                and r["subscribers_lost"] / RECENT_DAYS >= 3 * max(b["subscribers_lost"] / BASELINE_DAYS, 0.1)):
-            kinds.append("unsubscribes")
-        if kinds:
-            out.append({
-                "video_id": vid, "kinds": kinds,
-                "week": {k: round(r[k]) for k in ("likes", "dislikes", "comments",
-                                                  "subscribers_gained", "subscribers_lost")},
-                "usual_week": {k: round(b[k] * SCALE, 1) for k in ("likes", "dislikes", "comments",
-                                                                   "subscribers_gained", "subscribers_lost")},
-            })
-    out.sort(key=lambda e: -len(e["kinds"]))
-    return out
+def quoted(text, limit=60):
+    text = text or ""
+    return "“" + (text if len(text) <= limit else text[:limit - 1].rstrip() + "…") + "”"
 
 
-def new_uploads(daily, meta, through, reach_start):
-    """
-    Each recent upload against the channel's other uploads at the same age.
+def step(key, text, link="edit"):
+    """One next step. `key` names the action (see actions.KINDS) so its result
+    can be measured and learned; None for advice that is not an action."""
+    return {"key": key, "text": text, "link": link}
 
-    "Same age" matters: a three-day-old video compared with lifetime totals
-    always looks weak. Each earlier upload is summed over its own first n days,
-    where n is how many complete days of data the new one has. Only uploads
-    since the reach archive began count, so every one has impressions from day
-    one; the comparison uses the same format (Shorts or long-form) when there
-    are enough of those.
-    """
-    end = date.fromisoformat(through)
-    published = {}
-    for vid, m in meta.items():
-        if m.get("published_at"):
-            published[vid] = date.fromisoformat(m["published_at"][:10])
 
-    def fmt(vid):
-        secs = parse_duration(meta.get(vid, {}).get("duration"))
-        return "short" if secs is not None and secs <= SHORTS_MAX_SECONDS else "long"
-
-    def first_days(vid, n):
-        p = published[vid]
-        return window(daily.get(vid, {}), iso(p), iso(p + timedelta(days=n - 1)))
-
-    def measures(m):
-        return {
-            "views": m["views"],
-            "impressions": m["impressions"],
-            "ctr": ctr(m),
-            "avg_view_pct": round(m["avg_view_pct_weighted"] / m["views"], 1) if m["views"] else None,
-        }
-
-    out = []
-    today = datetime.now(timezone.utc).date()
-    for vid, p in published.items():
-        if p > end:
-            # Published after the newest analytics day: nothing to compare yet.
-            if (today - p).days <= NEW_UPLOAD_DAYS:
-                out.append({"video_id": vid, "pending": True, "format": fmt(vid),
-                            "public_views": meta[vid].get("view_count")})
-            continue
-        n = (end - p).days + 1
-        if n > NEW_UPLOAD_DAYS:
-            continue
-        cohort = [u for u in published if u != vid and published[u] >= reach_start
-                  and (end - published[u]).days + 1 >= n]
-        same = [u for u in cohort if fmt(u) == fmt(vid)]
-        if len(same) >= COHORT_MIN:
-            cohort, cohort_format = same, fmt(vid)
+def plan_for(sit, sig, drv, newer, game_label):
+    """Concrete next steps for one video, from what changed and what drove it."""
+    term, site = first_detail(drv, SEARCH), first_detail(drv, EXTERNAL)
+    main = drv[0]["source"] if drv else None
+    ctr = sig["ctr"]
+    newer_title = quoted(newer["title"]) if newer else None
+    steps = []
+    if sit in ("packaging", "clicks"):
+        held = "while impressions rose" if sit == "packaging" else "while impressions held"
+        steps.append(step("thumbnail", f"Start a Test & Compare with 2–3 new thumbnails: CTR fell from "
+                                       f"{ctr['last']}% to {ctr['this']}% {held}."))
+        steps.append(step("title", f"Lead the title with “{term}”: that search brings the new impressions."
+                          if term else "Rewrite the title around what a new viewer gets from the video."))
+        if newer:
+            steps.append(step("pinned_comment", f"Pin a comment linking {newer_title}, so the viewers "
+                                                "who do click stay with you.", "comments"))
+    elif sit == "wave":
+        if main == EXTERNAL and site:
+            steps.append(step("external", f"Find where {site} links to it and join that conversation.", None))
+            steps.append(step("pinned_comment", "Pin a comment welcoming the new visitors, with links "
+                                                "to your related videos.", "comments"))
         else:
-            cohort_format = "all"
-        mine = measures(first_days(vid, n))
-        others = [measures(first_days(u, n)) for u in cohort]
-        compare = {}
-        for key, value in mine.items():
-            values = [o[key] for o in others if o[key] is not None]
-            if value is None or not values:
-                compare[key] = {"value": value, "typical": None, "rank": None, "of": len(values) + 1}
-                continue
-            compare[key] = {
-                "value": round(value, 2),
-                "typical": round(statistics.median(values), 2),
-                # 1 = best of all uploads at this age.
-                "rank": 1 + sum(1 for x in values if x > value),
-                "of": len(values) + 1,
-            }
-        out.append({"video_id": vid, "pending": False, "format": fmt(vid), "days": n,
-                    "cohort_format": cohort_format, "compare": compare})
-    out.sort(key=lambda e: (not e["pending"], e.get("days", 0)))
+            if term:
+                steps.append(step("description", f"Put “{term}” and close variants in the first lines "
+                                                 "of the description: it is what people search for."))
+            if newer:
+                steps.append(step("end_screen", f"Point the end screen at {newer_title} so the new viewers "
+                                                "keep watching."))
+            steps.append(step("pinned_comment", f"Pin a comment linking {newer_title}." if newer else
+                              "Pin a comment pointing to your playlist on this topic.", "comments"))
+            if game_label:
+                steps.append(step("follow_up", f"{game_label} is drawing interest again: a new video or "
+                                               "Short on it now rides the wave.", None))
+    elif sit == "losing":
+        if main == SEARCH:
+            lost = [d["detail"] for d in drv[0]["details"][:2]]
+            steps.append(step("title", "Search traffic fell" + (" for " + ", ".join(f"“{x}”" for x in lost)
+                                                                 if lost else "") +
+                              ": refresh the title and description with how people search for it now."))
+            steps.append(step("tags", "Update the tags to match current searches."))
+        elif main in PLAYLIST_SOURCES:
+            steps.append(step("playlist", (f"Most of the drop came from playlists: check it is still in, and near "
+                                           f"the top of, your {game_label} playlist." if game_label else
+                                           "Most of the drop came from playlists: check it is still in, and near "
+                                           "the top of, its playlist.")))
+        elif main in (BROWSE, SUGGESTED):
+            steps.append(step("thumbnail", "YouTube recommends it less: a fresher thumbnail "
+                                           "(Test & Compare) can win Home and Suggested back."))
+            if newer:
+                steps.append(step("end_screen", f"Link to it from the end screen of {newer_title}."))
+        else:
+            steps.append(step("thumbnail", "Check Reach in Studio for the surface that dropped, then "
+                                           "refresh the thumbnail or title.", "analytics"))
+        steps.append(step(None, "If it is settling back after a news spike, leave it.", None))
+    elif sit == "conversation":
+        c = sig["comments"]
+        steps.append(step("reply_comments", f"Reply to the new comments: {c['this']} this week, "
+                                            f"{c['last']} last week.", "comments"))
+        steps.append(step("pinned_comment", "Pin the answer to the most common question.", "comments"))
+    return steps
+
+
+def game_plan(direction, label, members, newest, term):
+    """Next steps for a whole game card."""
+    steps = []
+    if direction > 0:
+        steps.append(step("follow_up", f"{label} is waking up across {len(members)} videos: a new video "
+                                       "or Short on it now rides the wave."
+                          + (f" People search for “{term}”." if term else ""), None))
+        if newest:
+            steps.append(step("pinned_comment", f"Pin a comment on the biggest risers linking your newest "
+                                                f"{label} video, {quoted(newest['title'])}.", None))
+        steps.append(step("playlist", f"Put the risers in an up-to-date {label} playlist.", None))
+        lagging = sum(1 for m in members if m["situation"] == "packaging")
+        if lagging:
+            steps.append(step("thumbnail", f"{lagging} of them {'gets' if lagging == 1 else 'get'} more "
+                                           "impressions but fewer clicks: test new thumbnails on those "
+                                           "first.", None))
+    else:
+        steps.append(step(None, "Usually a news cycle ending. Act only if a key earner is on the list.", None))
+        steps.append(step("thumbnail", "Refresh the packaging of the biggest losers first.", None))
+    return steps
+
+
+# ------------------------------------------------------------------ early signals
+
+def game_flares(daily, games, end):
+    """
+    Games whose videos spiked together on one day in the last few days: news,
+    an update, a sale. Too short to act on yet, too correlated to be noise.
+    """
+    by_game = defaultdict(list)
+    for vid, g in games.items():
+        if g and vid in daily:
+            by_game[g].append(vid)
+    out = []
+    for g, vids in by_game.items():
+        if len(vids) < FLARE_MIN:
+            continue
+        found = None
+        for back in range(FLARE_DAYS):
+            day = end - timedelta(days=back)
+            prior = span(day - timedelta(days=1), 14)
+            spiked, active, today, usual_total = [], 0, 0.0, 0.0
+            for vid in vids:
+                values = [daily[vid].get(d, {}).get("impressions", 0.0) for d in prior]
+                if not any(values):
+                    continue
+                active += 1
+                usual = statistics.median(values)
+                value = daily[vid].get(iso(day), {}).get("impressions", 0.0)
+                today += value
+                usual_total += usual
+                if value >= FLARE_FACTOR * max(usual, 1) and value - usual >= 5:
+                    spiked.append(vid)
+            if len(spiked) >= FLARE_MIN and len(spiked) >= FLARE_SHARE * active:
+                found = {"game": g, "date": iso(day), "videos": len(spiked), "of": active,
+                         "impressions": round(today), "usual": round(usual_total),
+                         "video_ids": spiked[:12]}
+                break
+        if found:
+            out.append(found)
+    out.sort(key=lambda f: -f["videos"])
     return out
 
 
-def snapshot_movers(windows, ages):
-    """Same-day jumps in the public view counter, from the last two snapshots."""
+def snapshot_movers(daily, ages, through):
+    """
+    Same-day jumps in the public view counter, ahead of the analytics. Each
+    video's last daily gain is compared with its own earlier daily gains (or,
+    until there are three of those, with last week's analytics).
+    """
     path = os.path.join(DATA_DIR, "snapshots.json")
     if not os.path.exists(path):
         return [], None, 0
@@ -370,48 +419,57 @@ def snapshot_movers(windows, ages):
     keys = sorted(days)
     if len(keys) < 2:
         return [], None, len(keys)
-    a, b = days[keys[-2]], days[keys[-1]]
-    hours = (datetime.fromisoformat(b["taken_at"]) - datetime.fromisoformat(a["taken_at"])).total_seconds() / 3600
-    if hours <= 0:
-        return [], None, len(keys)
-    per_day = 24 / hours
 
+    def per_day(a, b, vid, i):
+        x, y = days[a]["videos"].get(vid), days[b]["videos"].get(vid)
+        if not x or not y or x[i] is None or y[i] is None:
+            return None
+        hours = (datetime.fromisoformat(days[b]["taken_at"])
+                 - datetime.fromisoformat(days[a]["taken_at"])).total_seconds() / 3600
+        return (y[i] - x[i]) * 24 / hours if hours > 0 else None
+
+    end = date.fromisoformat(through)
+    last_week = span(end, 7)
     out = []
-    for vid, now in b["videos"].items():
-        before = a["videos"].get(vid)
-        # New uploads move every day; they have their own section.
-        if not before or ages.get(vid, 0) < NEW_UPLOAD_DAYS:
+    for vid in days[keys[-1]]["videos"]:
+        if ages.get(vid, 0) < MIN_AGE_DAYS:
             continue
-        if now[0] is None or before[0] is None:
+        now = per_day(keys[-2], keys[-1], vid, 0)
+        if now is None or now < TODAY_MIN:
             continue
-        views = (now[0] - before[0]) * per_day
-        r, bl = windows.get(vid, (defaultdict(float), defaultdict(float)))
-        usual = max(r["views"] / RECENT_DAYS, bl["views"] / BASELINE_DAYS)
-        if views < TODAY_MIN or views < TODAY_RATIO * max(usual, TODAY_FLOOR):
+        earlier = [g for g in (per_day(keys[i - 1], keys[i], vid, 0) for i in range(max(1, len(keys) - 8), len(keys) - 1))
+                   if g is not None]
+        if len(earlier) >= 3:
+            usual = statistics.median(earlier)
+        else:
+            usual = sum(daily.get(vid, {}).get(d, {}).get("views", 0.0) for d in last_week) / 7
+        if z_count(now, usual, SWING["views"]) < Z_CLEAR:
             continue
-        delta = lambda i: (now[i] - before[i]) if now[i] is not None and before[i] is not None else None
-        out.append({"video_id": vid, "views": {"usual": round(usual, 1), "now": round(views)},
-                    "likes": delta(1), "comments": delta(2)})
+        out.append({"video_id": vid, "views": {"usual": round(usual, 1), "now": round(now)},
+                    "likes": per_day(keys[-2], keys[-1], vid, 1), "comments": per_day(keys[-2], keys[-1], vid, 2)})
     out.sort(key=lambda e: -e["views"]["now"])
-    return out, {"from": a["taken_at"], "to": b["taken_at"]}, len(keys)
+    return out, {"from": days[keys[-2]]["taken_at"], "to": days[keys[-1]]["taken_at"]}, len(keys)
 
 
-def rising_topics(topics, meta):
-    """Search terms, outside sites and other channels' videos sending far more views than usual."""
-    out = {name: [] for name, _ in TOPIC_SOURCES.values()}
-    for (src, detail), t in topics.items():
-        name, minimum = TOPIC_SOURCES[src]
-        r, b = t["totals"]
-        if r < minimum or r / RECENT_DAYS < TOPIC_RATIO * max(b / BASELINE_DAYS, TOPIC_FLOOR):
+def rising_topics(topic_daily, topic_videos, meta, end):
+    """Search terms, outside sites and other channels' videos clearly rising week on week."""
+    out = {name: [] for name in TOPIC_SOURCES.values()}
+    dates = span(end, 21)
+    for (src, detail), per_day in topic_daily.items():
+        values = [per_day.get(d, 0.0) for d in dates]
+        if sum(values[14:]) < TOPIC_MIN:
             continue
-        # The channel's own videos suggesting each other is not a topic.
         if src == SUGGESTED and detail in meta:
+            continue   # the channel's own videos suggesting each other is not a topic
+        direction, how, _ = weekly_change(values, SWING["views"])
+        if direction <= 0:
             continue
-        top = sorted(t["videos"].items(), key=lambda kv: -kv[1])[:3]
-        out[name].append({"detail": detail, "gain": round(r - b * SCALE), **rates(r, b),
-                          "videos": [{"video_id": v, "views": round(x)} for v, x in top]})
+        top = sorted(topic_videos.get((src, detail), {}).items(), key=lambda kv: -kv[1])[:3]
+        out[TOPIC_SOURCES[src]].append({
+            "detail": detail, "how": how, "last": round(sum(values[7:14])), "this": round(sum(values[14:])),
+            "videos": [{"video_id": v, "views": round(x)} for v, x in top]})
     for entries in out.values():
-        entries.sort(key=lambda e: -e["gain"])
+        entries.sort(key=lambda e: -(e["this"] - e["last"]))
     return out
 
 
@@ -429,7 +487,7 @@ def health_checks(through, snapshot_days):
         out.append({"level": "error", "message": "The collector has no recorded run yet."})
     else:
         hours = (now - datetime.fromisoformat(last)).total_seconds() / 3600
-        if hours > STALE_RUN_HOURS:
+        if hours > 36:
             out.append({"level": "error",
                         "message": f"The collector last ran {hours / 24:.1f} days ago. Check the Actions tab; "
                                    "an expired token shows as invalid_grant."})
@@ -438,14 +496,11 @@ def health_checks(through, snapshot_days):
         out.append({"level": "warn",
                     "message": f"The last collector run failed to download {runs[-1]['failed']} report(s). "
                                "The next run retries them."})
-
     lag = (now.date() - date.fromisoformat(through)).days
-    if lag > STALE_DATA_DAYS:
+    if lag > 5:
         out.append({"level": "warn",
                     "message": f"The newest analytics are for {through}, {lag} days ago. YouTube normally "
                                "runs two to three days behind."})
-
-    # Report types YouTube offers (recorded by the collector) that have no job.
     offered = set(state.get("offered") or CHANNEL_REPORTS)
     missing = sorted(r for r in CHANNEL_REPORTS if r in offered and r not in state.get("jobs", {}))
     if missing:
@@ -454,49 +509,36 @@ def health_checks(through, snapshot_days):
                                "Run the workflow once with create_jobs ticked."})
     if snapshot_days < 2:
         out.append({"level": "info",
-                    "message": "Same-day movement appears once the collector has taken view-count "
-                               "snapshots on two days."})
+                    "message": "Same-day jumps appear once the collector has taken view-count snapshots "
+                               "on two days."})
     return out
 
 
 # ------------------------------------------------------------------------ main
 
-def series(days, through):
-    """Daily views and impressions for the sparklines, ending on `through`."""
-    end = date.fromisoformat(through)
-    span = [iso(end - timedelta(days=i)) for i in range(SERIES_DAYS - 1, -1, -1)]
-    return {
-        "from": span[0],
-        "views": [round(days.get(d, {}).get("views", 0)) for d in span],
-        "impressions": [round(days.get(d, {}).get("impressions", 0)) for d in span],
-    }
-
-
-def carry_first_seen(groups, topics, through):
+def carry_first_seen(items, through):
     """
-    Date each item was first flagged, carried over from the previous run, so the
-    dashboard can mark what is new. An item that drops off and comes back later
-    starts over.
+    The date each item was first flagged, carried over from the previous run,
+    so the dashboard can mark what is new. An item that drops off and comes
+    back later starts over.
     """
     seen = {}
-    if os.path.exists(os.path.join(DATA_DIR, "attention.json")):
+    path = os.path.join(DATA_DIR, "attention.json")
+    if os.path.exists(path):
         try:
-            with open(os.path.join(DATA_DIR, "attention.json"), encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 prev = json.load(f)
-            for group in groups:
-                for e in prev.get(group, []):
-                    seen[f"{group}:{e.get('video_id')}"] = e.get("first_seen")
+            for e in prev.get("cards", []):
+                seen[f"card:{e.get('video_id')}:{e.get('situation')}"] = e.get("first_seen")
+            for e in prev.get("games", []):
+                seen[f"game:{e.get('game')}:{e.get('direction')}"] = e.get("first_seen")
             for name, entries in prev.get("topics", {}).items():
                 for e in entries:
                     seen[f"topic:{name}:{e.get('detail')}"] = e.get("first_seen")
         except Exception as e:
             print(f"  ! could not read the previous attention.json: {str(e)[:120]}")
-    for group, entries in groups.items():
-        for e in entries:
-            e["first_seen"] = seen.get(f"{group}:{e['video_id']}") or through
-    for name, entries in topics.items():
-        for e in entries:
-            e["first_seen"] = seen.get(f"topic:{name}:{e['detail']}") or through
+    for key, item in items:
+        item["first_seen"] = seen.get(key) or through
 
 
 def main():
@@ -509,63 +551,145 @@ def main():
 
     through = data_through()
     end = date.fromisoformat(through)
-    recent_from = iso(end - timedelta(days=RECENT_DAYS - 1))
-    baseline_to = iso(end - timedelta(days=RECENT_DAYS))
-    baseline_from = iso(end - timedelta(days=RECENT_DAYS + BASELINE_DAYS - 1))
-    print(f"Monitoring {recent_from}..{through} against {baseline_from}..{baseline_to}")
+    this_from, last_from = iso(end - timedelta(days=6)), iso(end - timedelta(days=13))
+    since = iso(end - timedelta(days=20))
+    print(f"Monitoring {this_from}..{through} against {last_from}..{iso(end - timedelta(days=7))}")
 
-    ages = {vid: (end - date.fromisoformat(m["published_at"][:10])).days
-            for vid, m in meta.items() if m.get("published_at")}
+    published = {vid: date.fromisoformat(m["published_at"][:10]) for vid, m in meta.items() if m.get("published_at")}
+    ages = {vid: (end - p).days for vid, p in published.items()}
+    names = game_names(m.get("title") or "" for m in meta.values())
+    games = {vid: game_of(m.get("title"), names) for vid, m in meta.items()}
+    newest = {}
+    for vid, g in games.items():
+        if g and vid in published and (g not in newest or published[vid] > published[newest[g]]):
+            newest[g] = vid
+
     daily = load_daily(through)
-    windows = {vid: (window(days, recent_from, through), window(days, baseline_from, baseline_to))
-               for vid, days in daily.items()}
-    sources, details, topic_totals = load_traffic(recent_from, baseline_from, through)
-    reach_days = [d for d, _ in iter_shards("channel_reach_basic_a1")]
-    reach_start = date.fromisoformat(reach_days[0]) if reach_days else end
+    imp_source, imp_detail, _, _ = load_sources("channel_reach_combined_a1", "video_thumbnail_impressions",
+                                                last_from, this_from, last_from, through)
+    view_source, view_detail, topic_daily, topic_videos = load_sources(
+        "channel_traffic_source_a3", "views", since, this_from, last_from, through, topics=True)
 
-    rising, falling, ctr_drop = rising_and_falling(windows, ages, sources, details)
-    moving_today, snapshot_span, snapshot_days = snapshot_movers(windows, ages)
-    groups = {
-        "rising": rising,
-        "falling": falling,
-        "ctr_drop": ctr_drop,
-        "new_uploads": new_uploads(daily, meta, through, reach_start),
-        "reaction": reactions(windows, ages),
-        "moving_today": moving_today,
-    }
-    topics = rising_topics(topic_totals, meta)
-    carry_first_seen(groups, topics, through)
+    def classify(vid, as_of):
+        """The situation a video was in on a given day (for actions.py)."""
+        return situation(evaluate(daily[vid], as_of)) if vid in daily else None
 
-    referenced = {e["video_id"] for entries in groups.values() for e in entries}
-    referenced |= {v["video_id"] for entries in topics.values() for e in entries for v in e["videos"]}
-    for e in rising + falling:
-        for d in e["drivers"]:
-            if d["source"] == SUGGESTED:
-                referenced |= {x["detail"] for x in d["details"] if x["detail"] in meta}
-    videos = {}
-    for vid in sorted(referenced):
-        m = meta.get(vid, {})
-        videos[vid] = {"title": m.get("title"), "published": (m.get("published_at") or "")[:10] or None,
-                       "age_days": ages.get(vid)}
+    # Each video against itself.
+    flagged, building = {}, []
+    for vid, days in daily.items():
+        if ages.get(vid, 0) < MIN_AGE_DAYS:
+            continue
+        sig = evaluate(days, end)
+        sit = situation(sig)
+        if not sit:
+            if sig["impressions"]["building"] or sig["views"]["building"]:
+                metric = "impressions" if sig["impressions"]["building"] else "views"
+                building.append({"video_id": vid, "metric": metric, "weeks": sig[metric]["weeks"]})
+            continue
+        lead = "impressions" if sig["impressions"]["dir"] else "views"
+        direction = sig[lead]["dir"] or (-1 if sit in ("clicks", "losing") else 1)
+        drv = drivers(vid, direction, *((imp_source, imp_detail) if lead == "impressions"
+                                        else (view_source, view_detail)))
+        g = games.get(vid)
+        newer = None
+        if g and newest.get(g) and newest[g] != vid and published[newest[g]] > published.get(vid, end):
+            newer = {"video_id": newest[g], "title": meta[newest[g]].get("title")}
+        flagged[vid] = {
+            "video_id": vid, "situation": sit, "game": g, "signals": sig, "lead": lead,
+            "drivers": drv, "plan": plan_for(sit, sig, drv, newer, names.get(g) if g else None),
+            "flags": [k for k in ("comments", "dislikes") if sig[k]["dir"] > 0],
+        }
+
+    # Three or more videos of one game moving the same way: one game card.
+    groups = defaultdict(list)
+    for vid, card in flagged.items():
+        if card["game"] and card["situation"] in ("wave", "packaging", "losing"):
+            groups[(card["game"], -1 if card["situation"] == "losing" else 1)].append(vid)
+    game_cards, in_game = [], set()
+    for (g, direction), vids in groups.items():
+        if len(vids) < GAME_MIN:
+            continue
+        members = sorted((flagged[v] for v in vids),
+                         key=lambda c: -abs(c["signals"]["impressions"]["weeks"][2] - c["signals"]["impressions"]["weeks"][1]))
+        totals = {m: [sum(c["signals"][m]["weeks"][i] for c in members) for i in range(3)]
+                  for m in ("impressions", "views")}
+        terms = Counter()
+        for c in members:
+            for d in c["drivers"]:
+                if d["source"] == SEARCH:
+                    for x in d["details"]:
+                        terms[x["detail"]] += x["this"] - x["last"]
+        term = terms.most_common(1)[0][0] if terms and direction > 0 else None
+        newest_video = {"video_id": newest[g], "title": meta[newest[g]].get("title")} if newest.get(g) else None
+        game_cards.append({
+            "game": g, "label": names[g], "direction": direction, "totals": totals,
+            "members": [{"video_id": c["video_id"], "situation": c["situation"],
+                         "impressions": c["signals"]["impressions"]["weeks"][1:],
+                         "views": c["signals"]["views"]["weeks"][1:],
+                         "ctr": [c["signals"]["ctr"]["last"], c["signals"]["ctr"]["this"]],
+                         "flags": c["flags"]} for c in members],
+            "plan": game_plan(direction, names[g], members, newest_video, term),
+        })
+        in_game.update(vids)
+    game_cards.sort(key=lambda c: (-c["direction"], -len(c["members"])))
+    cards = sorted((c for v, c in flagged.items() if v not in in_game),
+                   key=lambda c: -abs(c["signals"][c["lead"]]["z"]))
+
+    flares = game_flares(daily, games, end)
+    for f in flares:
+        f["label"] = names[f["game"]]
+    today, snapshot_span, snapshot_days = snapshot_movers(daily, ages, through)
+    topics = rising_topics(topic_daily, topic_videos, meta, end)
+
+    # The learning loop: record, measure, remember; then say what worked before.
+    logged, playbook = actions.update(meta, daily, through, classify)
+    for c in cards:
+        actions.annotate(c["plan"], c["situation"], playbook)
+    for g in game_cards:
+        actions.annotate(g["plan"], "wave" if g["direction"] > 0 else "losing", playbook)
+
+    carry_first_seen([(f"card:{c['video_id']}:{c['situation']}", c) for c in cards]
+                     + [(f"game:{g['game']}:{g['direction']}", g) for g in game_cards]
+                     + [(f"topic:{n}:{e['detail']}", e) for n, es in topics.items() for e in es], through)
+
+    shown = {c["video_id"] for c in cards}
+    shown |= {m["video_id"] for g in game_cards for m in g["members"]}
+    shown |= {b["video_id"] for b in building} | {t["video_id"] for t in today}
+    referenced = set(shown)
+    referenced |= {v["video_id"] for es in topics.values() for e in es for v in e["videos"]}
+    referenced |= {a["video_id"] for a in logged}
+    referenced |= {newest[g] for g in newest}
+    videos = {vid: {"title": meta.get(vid, {}).get("title"),
+                    "published": (meta.get(vid, {}).get("published_at") or "")[:10] or None,
+                    "age_days": ages.get(vid), "game": names.get(games.get(vid)) if games.get(vid) else None}
+              for vid in sorted(referenced)}
+
+    dates = span(end, SERIES_DAYS)
+    def series(vids):
+        return {"from": dates[0],
+                "impressions": [round(sum(daily.get(v, {}).get(d, {}).get("impressions", 0) for v in vids)) for d in dates],
+                "views": [round(sum(daily.get(v, {}).get(d, {}).get("views", 0) for v in vids)) for d in dates]}
 
     write_json("attention.json", {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "data_through": through,
-        "recent": {"from": recent_from, "to": through},
-        "baseline": {"from": baseline_from, "to": baseline_to},
-        "snapshot": snapshot_span,
+        "this_week": {"from": this_from, "to": through},
+        "last_week": {"from": last_from, "to": iso(end - timedelta(days=7))},
         "health": health_checks(through, snapshot_days),
-        **groups,
+        "cards": cards,
+        "games": game_cards,
+        "early": {"building": building, "flares": flares, "today": today, "snapshot": snapshot_span},
         "topics": topics,
+        "actions": logged,
+        "playbook": playbook,
         "videos": videos,
-        "series": {vid: series(daily[vid], through)
-                   for vid in sorted({e["video_id"] for entries in groups.values() for e in entries})
-                   if vid in daily},
+        "series": {vid: series([vid]) for vid in sorted(shown)},
+        "game_series": {g["game"]: series([m["video_id"] for m in g["members"]]) for g in game_cards},
     })
-    for name, entries in groups.items():
-        print(f"  · {name}: {len(entries)}")
-    for name, entries in topics.items():
-        print(f"  · topics/{name}: {len(entries)}")
+    counts = Counter(c["situation"] for c in cards)
+    print(f"  · cards: {dict(counts)} | games: {len(game_cards)} ({sum(len(g['members']) for g in game_cards)} videos)"
+          f" | building: {len(building)} | flares: {len(flares)} | today: {len(today)}"
+          f" | topics: {sum(len(e) for e in topics.values())} | actions: {len(logged)}")
     return 0
 
 
