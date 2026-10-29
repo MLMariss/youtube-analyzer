@@ -1,0 +1,8 @@
+# GitHub Pages builds this repository with Jekyll and publishes the result.
+#
+# The dashboard reads only index.html and the summary files in data/*.json.
+# The raw archive in data/reports/ is hundreds of MB and grows by roughly
+# 3 MB a day; Pages caps a published site at 1 GB, so it stays in the
+# repository but off the site.
+exclude:
+  - data/reports

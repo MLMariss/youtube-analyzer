@@ -639,8 +639,15 @@ async function init() {
   ]);
 
   const when = SUMMARY.generated_at ? new Date(SUMMARY.generated_at) : null;
-  document.getElementById('stamp').textContent =
-    when ? 'updated ' + when.toLocaleString() : '';
+  // YouTube publishes each day two to three days late, so the newest day with
+  // data matters more than when the collector last ran.
+  const through = SUMMARY.data_through
+    ? new Date(SUMMARY.data_through + 'T00:00:00Z').toLocaleDateString(undefined, { timeZone: 'UTC' })
+    : null;
+  document.getElementById('stamp').textContent = [
+    through ? 'data through ' + through : '',
+    when ? 'updated ' + when.toLocaleString() : '',
+  ].filter(Boolean).join(' · ');
 
   populateSources();
   renderMetrics();
@@ -767,9 +774,18 @@ function renderSpark() {
   const svg = document.getElementById('spark');
   const peakEl = document.getElementById('spark-peak');
   if (!DAILY || !DAILY.series || DAILY.series.length < 2) { svg.classList.add('hidden'); peakEl.textContent = ''; return; }
-  const days = currentWindow === 'all' ? DAILY.series.length
-             : parseInt(currentWindow) || DAILY.series.length;
-  const s = DAILY.series.slice(-days);
+  // Plot exactly the days the window's totals were summed over. Older
+  // summary.json files have no ranges; fall back to the last N points.
+  const range = (SUMMARY.ranges || {})[currentWindow];
+  let s;
+  if (range) {
+    s = DAILY.series.filter(d => (!range.from || d.date >= range.from) && d.date <= range.to);
+  } else {
+    const days = currentWindow === 'all' ? DAILY.series.length
+               : parseInt(currentWindow) || DAILY.series.length;
+    s = DAILY.series.slice(-days);
+  }
+  if (s.length < 2) { svg.classList.add('hidden'); peakEl.textContent = ''; return; }
   const W = 1200, H = 120, padX = 6, padTop = 10, padBot = 16;
   const max = Math.max(...s.map(d => d.impressions || 0), 1);
   const step = s.length > 1 ? (W - padX * 2) / (s.length - 1) : 0;

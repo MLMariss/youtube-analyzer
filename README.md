@@ -76,11 +76,16 @@ First data appears within **48 hours**. Nothing to do meanwhile.
 Private repos need a paid plan for Pages. On the free tier the repo must stay
 public — which is fine, since no secrets live in it.
 
+Only `index.html` and the summary files in `data/*.json` are published:
+`_config.yml` excludes the raw archive in `data/reports/`, which would
+otherwise push the site past GitHub Pages' 1 GB limit.
+
 ## Daily operation
 
-Runs at **02:00 UTC = 05:00 Riga** (summer). GitHub cron is UTC and ignores DST,
-so in winter it lands at 04:00 local; change the cron to `0 3 * * *` if that
-matters.
+Runs at **02:23 UTC** — 05:23 Riga in summer, 04:23 in winter, since GitHub cron
+is UTC and ignores DST. The odd minute is deliberate: schedules on the hour
+queue behind everyone else's, and at `0 2 * * *` runs started five to seven
+hours late.
 
 Each run: refresh jobs → list reports → skip anything already archived →
 download the rest → write shards → rebuild summaries → commit.
@@ -98,6 +103,7 @@ auth.py            refresh-token OAuth
 mint_token.py      one-time token minting
 report_types.py    registry of all report types
 index.html         read-only dashboard
+_config.yml        keeps data/reports/ off the published Pages site
 .github/workflows/collect.yml
 data/
   reports/<report_type>/<YYYY-MM-DD>.json   permanent archive, one file per day
@@ -114,9 +120,13 @@ data/
 build step, no login — open it (or serve the folder) and it renders.
 
 - **Time window** (`7 days … All time`) sets the period the metrics are
-  *measured* over. Windows longer than the collected history read the same
-  totals, so with only a couple of months of data `90 days`, `365 days` and
-  `All time` will match until more history accumulates.
+  *measured* over. Every window ends on the newest day with complete data
+  (shown as *data through* in the header), not on today: YouTube publishes
+  each day two to three days late, so `7 days` is always seven full days, and
+  the chart plots exactly the days the totals add up. Windows longer than the
+  collected history read the same totals, so with only a couple of months of
+  data `90 days`, `365 days` and `All time` will match until more history
+  accumulates.
 - **Published filter** narrows *which videos* are listed by upload date. Quick
   presets (`Any / 7d / 28d / 90d / 1y`) fill the range; the two date pickers set
   an exact span. Editing a date by hand clears the active preset.
@@ -158,6 +168,7 @@ clicks separately, then divide. Retention is weighted by views the same way.
 | `has not been used in project` 403 | Reporting API not enabled in Library |
 | Dashboard says "no data yet" | Jobs not created, or <48h since creation |
 | A report type is skipped | Not available for this channel; harmless |
+| Log says *Not offered by YouTube* | Deprecated report, or a wrong id in `report_types.py`; a following *missing from report_types.py* line names the id YouTube does offer |
 | `redirect_uri_mismatch` | Web client without `http://localhost:8765/` registered |
 
 ## Data retention

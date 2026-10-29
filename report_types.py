@@ -15,6 +15,11 @@ column order is not guaranteed and new metrics may be appended over time.
 `priority` controls scheduling and collection order only. If one report type is
 unavailable for this channel, the collector logs it and continues; a single bad
 report must never block the rest.
+
+Every run compares this registry with the report types YouTube actually offers
+and names any id on one side but not the other: a wrong version suffix (_a2
+for _a1) otherwise looks just like an unavailable report, and that report's
+data expires uncollected.
 """
 
 CHANNEL_REPORTS = {
@@ -115,7 +120,7 @@ CHANNEL_REPORTS = {
                        "subscribed_status", "country_code", "age_group", "gender"],
         "metrics": ["views_percentage"],
     },
-    "channel_sharing_service_a2": {
+    "channel_sharing_service_a1": {
         "priority": 11,
         "label": "Content sharing by platform",
         "dimensions": ["date", "channel_id", "video_id", "live_or_on_demand",
@@ -133,7 +138,7 @@ CHANNEL_REPORTS = {
                     "card_teaser_impressions", "card_teaser_clicks",
                     "card_teaser_click_rate"],
     },
-    "channel_end_screens_a2": {
+    "channel_end_screens_a1": {
         "priority": 13,
         "label": "End screens",
         "dimensions": ["date", "channel_id", "video_id", "live_or_on_demand",
@@ -142,7 +147,7 @@ CHANNEL_REPORTS = {
         "metrics": ["end_screen_element_impressions", "end_screen_element_clicks",
                     "end_screen_element_click_rate"],
     },
-    "channel_annotations_a2": {
+    "channel_annotations_a1": {
         "priority": 14,
         "label": "Annotations (legacy)",
         "dimensions": ["date", "channel_id", "video_id", "live_or_on_demand",
