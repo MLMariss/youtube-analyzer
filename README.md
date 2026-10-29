@@ -76,6 +76,10 @@ First data appears within **48 hours**. Nothing to do meanwhile.
 Private repos need a paid plan for Pages. On the free tier the repo must stay
 public — which is fine, since no secrets live in it.
 
+Only `index.html` and the summary files in `data/*.json` are published:
+`_config.yml` excludes the raw archive in `data/reports/`, which would
+otherwise push the site past GitHub Pages' 1 GB limit.
+
 ## Daily operation
 
 Runs at **02:00 UTC = 05:00 Riga** (summer). GitHub cron is UTC and ignores DST,
@@ -98,6 +102,7 @@ auth.py            refresh-token OAuth
 mint_token.py      one-time token minting
 report_types.py    registry of all report types
 index.html         read-only dashboard
+_config.yml        keeps data/reports/ off the published Pages site
 .github/workflows/collect.yml
 data/
   reports/<report_type>/<YYYY-MM-DD>.json   permanent archive, one file per day
