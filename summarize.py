@@ -38,9 +38,13 @@ REPORTS_DIR = os.path.join(DATA_DIR, "reports")
 
 WINDOWS = {"7d": 7, "28d": 28, "90d": 90, "365d": 365, "all": None}
 
+# The reports behind the headline numbers: impressions/CTR and views/watch time.
+# Every window ends on the newest day both of them have reached.
+ANCHOR_REPORTS = ("channel_reach_basic_a1", "channel_basic_a3")
 
-def iter_shards(report_type, since=None):
-    """Yield (day, rows) for a report type, oldest first."""
+
+def iter_shards(report_type, since=None, until=None):
+    """Yield (day, rows) for a report type, oldest first, within [since, until]."""
     d = os.path.join(REPORTS_DIR, report_type)
     if not os.path.isdir(d):
         return
@@ -49,6 +53,8 @@ def iter_shards(report_type, since=None):
             continue
         day = fn[:-5]
         if since and day < since:
+            continue
+        if until and day > until:
             continue
         try:
             with open(os.path.join(d, fn), encoding="utf-8") as f:
@@ -77,7 +83,7 @@ def source_key(row):
     return "UNKNOWN" if src is None else str(src)
 
 
-def build_video_totals(since=None):
+def build_video_totals(since=None, until=None):
     """
     Per-video aggregates.
 
@@ -94,7 +100,7 @@ def build_video_totals(since=None):
     })
 
     # Reach: impressions and CTR.
-    for day, rows in iter_shards("channel_reach_basic_a1", since):
+    for day, rows in iter_shards("channel_reach_basic_a1", since, until):
         for row in rows:
             vid = row.get("video_id")
             if not vid:
@@ -111,7 +117,7 @@ def build_video_totals(since=None):
             a["days"].add(day)
 
     # Core activity.
-    for day, rows in iter_shards("channel_basic_a3", since):
+    for day, rows in iter_shards("channel_basic_a3", since, until):
         for row in rows:
             vid = row.get("video_id")
             if not vid:
@@ -154,14 +160,14 @@ def build_video_totals(since=None):
     return out
 
 
-def build_daily_series():
+def build_daily_series(until=None):
     """Channel-level totals per day."""
     daily = defaultdict(lambda: {
         "impressions": 0.0, "clicks": 0.0, "views": 0,
         "watch_time_minutes": 0.0, "subscribers_gained": 0, "subscribers_lost": 0,
     })
 
-    for day, rows in iter_shards("channel_reach_basic_a1"):
+    for day, rows in iter_shards("channel_reach_basic_a1", until=until):
         for row in rows:
             imp = num(row.get("video_thumbnail_impressions"))
             ctr = row.get("video_thumbnail_impressions_ctr")
@@ -169,7 +175,7 @@ def build_daily_series():
             if isinstance(ctr, (int, float)):
                 daily[day]["clicks"] += imp * ctr
 
-    for day, rows in iter_shards("channel_basic_a3"):
+    for day, rows in iter_shards("channel_basic_a3", until=until):
         for row in rows:
             daily[day]["views"] += num(row.get("views"))
             daily[day]["watch_time_minutes"] += num(row.get("watch_time_minutes"))
@@ -197,7 +203,7 @@ def traffic_acc():
             "reach_seen": False}
 
 
-def build_traffic(since=None):
+def build_traffic(since=None, until=None):
     """
     The marketing-channel table: metrics per traffic source, per video.
 
@@ -220,7 +226,7 @@ def build_traffic(since=None):
             out.append(per_video[vid][src])
         return out
 
-    for day, rows in iter_shards("channel_traffic_source_a3", since):
+    for day, rows in iter_shards("channel_traffic_source_a3", since, until):
         for row in rows:
             src = source_key(row)
             v = num(row.get("views"))
@@ -231,7 +237,7 @@ def build_traffic(since=None):
                 # Weight duration by views, for the same reason as CTR.
                 a["avd_weighted"] += num(row.get("average_view_duration_seconds")) * v
 
-    for day, rows in iter_shards("channel_reach_combined_a1", since):
+    for day, rows in iter_shards("channel_reach_combined_a1", since, until):
         for row in rows:
             src = source_key(row)
             imp = num(row.get("video_thumbnail_impressions"))
@@ -270,14 +276,14 @@ def sorted_desc(counts):
     return dict(sorted(counts.items(), key=lambda kv: -kv[1]))
 
 
-def build_device_os(since=None):
+def build_device_os(since=None, until=None):
     """Views by device type and by operating system, per video and channel-wide."""
     dev_video = defaultdict(lambda: defaultdict(int))
     os_video = defaultdict(lambda: defaultdict(int))
     dev_channel = defaultdict(int)
     os_channel = defaultdict(int)
 
-    for day, rows in iter_shards("channel_device_os_a3", since):
+    for day, rows in iter_shards("channel_device_os_a3", since, until):
         for row in rows:
             vid = row.get("video_id")
             v = num(row.get("views"))
@@ -297,7 +303,7 @@ def build_device_os(since=None):
     }
 
 
-def views_by_dimension_key(since=None):
+def views_by_dimension_key(since=None, until=None):
     """
     Views from channel_basic_a3, keyed by its full non-metric dimension tuple.
 
@@ -305,7 +311,7 @@ def views_by_dimension_key(since=None):
     joins the two reports row for row.
     """
     views = defaultdict(int)
-    for day, rows in iter_shards("channel_basic_a3", since):
+    for day, rows in iter_shards("channel_basic_a3", since, until):
         for row in rows:
             key = (day, row.get("video_id"), row.get("live_or_on_demand"),
                    row.get("subscribed_status"), row.get("country_code"))
@@ -313,7 +319,7 @@ def views_by_dimension_key(since=None):
     return views
 
 
-def build_demographics(since=None):
+def build_demographics(since=None, until=None):
     """
     Estimated views by age group and gender, per video and channel-wide.
 
@@ -323,11 +329,11 @@ def build_demographics(since=None):
     matching channel_basic_a3 row before anything is added up. Rows with no
     matching activity row cannot be weighted and are skipped.
     """
-    base_views = views_by_dimension_key(since)
+    base_views = views_by_dimension_key(since, until)
     per_video = defaultdict(lambda: defaultdict(float))
     channel = defaultdict(float)
 
-    for day, rows in iter_shards("channel_demographics_a1", since):
+    for day, rows in iter_shards("channel_demographics_a1", since, until):
         for row in rows:
             vid = row.get("video_id")
             key = (day, vid, row.get("live_or_on_demand"),
@@ -354,7 +360,7 @@ def build_demographics(since=None):
 DETAIL_TOP_N = 15
 
 
-def build_traffic_detail(since=None, top_n=DETAIL_TOP_N):
+def build_traffic_detail(since=None, until=None, top_n=DETAIL_TOP_N):
     """
     Top traffic_source_detail values per video and source.
 
@@ -368,7 +374,7 @@ def build_traffic_detail(since=None, top_n=DETAIL_TOP_N):
     per_video = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
     channel = defaultdict(lambda: defaultdict(int))
 
-    for day, rows in iter_shards("channel_traffic_source_a3", since):
+    for day, rows in iter_shards("channel_traffic_source_a3", since, until):
         for row in rows:
             detail = row.get("traffic_source_detail")
             if not detail:
@@ -390,19 +396,47 @@ def build_traffic_detail(since=None, top_n=DETAIL_TOP_N):
     }
 
 
-def cutoff(days):
-    if days is None:
+def latest_day(report_type):
+    d = os.path.join(REPORTS_DIR, report_type)
+    if not os.path.isdir(d):
         return None
-    return (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
+    days = [fn[:-5] for fn in os.listdir(d) if fn.endswith(".json")]
+    return max(days) if days else None
 
 
-def by_window(builder, **kwargs):
+def data_through():
+    """
+    The last day every window covers: the newest day both anchor reports have.
+
+    Counting back from today would be wrong. YouTube publishes each day two to
+    three days late, and the activity report usually lands a day after reach,
+    so a "7 days" window ending today held six days of impressions and only
+    five of views -- while the chart beside it plotted seven.
+    """
+    days = [d for d in (latest_day(r) for r in ANCHOR_REPORTS) if d]
+    if not days:
+        return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    return min(days)
+
+
+def window_range(days, through):
+    """(since, until) for a window of `days` whole days ending on `through`."""
+    if days is None:
+        return None, through
+    end = datetime.strptime(through, "%Y-%m-%d")
+    return (end - timedelta(days=days - 1)).strftime("%Y-%m-%d"), through
+
+
+def by_window(builder, through, **kwargs):
     """Build a breakdown for every time window the dashboard offers, keyed by
     the same window names as summary.json (7d/28d/90d/365d/all), so the channel
     traffic table and per-video drilldowns can follow the window buttons instead
     of being pinned to a single 90-day view."""
-    return {name: builder(since=cutoff(days), **kwargs)
-            for name, days in WINDOWS.items()}
+    out = {}
+    for name, days in WINDOWS.items():
+        since, until = window_range(days, through)
+        out[name] = builder(since=since, until=until, **kwargs)
+    return out
 
 
 def write_json(name, payload):
@@ -429,13 +463,22 @@ def main():
         with open(meta_path, encoding="utf-8") as f:
             videos_meta = json.load(f)
 
-    windows = {}
+    through = data_through()
+    print(f"  · windows end on {through}")
+
+    windows, ranges = {}, {}
     for name, days in WINDOWS.items():
-        windows[name] = build_video_totals(since=cutoff(days))
+        since, until = window_range(days, through)
+        windows[name] = build_video_totals(since=since, until=until)
+        ranges[name] = {"from": since, "to": until}
         print(f"  · window {name}: {len(windows[name])} videos")
 
     write_json("summary.json", {
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "data_through": through,
+        # The exact days behind each window, so the dashboard's chart can plot
+        # the same span the totals were summed over.
+        "ranges": ranges,
         "channel": videos_meta.get("channel", {}),
         "windows": windows,
         "video_meta": videos_meta.get("videos", {}),
@@ -443,27 +486,27 @@ def main():
 
     write_json("daily.json", {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "series": build_daily_series(),
+        "series": build_daily_series(until=through),
     })
 
     write_json("traffic.json", {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        **by_window(build_traffic),
+        **by_window(build_traffic, through),
     })
 
     write_json("devices.json", {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        **by_window(build_device_os),
+        **by_window(build_device_os, through),
     })
 
     write_json("demographics.json", {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        **by_window(build_demographics),
+        **by_window(build_demographics, through),
     })
 
     write_json("traffic_detail.json", {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        **by_window(build_traffic_detail),
+        **by_window(build_traffic_detail, through),
     })
 
     print("Done.")

@@ -114,9 +114,13 @@ data/
 build step, no login — open it (or serve the folder) and it renders.
 
 - **Time window** (`7 days … All time`) sets the period the metrics are
-  *measured* over. Windows longer than the collected history read the same
-  totals, so with only a couple of months of data `90 days`, `365 days` and
-  `All time` will match until more history accumulates.
+  *measured* over. Every window ends on the newest day with complete data
+  (shown as *data through* in the header), not on today: YouTube publishes
+  each day two to three days late, so `7 days` is always seven full days, and
+  the chart plots exactly the days the totals add up. Windows longer than the
+  collected history read the same totals, so with only a couple of months of
+  data `90 days`, `365 days` and `All time` will match until more history
+  accumulates.
 - **Published filter** narrows *which videos* are listed by upload date. Quick
   presets (`Any / 7d / 28d / 90d / 1y`) fill the range; the two date pickers set
   an exact span. Editing a date by hand clears the active preset.
