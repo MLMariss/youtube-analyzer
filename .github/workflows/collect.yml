@@ -57,6 +57,13 @@ jobs:
         if: ${{ inputs.dry_run != true }}
         run: python summarize.py
 
+      - name: Find videos that need attention
+        if: ${{ inputs.dry_run != true }}
+        # Archiving the reports is what cannot wait: a failure here is shown
+        # on the run, but must never stop the commit below.
+        continue-on-error: true
+        run: python monitor.py
+
       - name: Commit new data
         if: ${{ inputs.dry_run != true }}
         run: |

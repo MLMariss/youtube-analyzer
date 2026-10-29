@@ -7,6 +7,9 @@ report, and archives each day permanently as a JSON shard. The dashboard reads
 those committed files. **There is no login, no API key entry and no OAuth in the
 browser** — the page is static and just reads JSON.
 
+Every run also flags the videos that need attention — above all the older ones,
+which YouTube Studio does not watch — at the top of the dashboard.
+
 ## Why this exists
 
 Thumbnail **impressions** and **CTR** do not exist in the YouTube Analytics API
@@ -88,7 +91,8 @@ queue behind everyone else's, and at `0 2 * * *` runs started five to seven
 hours late.
 
 Each run: refresh jobs → list reports → skip anything already archived →
-download the rest → write shards → rebuild summaries → commit.
+download the rest → write shards → snapshot public view counts → rebuild
+summaries → flag videos that need attention → commit.
 
 Runs are **idempotent**. Re-running downloads nothing new. Backfill corrections
 replace exactly one day's shard, and a failed download is *not* marked archived,
@@ -99,6 +103,7 @@ so the next run retries it.
 ```
 collect.py         the collector
 summarize.py       builds dashboard JSON from shards
+monitor.py         flags videos that need attention
 auth.py            refresh-token OAuth
 mint_token.py      one-time token minting
 report_types.py    registry of all report types
@@ -111,6 +116,8 @@ data/
   daily.json      channel-level daily series
   traffic.json    traffic source breakdown
   videos.json     titles and thumbnails (refreshed, not accumulated)
+  snapshots.json  public view/like/comment counts, last 30 days only
+  attention.json  what the "Needs attention" panel shows
   state.json      which reports have been archived
 ```
 
@@ -118,6 +125,31 @@ data/
 
 `index.html` is a static, read-only page that reads the JSON in `data/`. No
 build step, no login — open it (or serve the folder) and it renders.
+
+### Needs attention
+
+The panel at the top watches the whole library, not just new uploads.
+`monitor.py` compares each video's last seven complete days with the 28 days
+before them and lists what changed enough to act on:
+
+| Group | Flags | Worth doing |
+|---|---|---|
+| Moving today | public view counter up since the previous run, at least 3× the video's usual daily views | the earliest warning; the analytics follow 2–3 days later |
+| Rising · back catalogue | older than 30 days; views (≥25 a week) or impressions (≥300 a week) at least doubled | pinned comment, description refresh, cards or end screens to newer videos, a follow-up |
+| Falling | videos past their launch month whose views halved, from at least 8 a day | see which source dropped; lost search is often a title or description fix |
+| CTR drop | videos past their launch month, CTR down 25%+ while impressions held steady | thumbnail or title test |
+| New uploads | first 28 days, ranked against your other uploads at the same age | — |
+| Audience reaction | dislike, comment or unsubscribe spikes | read the comments |
+| Rising topics | searches, outside sites and other channels' videos sending at least 3× their usual views | the topic is heating up: cover it again, or update the video it lands on |
+
+Each rising or falling video shows what drove the change: the traffic source
+and its top search terms, suggesting videos or referring sites. **New** marks
+anything first flagged in this update; *Show in table* opens the video's full
+breakdown below. The thresholds sit at the top of `monitor.py`. They were
+calibrated on this channel's archive to flag a handful of videos on an
+ordinary day and a few dozen on a busy one.
+
+### Table and filters
 
 - **Time window** (`7 days … All time`) sets the period the metrics are
   *measured* over. Every window ends on the newest day with complete data
@@ -148,6 +180,7 @@ python collect.py --create-jobs      # create missing jobs
 python collect.py                    # normal run
 python collect.py --only channel_reach_basic_a1
 python summarize.py
+python monitor.py
 ```
 
 ## A note on averaging
@@ -175,6 +208,8 @@ clicks separately, then divide. Retention is weighted by views the same way.
 
 The YouTube API Services Developer Policies require stored resource metadata
 (titles, thumbnails) to be refreshed or deleted after 30 days, so `videos.json`
-is **rewritten** each run rather than accumulated. The aggregate metrics in
+is **rewritten** each run rather than accumulated. For the same reason
+`snapshots.json` keeps each video's public view, like and comment counts for
+the last 30 days only, which is all the same-day signal needs. The aggregate metrics in
 `data/reports/` are not resource metadata and are kept indefinitely — that is
 the entire point.
