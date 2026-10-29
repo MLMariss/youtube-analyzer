@@ -34,7 +34,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -50,6 +50,10 @@ REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(REPO_ROOT, "data")
 REPORTS_DIR = os.path.join(DATA_DIR, "reports")
 STATE_PATH = os.path.join(DATA_DIR, "state.json")
+SNAPSHOT_PATH = os.path.join(DATA_DIR, "snapshots.json")
+
+# Days of public-counter snapshots to keep (see record_snapshot).
+SNAPSHOT_DAYS = 30
 
 MAX_RETRIES = 4
 RETRY_BASE_DELAY = 2.0
@@ -415,6 +419,42 @@ def fetch_video_metadata(creds, video_ids):
     return meta
 
 
+def record_snapshot(meta, taken_at):
+    """
+    Keep a short daily history of each video's public counters.
+
+    The Data API's lifetime view, like and comment counts are close to real
+    time, while the analytics reports run two to three days behind, so the
+    change in these counters between runs is the earliest sign that a video
+    is moving. Only the last SNAPSHOT_DAYS days are kept: like the rest of
+    videos.json these are resource metadata, which the Developer Policies
+    allow to be stored for 30 days at most.
+    """
+    snaps = {"days": {}}
+    if os.path.exists(SNAPSHOT_PATH):
+        try:
+            with open(SNAPSHOT_PATH, encoding="utf-8") as f:
+                snaps = json.load(f)
+        except Exception as e:
+            print(f"  ! unreadable snapshots.json, starting a new one: {str(e)[:120]}")
+
+    # One snapshot per UTC day; a second run on the same day replaces it.
+    day = taken_at.strftime("%Y-%m-%d")
+    snaps["days"][day] = {
+        "taken_at": taken_at.isoformat(),
+        "videos": {vid: [m.get("view_count"), m.get("like_count"), m.get("comment_count")]
+                   for vid, m in meta.items()},
+    }
+    oldest = (taken_at - timedelta(days=SNAPSHOT_DAYS)).strftime("%Y-%m-%d")
+    snaps["days"] = {d: s for d, s in snaps["days"].items() if d > oldest}
+
+    tmp = SNAPSHOT_PATH + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(snaps, f, separators=(",", ":"), sort_keys=True)
+    os.replace(tmp, SNAPSHOT_PATH)
+    print(f"  · counter snapshot for {len(meta)} videos ({len(snaps['days'])} days kept)")
+
+
 def fetch_channel_info(creds):
     url = f"{DATA_API_BASE}/channels?part=snippet,statistics&mine=true"
     payload = _get_json(creds, url)
@@ -488,6 +528,9 @@ def main():
             if len(missing) > 5:
                 print(f"    ... and {len(missing) - 5} more")
     state["jobs"] = jobs
+    if offered:
+        # monitor.py's health check only asks for jobs YouTube can create.
+        state["offered"] = sorted(offered)
 
     print(f"\nCollecting reports...")
     totals = {"new": 0, "replaced": 0, "failed": 0, "skipped": 0}
@@ -537,6 +580,7 @@ def main():
                 json.dump(out, f, separators=(",", ":"), sort_keys=True)
             os.replace(tmp, os.path.join(DATA_DIR, "videos.json"))
             print(f"  · metadata for {len(meta)} videos")
+            record_snapshot(meta, started)
         else:
             print("  · no video IDs archived yet")
 
