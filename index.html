@@ -240,6 +240,85 @@
     transform: translate(-50%, -130%); opacity: 0; transition: opacity .08s; font-variant-numeric: tabular-nums;
   }
 
+  /* Needs attention */
+  .att-head {
+    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    padding: 14px 16px 10px; border-bottom: 1px solid var(--line);
+  }
+  .att-head h2 { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: -0.01em; }
+  .att-health { padding: 10px 16px; display: grid; gap: 6px; border-bottom: 1px solid var(--line); }
+  .att-h { font-size: 12.5px; color: var(--text-2); display: flex; gap: 8px; align-items: baseline; }
+  .att-h .ico { flex: none; font-weight: 700; width: 14px; text-align: center; }
+  .att-group { padding: 12px 16px 8px; border-bottom: 1px solid var(--line); }
+  .att-group-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 2px; }
+  .att-group-head h3 {
+    margin: 0; font-size: 11px; font-weight: 650; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .05em;
+  }
+  .att-count { color: var(--text-2); font-variant-numeric: tabular-nums; margin-left: 4px; }
+  .att-rule { color: var(--muted); font-size: 12px; }
+  .att-row {
+    display: grid; grid-template-columns: minmax(0, 1fr) 160px minmax(190px, auto);
+    gap: 6px 18px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line);
+  }
+  .att-group-head + .att-row { border-top: 0; }
+  .att-title { font-weight: 550; }
+  .att-title a { color: var(--text); text-decoration: none; }
+  .att-title a:hover { text-decoration: underline; }
+  .att-sub { color: var(--muted); font-size: 11.5px; margin-top: 1px; }
+  .att-sub a, button.link { color: var(--accent); text-decoration: none; }
+  button.link { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
+  button.link:hover, .att-sub a:hover { text-decoration: underline; }
+  .att-drivers { font-size: 12px; color: var(--text-2); margin-top: 4px; display: grid; gap: 2px; }
+  .att-drivers b { font-weight: 600; color: var(--text); }
+  .att-drivers a { color: var(--accent); }
+  .att-nums { text-align: right; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  .att-nums > div { white-space: nowrap; }
+  .att-nums .muted, .att-drivers .muted, .att-pill .muted { color: var(--muted); }
+  .att-delta { font-weight: 650; margin-left: 6px; }
+  .att-new {
+    display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .05em; color: var(--accent-ink); background: var(--accent);
+    border-radius: 4px; padding: 1px 5px; margin-right: 7px; vertical-align: 1px;
+  }
+  .att-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .att-pill {
+    font-size: 11.5px; background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 2px 8px; color: var(--text-2); font-variant-numeric: tabular-nums;
+  }
+  .att-pill b { color: var(--text); font-weight: 600; }
+  /* Trend: 56 days, the recent week in the accent over the de-emphasised past. */
+  svg.att-spark { width: 160px; height: 36px; display: block; overflow: visible; cursor: crosshair; }
+  .att-spark-base { stroke: var(--baseline); stroke-width: 1; }
+  .att-spark-old {
+    fill: none; stroke: var(--muted); stroke-width: 1.5; opacity: .75;
+    stroke-linejoin: round; stroke-linecap: round;
+  }
+  .att-spark-new {
+    fill: none; stroke: var(--accent); stroke-width: 2;
+    stroke-linejoin: round; stroke-linecap: round;
+  }
+  .att-spark-dot { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
+  .att-spark-hover { fill: var(--text); stroke: var(--surface); stroke-width: 1.5; opacity: 0; }
+  .att-more { margin: 4px 0 2px; font-size: 12px; padding: 4px 10px; }
+  .att-topics {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 12px; margin-top: 8px;
+  }
+  .att-topics td:last-child { text-align: left; white-space: normal; }
+  .att-topics a { color: var(--accent); text-decoration: none; }
+  .att-quiet { color: var(--muted); font-size: 12px; padding: 10px 16px 12px; margin: 0; }
+  .att-tip {
+    position: fixed; pointer-events: none; background: var(--text); color: var(--surface);
+    padding: 4px 8px; border-radius: 6px; font-size: 11px; white-space: nowrap;
+    transform: translate(-50%, -135%); opacity: 0; transition: opacity .08s;
+    font-variant-numeric: tabular-nums; z-index: 30;
+  }
+  @media (max-width: 720px) {
+    .att-row { grid-template-columns: minmax(0, 1fr); }
+    .att-nums { text-align: left; }
+  }
+
   /* Glossary */
   details.glossary { margin-bottom: 16px; }
   details.glossary > summary {
@@ -276,6 +355,9 @@
 <div class="wrap">
 
   <div id="notice" class="notice hidden"></div>
+
+  <section class="card" id="attention" aria-label="Needs attention"></section>
+  <div class="att-tip" id="att-tip"></div>
 
   <div class="metrics" id="metrics"></div>
 
@@ -435,6 +517,7 @@ const BROWSE_DETAIL = {
   'what-to-watch': 'Home / What to watch',
   '/my_subscriptions': 'Subscriptions feed',
   'my-history': 'Watch history',
+  'watch-later': 'Watch later',
   'uploaded_other': 'Your channel uploads',
 };
 const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
@@ -630,12 +713,13 @@ async function init() {
       '<span style="color:var(--muted)">' + esc(e.message) + '</span>', true);
     return;
   }
-  [DAILY, TRAFFIC, TDETAIL, DEVICES, DEMOGRAPHICS] = await Promise.all([
+  [DAILY, TRAFFIC, TDETAIL, DEVICES, DEMOGRAPHICS, ATTENTION] = await Promise.all([
     loadOptional('data/daily.json'),
     loadOptional('data/traffic.json'),
     loadOptional('data/traffic_detail.json'),
     loadOptional('data/devices.json'),
     loadOptional('data/demographics.json'),
+    loadOptional('data/attention.json'),
   ]);
 
   const when = SUMMARY.generated_at ? new Date(SUMMARY.generated_at) : null;
@@ -649,6 +733,7 @@ async function init() {
     when ? 'updated ' + when.toLocaleString() : '',
   ].filter(Boolean).join(' · ');
 
+  renderAttention();
   populateSources();
   renderMetrics();
   renderSpark();
@@ -766,6 +851,256 @@ function renderMetrics() {
       ${sub ? `<div class="sub">${esc(sub)}</div>` : ''}
     </div>`
   ).join('');
+}
+
+// ---- Needs attention -------------------------------------------------------
+// monitor.py compares every video's last seven complete days with the 28
+// before them and writes what changed to data/attention.json. YouTube Studio
+// only watches new uploads; this is the watch on the back catalogue.
+let ATTENTION = null;
+const ATT_SHOWN = 5;           // rows per group before "Show all"
+const attOpen = new Set();     // groups currently showing every row
+
+const addDays = (d, n) => new Date(Date.parse(d + 'T00:00:00Z') + n * 864e5).toISOString().slice(0, 10);
+const shortDate = d => new Date(d + 'T00:00:00Z')
+  .toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' });
+// Older videos run at a few views a day, so keep one decimal below ten.
+const rate = n => (n === null || n === undefined) ? '—'
+  : n === 0 ? '0' : (Math.abs(n) < 10 ? Number(n).toFixed(1) : fmt(n));
+const signed = n => (n > 0 ? '+' : n < 0 ? '−' : '') + fmt(Math.abs(n));
+const ageLabel = d => d >= 365 ? `${(d / 365).toFixed(1)} years old` : `${d} days old`;
+const watchUrl = id => `https://www.youtube.com/watch?v=${encodeURIComponent(id)}`;
+const studioUrl = id =>
+  `https://studio.youtube.com/video/${encodeURIComponent(id)}/analytics/tab-overview/period-default`;
+const attTitle = id => ((ATTENTION.videos || {})[id] || {}).title
+  || (((SUMMARY && SUMMARY.video_meta) || {})[id] || {}).title || id;
+
+// The arrow and the figure carry the direction; colour only reinforces it.
+function change(before, now, upIsGood = true) {
+  if (!before) return now ? `<span class="att-delta ${upIsGood ? 'good' : 'bad'}">↑ from 0</span>` : '';
+  const r = now / before;
+  if (r >= 1) return `<span class="att-delta ${upIsGood ? 'good' : 'bad'}">↑ ×${r >= 10 ? Math.round(r) : r.toFixed(1)}</span>`;
+  return `<span class="att-delta ${upIsGood ? 'bad' : 'good'}">↓ ${Math.round((1 - r) * 100)}%</span>`;
+}
+const rateLine = (r, unit) =>
+  `<div>${rate(r.before)} → <b>${rate(r.now)}</b> ${unit}/day ${change(r.before, r.now)}</div>`;
+
+function sparkGeom(vals) {
+  const W = 160, H = 36, pad = 3, n = vals.length, max = Math.max(...vals, 1);
+  return { W, H, pad, n,
+           x: i => pad + i * (W - 2 * pad) / (n - 1),
+           y: v => H - pad - ((v || 0) / max) * (H - 2 * pad) };
+}
+
+function attSpark(id, metric) {
+  const s = (ATTENTION.series || {})[id];
+  const vals = s && s[metric];
+  if (!vals || vals.length < 8) return '<span></span>';
+  const g = sparkGeom(vals);
+  const pts = vals.map((v, i) => `${g.x(i).toFixed(1)},${g.y(v).toFixed(1)}`);
+  const split = g.n - 7;   // the recent week
+  return `<svg class="att-spark" viewBox="0 0 ${g.W} ${g.H}" data-id="${esc(id)}" data-metric="${metric}"
+      role="img" aria-label="${metric} per day over the last ${g.n} days, the last 7 highlighted">
+    <line class="att-spark-base" x1="${g.pad}" y1="${g.H - g.pad}" x2="${g.W - g.pad}" y2="${g.H - g.pad}"/>
+    <polyline class="att-spark-old" points="${pts.slice(0, split + 1).join(' ')}"/>
+    <polyline class="att-spark-new" points="${pts.slice(split).join(' ')}"/>
+    <circle class="att-spark-dot" r="3" cx="${g.x(g.n - 1).toFixed(1)}" cy="${g.y(vals[g.n - 1]).toFixed(1)}"/>
+    <circle class="att-spark-hover" r="3.5"/>
+  </svg>`;
+}
+
+function attSparkHover(evt) {
+  const tip = document.getElementById('att-tip');
+  const svg = evt.target.closest ? evt.target.closest('svg.att-spark') : null;
+  document.querySelectorAll('.att-spark-hover').forEach(c => {
+    if (!svg || !svg.contains(c)) c.style.opacity = 0;
+  });
+  if (!svg) { tip.style.opacity = 0; return; }
+  const s = ATTENTION.series[svg.dataset.id], metric = svg.dataset.metric, vals = s[metric];
+  const g = sparkGeom(vals), rect = svg.getBoundingClientRect();
+  const i = Math.max(0, Math.min(g.n - 1,
+    Math.round((evt.clientX - rect.left - g.pad) / (rect.width - 2 * g.pad) * (g.n - 1))));
+  const dot = svg.querySelector('.att-spark-hover');
+  dot.setAttribute('cx', g.x(i)); dot.setAttribute('cy', g.y(vals[i])); dot.style.opacity = 1;
+  tip.textContent = `${shortDate(addDays(s.from, i))}: ${fmt(vals[i])} ${metric}`;
+  tip.style.left = (rect.left + g.x(i)) + 'px';
+  tip.style.top = (rect.top + g.y(vals[i])) + 'px';
+  tip.style.opacity = 1;
+}
+
+// What drove a rise or fall: the traffic sources, each with its top search
+// terms, suggesting videos or referring sites.
+function driverLines(drivers) {
+  if (!drivers || !drivers.length) return '';
+  return `<div class="att-drivers">${drivers.map(d => {
+    const details = (d.details || []).map(x =>
+      `${d.source === '5' ? `“${esc(x.detail)}”` : detailCell(x.detail)} <span class="muted">${signed(x.gain)}</span>`);
+    return `<div><b>${esc(sourceLabel(d.source))}</b> ${signed(d.gain)} views this week` +
+      `<span class="muted"> (${rate(d.before)} → ${rate(d.now)}/day)</span>` +
+      (details.length ? ` · ${details.join(', ')}` : '') + '</div>';
+  }).join('')}</div>`;
+}
+
+function attRow(e, { metric = 'views', nums = '', extra = '' } = {}) {
+  const id = e.video_id, v = (ATTENTION.videos || {})[id] || {};
+  const isNew = e.first_seen === ATTENTION.data_through;
+  // Age counts to the newest analytics day, so an upload newer than that has
+  // none yet; show its publish date instead.
+  const age = v.age_days === null || v.age_days === undefined ? ''
+    : v.age_days < 0 ? `published ${shortDate(v.published)} · ` : esc(ageLabel(v.age_days)) + ' · ';
+  return `<div class="att-row">
+    <div>
+      <div class="att-title">${isNew ? '<span class="att-new" title="First flagged in this update">New</span>' : ''}<a
+        href="${watchUrl(id)}" target="_blank" rel="noopener">${esc(attTitle(id))}</a></div>
+      <div class="att-sub">${age}<a href="${studioUrl(id)}" target="_blank" rel="noopener">Studio ↗</a>
+        · <button type="button" class="link" data-focus="${esc(id)}">Show in table</button></div>
+      ${extra}
+    </div>
+    ${attSpark(id, metric)}
+    <div class="att-nums">${nums}</div>
+  </div>`;
+}
+
+const UPLOAD_METRICS = [['views', 'Views', fmt], ['impressions', 'Impressions', fmt],
+                        ['ctr', 'CTR', pct], ['avg_view_pct', 'Avg % viewed', pct]];
+function uploadRow(e) {
+  if (e.pending) return attRow(e, {
+    nums: '<div class="muted">analytics in 2–3 days</div>',
+    extra: `<div class="att-drivers"><div>Too new for the analytics reports. Public counter:
+      <b>${fmt(e.public_views)}</b> views so far.</div></div>`,
+  });
+  // Rank 1 = best of all uploads at the same age; top and bottom thirds are marked.
+  const pills = UPLOAD_METRICS.map(([k, label, f]) => {
+    const c = e.compare[k] || {};
+    if (c.value === null || c.value === undefined) return '';
+    const third = c.of / 3;
+    const cls = !c.rank || c.of < 4 ? '' : c.rank <= third ? 'good' : c.rank > c.of - third ? 'bad' : '';
+    const mark = cls === 'good' ? '↑ ' : cls === 'bad' ? '↓ ' : '';
+    return `<span class="att-pill">${label} <b>${f(c.value)}</b> <span class="${cls}">${mark}#${c.rank} of ${c.of}</span>` +
+      (c.typical === null ? '' : ` <span class="muted">· typical ${f(c.typical)}</span>`) + '</span>';
+  }).join('');
+  const kind = { short: 'Shorts', long: 'long-form uploads', all: 'uploads' }[e.cohort_format] || 'uploads';
+  return attRow(e, {
+    nums: `<div>Day ${e.days}</div><div class="muted">vs ${e.compare.views.of - 1} ${kind}</div>`,
+    extra: `<div class="att-pills">${pills}</div>`,
+  });
+}
+
+const REACTION_KEYS = { dislikes: 'dislikes', comments: 'comments', unsubscribes: 'subscribers_lost' };
+
+const TOPIC_TITLES = { search: 'Searches', external: 'Outside sites', suggested: "Other channels' videos" };
+const TOPIC_COLUMN = { search: 'Search term', external: 'Site', suggested: 'Suggesting video' };
+function topicTable(name, entries) {
+  if (!entries || !entries.length) return '';
+  const key = 'topic-' + name, all = attOpen.has(key);
+  const rows = (all ? entries : entries.slice(0, 8)).map(t => {
+    const label = name === 'search' ? `“${esc(t.detail)}”` : detailCell(t.detail);
+    const lands = (t.videos || []).map(v =>
+      `<a href="${watchUrl(v.video_id)}" target="_blank" rel="noopener">${esc(attTitle(v.video_id))}</a>`).join('<br>');
+    return `<tr><td>${t.first_seen === ATTENTION.data_through ? '<span class="att-new">New</span>' : ''}${label}</td>
+      <td>${rate(t.before)} → <b>${rate(t.now)}</b>${change(t.before, t.now)}</td><td>${lands}</td></tr>`;
+  }).join('');
+  return `<div class="panel-box"><h3>${TOPIC_TITLES[name]}</h3>
+    <table><thead><tr><th>${TOPIC_COLUMN[name]}</th><th>Views/day</th><th style="text-align:left">Lands on</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    ${entries.length > 8 ? `<button class="att-more" data-more="${key}">${all ? 'Show fewer' : `Show all ${entries.length}`}</button>` : ''}
+  </div>`;
+}
+
+function attGroup(key, title, rule, rows) {
+  const all = attOpen.has(key);
+  return `<div class="att-group">
+    <div class="att-group-head"><h3>${title}<span class="att-count">${rows.length}</span></h3>
+      <span class="att-rule">${rule}</span></div>
+    ${(all ? rows : rows.slice(0, ATT_SHOWN)).join('')}
+    ${rows.length > ATT_SHOWN ? `<button class="att-more" data-more="${key}">${all ? 'Show fewer' : `Show all ${rows.length}`}</button>` : ''}
+  </div>`;
+}
+
+const HEALTH_ICON = { error: ['●', 'bad'], warn: ['▲', 'warn'], info: ['i', 'muted'] };
+
+function renderAttention() {
+  const el = document.getElementById('attention');
+  const A = ATTENTION;
+  if (!A) {
+    el.innerHTML = `<div class="att-head"><h2>Needs attention</h2></div>
+      <p class="att-quiet">Appears after the next collector run, which writes <code>data/attention.json</code>.</p>`;
+    return;
+  }
+  const head = `<div class="att-head"><h2>Needs attention</h2>
+    <span class="stamp">${shortDate(A.recent.from)}–${shortDate(A.recent.to)} compared with the 4 weeks before</span></div>`;
+  const health = (A.health || []).length ? `<div class="att-health">${A.health.map(h => {
+    const [ico, cls] = HEALTH_ICON[h.level] || HEALTH_ICON.info;
+    return `<div class="att-h"><span class="ico ${cls}">${ico}</span><span>${esc(h.message)}</span></div>`;
+  }).join('')}</div>` : '';
+
+  const groups = [
+    ['moving_today', 'Moving today', 'same-day jumps',
+     'Public view counter since the previous collector run, far above the usual — the analytics run 2–3 days behind.',
+     (A.moving_today || []).map(e => attRow(e, {
+       nums: `<div><b>${fmt(e.views.now)}</b> views/day${change(e.views.usual, e.views.now)}</div>` +
+             `<div class="muted">usually ${rate(e.views.usual)}/day</div>`,
+       extra: (e.likes > 0 || e.comments > 0) ? `<div class="att-drivers"><div>Since the previous run: ${
+         [e.likes > 0 ? `+${fmt(e.likes)} likes` : '', e.comments > 0 ? `+${fmt(e.comments)} comments` : '']
+           .filter(Boolean).join(', ')}</div></div>` : '',
+     }))],
+    ['rising', 'Rising · back catalogue', 'rising older videos',
+     'Older than 30 days, views or impressions at least doubled. Worth a pinned comment, a description refresh, cards to newer videos or a follow-up.',
+     (A.rising || []).map(e => attRow(e, {
+       metric: e.trigger === 'impressions' ? 'impressions' : 'views',
+       nums: rateLine(e.views, 'views') + rateLine(e.impressions, 'impr.'),
+       extra: driverLines(e.drivers),
+     }))],
+    ['falling', 'Falling', 'falling videos',
+     'Established videos whose views halved. The source that dropped shows where — lost search ranking is often fixable with a title or description refresh.',
+     (A.falling || []).map(e => attRow(e, { nums: rateLine(e.views, 'views') + rateLine(e.impressions, 'impr.'),
+                                             extra: driverLines(e.drivers) }))],
+    ['ctr_drop', 'CTR drop', 'CTR drops',
+     'Clicks per impression down 25% or more while impressions held steady: a thumbnail or title test candidate.',
+     (A.ctr_drop || []).map(e => attRow(e, {
+       metric: 'impressions',
+       nums: `<div>CTR ${pct(e.ctr.before)} → <b>${pct(e.ctr.now)}</b>${change(e.ctr.before, e.ctr.now)}</div>` +
+             rateLine(e.impressions, 'impr.'),
+     }))],
+    ['new_uploads', 'New uploads', 'recent uploads',
+     'First 28 days, against your other uploads at the same age. #1 is the best of them.',
+     (A.new_uploads || []).map(uploadRow)],
+    ['reaction', 'Audience reaction', 'audience-reaction spikes',
+     'Dislikes, comments or unsubscribes well above what the video usually gets.',
+     (A.reaction || []).map(e => attRow(e, {
+       nums: e.kinds.map(k => `<div><b>${fmt(e.week[REACTION_KEYS[k]])}</b> ${k} this week ` +
+         `<span class="muted">(usually ${rate(e.usual_week[REACTION_KEYS[k]])})</span></div>`).join(''),
+     }))],
+  ];
+  const quiet = [];
+  let body = '';
+  for (const [key, title, quietLabel, rule, rows] of groups) {
+    if (rows.length) body += attGroup(key, title, rule, rows);
+    // Without two snapshots there is nothing to say about today yet.
+    else if (key !== 'moving_today' || A.snapshot) quiet.push(quietLabel);
+  }
+  const topics = Object.keys(TOPIC_TITLES).map(n => topicTable(n, (A.topics || {})[n])).join('');
+  if (topics) {
+    body += `<div class="att-group"><div class="att-group-head"><h3>Rising topics</h3>
+      <span class="att-rule">Searches, sites and other channels' videos sending at least 3× their usual views — what is heating up.</span></div>
+      <div class="att-topics">${topics}</div></div>`;
+  } else quiet.push('rising topics');
+  const list = quiet.length > 1 ? quiet.slice(0, -1).join(', ') + ' or ' + quiet[quiet.length - 1] : quiet[0];
+  el.innerHTML = head + health + body + (quiet.length ? `<p class="att-quiet">No ${list} this week.</p>` : '');
+}
+
+// "Show in table": filter the table down to the video and open its breakdown.
+function focusVideo(id) {
+  if (!((SUMMARY.windows || {})[currentWindow] || {})[id])
+    document.querySelector('[data-window="all"]').click();
+  const title = attTitle(id);
+  F.text = title;
+  document.getElementById('f-text').value = title;
+  expanded = id;
+  renderMetrics();
+  render();
+  const row = document.querySelector(`tr.row[data-id="${CSS.escape(id)}"]`);
+  if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 // ---- Sparkline with hover crosshair ----------------------------------------
@@ -1061,6 +1396,21 @@ document.querySelectorAll('[data-window]').forEach(b => {
     refreshAll();
   });
 });
+
+const attEl = document.getElementById('attention');
+attEl.addEventListener('click', e => {
+  const more = e.target.closest('[data-more]');
+  if (more) {
+    const k = more.dataset.more;
+    if (attOpen.has(k)) attOpen.delete(k); else attOpen.add(k);
+    renderAttention();
+    return;
+  }
+  const focus = e.target.closest('[data-focus]');
+  if (focus) focusVideo(focus.dataset.focus);
+});
+attEl.addEventListener('mousemove', attSparkHover);
+attEl.addEventListener('mouseleave', () => { document.getElementById('att-tip').style.opacity = 0; });
 
 // Clicking a row opens its breakdown; clicking it again closes it.
 document.getElementById('rows').addEventListener('click', e => {
