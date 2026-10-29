@@ -25,6 +25,9 @@ concurrency:
 
 permissions:
   contents: write
+  # monitor.py reads logged actions (issues titled "Action: ...") and posts
+  # their measured results back on them.
+  issues: write
 
 jobs:
   collect:
@@ -62,6 +65,8 @@ jobs:
         # Archiving the reports is what cannot wait: a failure here is shown
         # on the run, but must never stop the commit below.
         continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python monitor.py
 
       - name: Commit new data

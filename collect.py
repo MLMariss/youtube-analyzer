@@ -26,6 +26,7 @@ Usage:
 import argparse
 import csv
 import gzip
+import hashlib
 import io
 import json
 import os
@@ -34,6 +35,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -415,8 +417,42 @@ def fetch_video_metadata(creds, video_ids):
                 "view_count": int(st["viewCount"]) if st.get("viewCount") else None,
                 "like_count": int(st["likeCount"]) if st.get("likeCount") else None,
                 "comment_count": int(st["commentCount"]) if st.get("commentCount") else None,
+                # Fingerprints, not the text: enough for monitor.py to notice
+                # that the description or tags changed (an action to measure).
+                "description_hash": fingerprint(sn.get("description") or ""),
+                "tags_hash": fingerprint("\n".join(sn.get("tags") or [])),
             }
     return meta
+
+
+def fingerprint(value):
+    data = value if isinstance(value, bytes) else value.encode("utf-8")
+    return hashlib.sha1(data).hexdigest()[:12]
+
+
+def fingerprint_thumbnails(meta, workers=8):
+    """
+    Add a fingerprint of each video's current thumbnail image.
+
+    The Data API keeps the same thumbnail URL when a new thumbnail is uploaded,
+    so the only way to notice the change is to look at the image itself. These
+    are the public i.ytimg.com images: no credentials are sent with them.
+    """
+    def fetch(item):
+        vid, url = item
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                return vid, fingerprint(resp.read())
+        except Exception:
+            return vid, None   # unknown, never a change
+
+    todo = [(vid, m["thumbnail"]) for vid, m in meta.items() if m.get("thumbnail")]
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        for vid, value in pool.map(fetch, todo):
+            meta[vid]["thumbnail_hash"] = value
+    done = sum(1 for m in meta.values() if m.get("thumbnail_hash"))
+    print(f"  · thumbnail fingerprints for {done} of {len(todo)} videos")
 
 
 def record_snapshot(meta, taken_at):
@@ -444,6 +480,11 @@ def record_snapshot(meta, taken_at):
         "taken_at": taken_at.isoformat(),
         "videos": {vid: [m.get("view_count"), m.get("like_count"), m.get("comment_count")]
                    for vid, m in meta.items()},
+        # What the video looked like that day, so actions.py can tell when the
+        # title, description, tags or thumbnail were changed.
+        "fingerprints": {vid: [m.get("title"), m.get("description_hash"),
+                               m.get("tags_hash"), m.get("thumbnail_hash")]
+                         for vid, m in meta.items()},
     }
     oldest = (taken_at - timedelta(days=SNAPSHOT_DAYS)).strftime("%Y-%m-%d")
     snaps["days"] = {d: s for d, s in snaps["days"].items() if d > oldest}
@@ -564,6 +605,7 @@ def main():
                     continue
         if video_ids:
             meta = fetch_video_metadata(creds, video_ids)
+            fingerprint_thumbnails(meta)
             try:
                 channel = fetch_channel_info(creds)
             except Exception as e:

@@ -91,8 +91,9 @@ queue behind everyone else's, and at `0 2 * * *` runs started five to seven
 hours late.
 
 Each run: refresh jobs → list reports → skip anything already archived →
-download the rest → write shards → snapshot public view counts → rebuild
-summaries → flag videos that need attention → commit.
+download the rest → write shards → snapshot public view counts and each
+video's title/description/tag/thumbnail fingerprint → rebuild summaries → flag
+videos that need attention → measure logged and detected actions → commit.
 
 Runs are **idempotent**. Re-running downloads nothing new. Backfill corrections
 replace exactly one day's shard, and a failed download is *not* marked archived,
@@ -103,21 +104,25 @@ so the next run retries it.
 ```
 collect.py         the collector
 summarize.py       builds dashboard JSON from shards
-monitor.py         flags videos that need attention
+monitor.py         flags videos that need attention, with next steps
+signals.py         week-on-week change tests (shared)
+actions.py         the learning loop: logs, measures, remembers
 auth.py            refresh-token OAuth
 mint_token.py      one-time token minting
 report_types.py    registry of all report types
 index.html         read-only dashboard
 _config.yml        keeps data/reports/ off the published Pages site
 .github/workflows/collect.yml
+.github/ISSUE_TEMPLATE/log-action.yml   the "Log action" form
 data/
   reports/<report_type>/<YYYY-MM-DD>.json   permanent archive, one file per day
   summary.json    per-video totals across 7d/28d/90d/365d/all
   daily.json      channel-level daily series
   traffic.json    traffic source breakdown
   videos.json     titles and thumbnails (refreshed, not accumulated)
-  snapshots.json  public view/like/comment counts, last 30 days only
+  snapshots.json  public counts and change fingerprints, last 30 days only
   attention.json  what the "Needs attention" panel shows
+  actions.json    every logged or detected action and its measured results
   state.json      which reports have been archived
 ```
 
@@ -128,26 +133,62 @@ build step, no login — open it (or serve the folder) and it renders.
 
 ### Needs attention
 
-The panel at the top watches the whole library, not just new uploads.
-`monitor.py` compares each video's last seven complete days with the 28 days
-before them and lists what changed enough to act on:
+The panel at the top watches the whole library, not just new uploads, and
+compares **every video with itself**, never with a channel average: this week
+(the last seven complete days) against last week, and against the week before
+for slower climbs. A change counts only when
 
-| Group | Flags | Worth doing |
+- it is about **3× bigger than that video's normal week-to-week swing**
+  (measured on this channel: impressions ±17%, views ±27%, CTR ±9%; small
+  counts also allow for plain counting noise, so 0 → 3 never counts),
+- it **survives removing the week's single biggest day**, so one random spike
+  cannot trigger it, and
+- the **last three days still agree**, so a burst that already faded does not.
+
+Two weeks in a row the same way (each week clearly up on the one before) counts
+as a climb or a slide even when neither step alone is dramatic. Falls must start
+from a level worth protecting (100 impressions or 7 views a week).
+
+What changed is grouped by what to do about it:
+
+| Group | Means | First move |
 |---|---|---|
-| Moving today | public view counter up since the previous run, at least 3× the video's usual daily views | the earliest warning; the analytics follow 2–3 days later |
-| Rising · back catalogue | older than 30 days; views (≥25 a week) or impressions (≥300 a week) at least doubled | pinned comment, description refresh, cards or end screens to newer videos, a follow-up |
-| Falling | videos past their launch month whose views halved, from at least 8 a day | see which source dropped; lost search is often a title or description fix |
-| CTR drop | videos past their launch month, CTR down 25%+ while impressions held steady | thumbnail or title test |
-| New uploads | first 28 days, ranked against your other uploads at the same age | — |
-| Audience reaction | dislike, comment or unsubscribe spikes | read the comments |
-| Rising topics | searches, outside sites and other channels' videos sending at least 3× their usual views | the topic is heating up: cover it again, or update the video it lands on |
+| Fix the packaging | CTR fell while impressions rose or held | thumbnail Test & Compare, title refresh |
+| Games waking up | 3+ older videos of one game moving up together | ride it: new video or Short, pinned comments, playlist |
+| Ride the wave | impressions or views clearly up | point new viewers onward: end screen, pinned comment |
+| Early signals | up 3 days running; a whole game spiking on one day; same-day jumps in the public counter | look before the weekly numbers confirm it |
+| Losing reach | impressions or views clearly down (also whole games cooling) | depends on the source that dropped |
+| Conversation | far more comments or dislikes than last week | reply, pin an answer |
+| Searches and sites on the rise | search terms, outside sites, other channels' videos sending clearly more views | the topic is heating up |
 
-Each rising or falling video shows what drove the change: the traffic source
-and its top search terms, suggesting videos or referring sites. **New** marks
-anything first flagged in this update; *Show in table* opens the video's full
-breakdown below. The thresholds sit at the top of `monitor.py`. They were
-calibrated on this channel's archive to flag a handful of videos on an
-ordinary day and a few dozen on a busy one.
+Each card shows last week → this week for impressions, CTR and views (with
+whether the change is clear or within the normal swing), a four-week trend with
+last week shaded, **why** (the traffic source and the search terms, suggesting
+videos or sites behind it) and numbered next steps that name the specifics:
+the search term to use, your newest video on the same game to link to. Titles
+and buttons open **YouTube Studio**; *Show in table* opens the video's full
+breakdown below. Every section and group folds away, and the page remembers.
+
+Games are recognised from titles ("Tropico 6: …", "How To … in Whiskerwood").
+The thresholds sit at the top of `signals.py` and `monitor.py`.
+
+### Learning loop
+
+Notice → act → measure → remember:
+
+1. **Act.** *✓ Did this* on a step (or *Log action* on a card) opens a
+   pre-filled "Log an action" issue; submit it. Title, description, tag and
+   thumbnail changes are also detected on their own from the daily
+   fingerprints, without logging.
+2. **Measure.** 7, 14 and 28 days later the video is compared with the same
+   number of days before the action, on the metric the action targets (CTR for
+   thumbnails and titles, search views for descriptions and tags, views
+   otherwise), allowing for how the rest of the back catalogue moved. The
+   result is posted on the issue.
+3. **Remember.** Results are pooled per situation and action in *Actions and
+   what worked*, and each suggested step shows how that action went before.
+
+Issues are public, like the rest of this repository.
 
 ### Table and filters
 
@@ -209,7 +250,9 @@ clicks separately, then divide. Retention is weighted by views the same way.
 The YouTube API Services Developer Policies require stored resource metadata
 (titles, thumbnails) to be refreshed or deleted after 30 days, so `videos.json`
 is **rewritten** each run rather than accumulated. For the same reason
-`snapshots.json` keeps each video's public view, like and comment counts for
-the last 30 days only, which is all the same-day signal needs. The aggregate metrics in
+`snapshots.json` keeps each video's public view, like and comment counts, and
+its title with fingerprints (hashes, not text) of the description, tags and
+thumbnail, for the last 30 days only. `actions.json` keeps only what was done,
+when, and the measured numbers. The aggregate metrics in
 `data/reports/` are not resource metadata and are kept indefinitely — that is
 the entire point.
