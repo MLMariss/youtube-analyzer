@@ -15,7 +15,7 @@
     --surface-2:  #f4f4f1;   /* insets, expanded rows, hover */
     --text:       #0b0b0b;
     --text-2:     #52514e;
-    --muted:      #898781;
+    --muted:      #66655f;   /* 5.8:1 on white */
     --grid:       #e1e0d9;
     --line:       #e6e5df;
     --baseline:   #c3c2b7;
@@ -23,9 +23,10 @@
     --accent:     #2a78d6;   /* series-1 blue */
     --accent-100: #cde2fb;   /* sequential step 100 */
     --accent-ink: #ffffff;   /* text on accent */
-    --good:       #0ca30c;
-    --warn:       #b8860b;   /* amber, contrast-safe on light */
-    --bad:        #d03b3b;
+    --good:       #0a7f0a;   /* status text: 5:1 or better on white */
+    --warn:       #8f6708;
+    --bad:        #c22f2f;
+    --link:       #1d5fb0;
     --shadow:     0 1px 2px rgba(11,11,11,.04), 0 2px 8px rgba(11,11,11,.04);
   }
   @media (prefers-color-scheme: dark) {
@@ -36,7 +37,7 @@
       --surface-2: #232320;
       --text:      #ffffff;
       --text-2:    #c3c2b7;
-      --muted:     #898781;
+      --muted:     #a9a8a0;
       --grid:      #2c2c2a;
       --line:      #2c2c2a;
       --baseline:  #383835;
@@ -47,6 +48,7 @@
       --good:      #3fc43f;
       --warn:      #fab219;
       --bad:       #ec6a6a;
+      --link:      #78b0f5;
       --shadow:    0 1px 2px rgba(0,0,0,.4), 0 2px 10px rgba(0,0,0,.3);
     }
   }
@@ -57,7 +59,7 @@
     --surface-2: #232320;
     --text:      #ffffff;
     --text-2:    #c3c2b7;
-    --muted:     #898781;
+    --muted:     #a9a8a0;
     --grid:      #2c2c2a;
     --line:      #2c2c2a;
     --baseline:  #383835;
@@ -68,6 +70,7 @@
     --good:      #3fc43f;
     --warn:      #fab219;
     --bad:       #ec6a6a;
+    --link:      #78b0f5;
     --shadow:    0 1px 2px rgba(0,0,0,.4), 0 2px 10px rgba(0,0,0,.3);
   }
 
@@ -75,7 +78,7 @@
   html, body { height: 100%; }
   body {
     margin: 0; background: var(--plane); color: var(--text);
-    font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -86,19 +89,19 @@
     position: sticky; top: 0; z-index: 20;
   }
   .brand { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-  h1 { font-size: 16px; margin: 0; font-weight: 650; letter-spacing: -0.01em; }
-  .stamp { color: var(--muted); font-size: 12px; }
+  h1 { font-size: 18px; margin: 0; font-weight: 650; letter-spacing: -0.01em; }
+  .stamp { color: var(--muted); font-size: 13.5px; }
   .spacer { flex: 1 1 auto; }
   .theme-toggle {
     display: inline-flex; align-items: center; gap: 6px;
     background: var(--surface-2); color: var(--text-2);
     border: 1px solid var(--border); border-radius: 999px;
-    padding: 6px 12px; font-size: 12px; cursor: pointer;
+    padding: 6px 12px; font-size: 13.5px; cursor: pointer;
   }
   .theme-toggle:hover { color: var(--text); }
 
   /* Full-width fluid layout: content fills the viewport, no left-pinned cap. */
-  .wrap { padding: 22px 28px 90px; width: 100%; }
+  .wrap { padding: 22px 28px 90px; width: 100%; max-width: 1760px; margin: 0 auto; }
 
   .metrics {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -109,14 +112,14 @@
     padding: 12px 16px; box-shadow: var(--shadow);
   }
   .metric .label {
-    color: var(--muted); font-size: 11px; text-transform: uppercase;
+    color: var(--muted); font-size: 12.5px; text-transform: uppercase;
     letter-spacing: .05em; display: flex; align-items: center; gap: 5px;
   }
   .metric .value {
-    font-size: 22px; font-weight: 650; margin-top: 4px;
+    font-size: 26px; font-weight: 650; margin-top: 4px;
     font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
   }
-  .metric .sub { color: var(--muted); font-size: 11px; margin-top: 1px; }
+  .metric .sub { color: var(--muted); font-size: 12.5px; margin-top: 1px; }
 
   .info {
     display: inline-flex; align-items: center; justify-content: center;
@@ -138,7 +141,7 @@
     padding: 12px 16px; border-bottom: 1px solid var(--line);
   }
   .toolbar .grp { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  .lbl { color: var(--muted); font-size: 12px; }
+  .lbl { color: var(--muted); font-size: 13.5px; }
   .sep { width: 1px; align-self: stretch; background: var(--line); margin: 2px 4px; }
 
   button, select, input {
@@ -162,10 +165,10 @@
   }
   .chip {
     background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px;
-    padding: 3px 11px; font-size: 12px; color: var(--text-2);
+    padding: 3px 11px; font-size: 13.5px; color: var(--text-2);
   }
 
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
   th, td {
     text-align: right; padding: 9px 12px; border-bottom: 1px solid var(--line);
     white-space: nowrap; font-variant-numeric: tabular-nums;
@@ -175,8 +178,8 @@
   }
   thead th {
     color: var(--muted); font-weight: 600; cursor: pointer; user-select: none;
-    font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
-    position: sticky; top: 57px; background: var(--surface); z-index: 5;
+    font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em;
+    position: sticky; top: var(--header-h, 62px); background: var(--surface); z-index: 5;
   }
   thead th:hover { color: var(--text); }
   th.sorted { color: var(--accent); }
@@ -187,17 +190,17 @@
   .title-cell { display: flex; gap: 11px; align-items: center; }
   .title-cell img { width: 68px; height: 38px; object-fit: cover; border-radius: 5px; flex: none; }
   .title-cell .t { font-weight: 550; }
-  .title-cell .sub { color: var(--muted); font-size: 11px; }
+  .title-cell .sub { color: var(--muted); font-size: 12.5px; }
   .caret { color: var(--muted); font-size: 10px; margin-right: 5px; display: inline-block; width: 8px; }
   td.detail { text-align: left; white-space: normal; background: var(--surface-2); padding: 0; }
 
   .panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; padding: 16px; }
   .panel-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; overflow-x: auto; }
   .panel-box h3 {
-    margin: 0 0 8px; font-size: 11px; font-weight: 650; color: var(--muted);
+    margin: 0 0 8px; font-size: 12.5px; font-weight: 650; color: var(--muted);
     text-transform: uppercase; letter-spacing: .05em;
   }
-  .panel-box table { font-size: 12px; }
+  .panel-box table { font-size: 13.5px; }
   .panel-box th, .panel-box td { padding: 5px 7px; border-bottom: 1px solid var(--line); }
   .panel-box th:first-child, .panel-box td:first-child { min-width: 0; }
   .panel-box thead th { position: static; }
@@ -215,14 +218,14 @@
   }
   .panel-box .muted { color: var(--muted); }
 
-  .empty { color: var(--muted); font-size: 12px; font-style: italic; }
+  .empty { color: var(--muted); font-size: 13.5px; font-style: italic; }
   .bar { height: 4px; background: var(--accent); border-radius: 999px; display: block; margin-top: 4px; opacity: .55; }
   .bar.wt { background: var(--accent); opacity: .35; }
 
   .notice {
     background: var(--surface); border: 1px solid var(--border);
     border-left: 3px solid var(--warn); border-radius: 10px;
-    padding: 14px 16px; margin-bottom: 16px; font-size: 13px; box-shadow: var(--shadow);
+    padding: 14px 16px; margin-bottom: 16px; font-size: 14.5px; box-shadow: var(--shadow);
   }
   .notice.error { border-left-color: var(--bad); }
   .notice code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
@@ -231,98 +234,153 @@
 
   /* Chart */
   .spark-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
-  .spark-title { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 650; }
-  .spark-peak { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .spark-title { font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 650; }
+  .spark-peak { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
   svg.spark { display: block; width: 100%; height: 120px; overflow: visible; }
   .sp-tip {
     position: absolute; pointer-events: none; background: var(--text); color: var(--surface);
-    padding: 4px 8px; border-radius: 6px; font-size: 11px; white-space: nowrap;
+    padding: 4px 8px; border-radius: 6px; font-size: 12.5px; white-space: nowrap;
     transform: translate(-50%, -130%); opacity: 0; transition: opacity .08s; font-variant-numeric: tabular-nums;
   }
 
+  /* Sections: every part of the page folds away; the choice is remembered. */
+  details.section { margin-bottom: 22px; }
+  details.section > summary, details.group > summary {
+    list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  }
+  details.section > summary::-webkit-details-marker,
+  details.group > summary::-webkit-details-marker { display: none; }
+  details.section > summary { padding: 4px 2px 12px; }
+  details.section > summary h2 { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.01em; }
+  details.section > summary .stamp { font-size: 14.5px; }
+  .fold {
+    color: var(--muted); font-size: 13px; width: 14px; display: inline-block;
+    transition: transform .15s; transform-origin: 40% 50%;
+  }
+  details[open] > summary .fold { transform: rotate(90deg); }
+
   /* Needs attention */
-  .att-head {
-    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
-    padding: 14px 16px 10px; border-bottom: 1px solid var(--line);
+  .att-health { display: grid; gap: 8px; margin-bottom: 14px; }
+  .att-h {
+    background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--muted);
+    border-radius: 10px; padding: 11px 14px; font-size: 15px; color: var(--text-2);
   }
-  .att-head h2 { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: -0.01em; }
-  .att-health { padding: 10px 16px; display: grid; gap: 6px; border-bottom: 1px solid var(--line); }
-  .att-h { font-size: 12.5px; color: var(--text-2); display: flex; gap: 8px; align-items: baseline; }
-  .att-h .ico { flex: none; font-weight: 700; width: 14px; text-align: center; }
-  .att-group { padding: 12px 16px 8px; border-bottom: 1px solid var(--line); }
-  .att-group-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 2px; }
-  .att-group-head h3 {
-    margin: 0; font-size: 11px; font-weight: 650; color: var(--muted);
-    text-transform: uppercase; letter-spacing: .05em;
+  .att-h.warn { border-left-color: var(--warn); }
+  .att-h.error { border-left-color: var(--bad); }
+  details.group {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: var(--shadow); margin-bottom: 14px;
   }
-  .att-count { color: var(--text-2); font-variant-numeric: tabular-nums; margin-left: 4px; }
-  .att-rule { color: var(--muted); font-size: 12px; }
-  .att-row {
-    display: grid; grid-template-columns: minmax(0, 1fr) 160px minmax(190px, auto);
-    gap: 6px 18px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line);
+  details.group > summary { padding: 15px 18px; }
+  details.group > summary h3 { margin: 0; font-size: 18px; font-weight: 700; }
+  .count {
+    background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 1px 10px;
+    font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; align-self: center;
   }
-  .att-group-head + .att-row { border-top: 0; }
-  .att-title { font-weight: 550; }
-  .att-title a { color: var(--text); text-decoration: none; }
-  .att-title a:hover { text-decoration: underline; }
-  .att-sub { color: var(--muted); font-size: 11.5px; margin-top: 1px; }
-  .att-sub a, button.link { color: var(--accent); text-decoration: none; }
-  button.link { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
-  button.link:hover, .att-sub a:hover { text-decoration: underline; }
-  .att-drivers { font-size: 12px; color: var(--text-2); margin-top: 4px; display: grid; gap: 2px; }
-  .att-drivers b { font-weight: 600; color: var(--text); }
-  .att-drivers a { color: var(--accent); }
-  .att-nums { text-align: right; font-size: 12.5px; font-variant-numeric: tabular-nums; }
-  .att-nums > div { white-space: nowrap; }
-  .att-nums .muted, .att-drivers .muted, .att-pill .muted { color: var(--muted); }
-  .att-delta { font-weight: 650; margin-left: 6px; }
+  .group-what { color: var(--text-2); font-size: 15px; flex-basis: 100%; padding-left: 26px; margin-top: -4px; }
+  .group-body { padding: 0 18px 18px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 480px), 1fr)); gap: 14px; }
+
+  .vcard {
+    border: 1px solid var(--border); border-radius: 12px; padding: 16px; background: var(--plane);
+    display: flex; flex-direction: column; gap: 13px; min-width: 0;
+  }
+  .vc-meta { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; font-size: 14px; color: var(--muted); }
+  .tag {
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2);
+    border-radius: 6px; padding: 1px 8px; font-size: 13.5px; font-weight: 600;
+  }
+  .tag.how { border-color: var(--accent); color: var(--link); background: transparent; }
   .att-new {
-    display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .05em; color: var(--accent-ink); background: var(--accent);
-    border-radius: 4px; padding: 1px 5px; margin-right: 7px; vertical-align: 1px;
+    display: inline-block; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--accent-ink); background: var(--accent); border-radius: 5px; padding: 2px 7px;
   }
-  .att-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-  .att-pill {
-    font-size: 11.5px; background: var(--surface-2); border: 1px solid var(--border);
-    border-radius: 6px; padding: 2px 8px; color: var(--text-2); font-variant-numeric: tabular-nums;
+  .vc-title { margin: 0; font-size: 17.5px; font-weight: 650; line-height: 1.35; }
+  .vc-title a { color: var(--text); text-decoration: none; }
+  .vc-title a:hover { text-decoration: underline; }
+  .vc-stats { display: grid; gap: 8px; }
+  .stat { display: grid; grid-template-columns: 108px minmax(0, 1fr) 150px; gap: 4px 14px; align-items: center; }
+  .st-k { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 650; }
+  .st-v { font-size: 17px; font-variant-numeric: tabular-nums; }
+  .st-v b { font-weight: 700; }
+  .st-d { font-size: 14.5px; font-weight: 700; margin-left: 8px; white-space: nowrap; }
+  .st-d.flat { color: var(--muted); font-weight: 500; }
+  .vc-why { font-size: 15px; color: var(--text-2); line-height: 1.5; }
+  .vc-why b, .vc-why strong { color: var(--text); }
+  .vc-why a, .early a, .mtable a, .att-table a { color: var(--link); }
+  .inl {
+    font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted);
+    font-weight: 700; margin-right: 7px;
   }
-  .att-pill b { color: var(--text); font-weight: 600; }
-  /* Trend: 56 days, the recent week in the accent over the de-emphasised past. */
-  svg.att-spark { width: 160px; height: 36px; display: block; overflow: visible; cursor: crosshair; }
-  .att-spark-base { stroke: var(--baseline); stroke-width: 1; }
-  .att-spark-old {
-    fill: none; stroke: var(--muted); stroke-width: 1.5; opacity: .75;
-    stroke-linejoin: round; stroke-linecap: round;
+  ol.vc-plan { margin: 0; padding-left: 22px; display: grid; gap: 9px; font-size: 15.5px; line-height: 1.45; }
+  ol.vc-plan li::marker { color: var(--muted); font-weight: 700; }
+  .learned { display: block; font-size: 14px; color: var(--text-2); margin-top: 2px; }
+  a.did { font-size: 14px; font-weight: 600; margin-left: 6px; white-space: nowrap; color: var(--link); }
+  .vc-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    font: inherit; font-size: 14.5px; font-weight: 600; text-decoration: none; cursor: pointer; line-height: 1.2;
   }
-  .att-spark-new {
-    fill: none; stroke: var(--accent); stroke-width: 2;
-    stroke-linejoin: round; stroke-linecap: round;
+  .btn:hover { border-color: var(--baseline); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .btn.small { padding: 5px 10px; font-size: 13.5px; }
+  .vc-history { font-size: 14px; color: var(--text-2); border-top: 1px dashed var(--line); padding-top: 10px; }
+  .chip-result { font-weight: 700; white-space: nowrap; }
+  .chip-result.flat { color: var(--muted); font-weight: 600; }
+
+  details.members > summary { cursor: pointer; font-size: 15px; font-weight: 600; color: var(--link); padding: 2px 0; }
+  .mtable, .att-table { width: 100%; border-collapse: collapse; font-size: 14.5px; margin-top: 8px; }
+  .mtable th, .mtable td, .att-table th, .att-table td {
+    padding: 8px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap;
   }
-  .att-spark-dot { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
-  .att-spark-hover { fill: var(--text); stroke: var(--surface); stroke-width: 1.5; opacity: 0; }
-  .att-more { margin: 4px 0 2px; font-size: 12px; padding: 4px 10px; }
-  .att-topics {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 12px; margin-top: 8px;
+  .mtable th:first-child, .mtable td:first-child, .att-table th:first-child, .att-table td:first-child {
+    text-align: left; white-space: normal; min-width: 0;
   }
-  .att-topics td:last-child { text-align: left; white-space: normal; }
-  .att-topics a { color: var(--accent); text-decoration: none; }
-  .att-quiet { color: var(--muted); font-size: 12px; padding: 10px 16px 12px; margin: 0; }
+  .mtable thead th, .att-table thead th {
+    position: static; font-size: 12.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em;
+    background: transparent; cursor: default;
+  }
+  .scroll-x { overflow-x: auto; }
+
+  .early-row {
+    display: flex; gap: 10px 18px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+    padding: 13px 0; border-top: 1px solid var(--line); font-size: 15.5px;
+  }
+  .early-row:first-child { border-top: 0; }
+  .early-row .vc-actions { flex: none; }
+  .early h4 { margin: 14px 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .early h4:first-child { margin-top: 0; }
+  .topics { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 14px; }
+  .topics .box { border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: var(--plane); }
+  .topics h4 { margin: 0 0 4px; font-size: 15px; }
+  .quiet { color: var(--text-2); font-size: 15px; margin: 4px 2px 0; }
+  .empty-state { color: var(--text-2); font-size: 15px; line-height: 1.5; margin: 0 0 12px; }
+  /* Trend: 28 days, last week shaded, this week in the accent over the muted past. */
+  svg.spark-mini { width: 150px; height: 34px; display: block; overflow: visible; cursor: crosshair; }
+  .sm-band { fill: var(--surface-2); }
+  .sm-base { stroke: var(--baseline); stroke-width: 1; }
+  .sm-old { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+  .sm-new { fill: none; stroke: var(--accent); stroke-width: 2.25; stroke-linejoin: round; stroke-linecap: round; }
+  .sm-dot { fill: var(--accent); stroke: var(--plane); stroke-width: 1.5; }
+  .sm-hover { fill: var(--text); stroke: var(--plane); stroke-width: 1.5; opacity: 0; }
   .att-tip {
     position: fixed; pointer-events: none; background: var(--text); color: var(--surface);
-    padding: 4px 8px; border-radius: 6px; font-size: 11px; white-space: nowrap;
+    padding: 5px 9px; border-radius: 6px; font-size: 13px; white-space: nowrap;
     transform: translate(-50%, -135%); opacity: 0; transition: opacity .08s;
     font-variant-numeric: tabular-nums; z-index: 30;
   }
   @media (max-width: 720px) {
-    .att-row { grid-template-columns: minmax(0, 1fr); }
-    .att-nums { text-align: left; }
+    .stat { grid-template-columns: 96px minmax(0, 1fr); }
+    .stat svg.spark-mini { grid-column: 1 / -1; width: 100%; }
+    .group-what { padding-left: 0; }
+    .wrap { padding: 16px 16px 60px; }
   }
 
   /* Glossary */
   details.glossary { margin-bottom: 16px; }
   details.glossary > summary {
-    cursor: pointer; color: var(--text-2); font-size: 13px; padding: 10px 14px;
+    cursor: pointer; color: var(--text-2); font-size: 14.5px; padding: 10px 14px;
     background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
     list-style: none; display: flex; align-items: center; gap: 8px; box-shadow: var(--shadow);
   }
@@ -333,9 +391,9 @@
     border-radius: 0 0 10px 10px; padding: 4px 16px 14px;
     display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2px 24px;
   }
-  .gloss-body dt { font-weight: 650; margin-top: 12px; font-size: 13px; }
-  .gloss-body dd { margin: 2px 0 0; color: var(--text-2); font-size: 12.5px; }
-  .gloss-body .src { color: var(--muted); font-size: 11px; }
+  .gloss-body dt { font-weight: 650; margin-top: 12px; font-size: 14.5px; }
+  .gloss-body dd { margin: 2px 0 0; color: var(--text-2); font-size: 14px; }
+  .gloss-body .src { color: var(--muted); font-size: 12.5px; }
   .gloss-body a { color: var(--accent); }
 </style>
 </head>
@@ -356,8 +414,15 @@
 
   <div id="notice" class="notice hidden"></div>
 
-  <section class="card" id="attention" aria-label="Needs attention"></section>
+  <details class="section" data-key="attention" open>
+    <summary><span class="fold">▶</span><h2>Needs attention</h2><span class="stamp" id="att-range"></span></summary>
+    <div id="attention"></div>
+  </details>
   <div class="att-tip" id="att-tip"></div>
+
+  <details class="section" data-key="channel" open>
+  <summary><span class="fold">▶</span><h2>Channel and all videos</h2>
+    <span class="stamp">totals, traffic sources and every video, for the time window you pick</span></summary>
 
   <div class="metrics" id="metrics"></div>
 
@@ -428,6 +493,7 @@
       <tbody id="rows"></tbody>
     </table>
   </div>
+  </details>
 
 </div>
 
@@ -522,6 +588,7 @@ const BROWSE_DETAIL = {
 };
 const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
 const CHANNEL_ID_RE = /^UC[A-Za-z0-9_-]{22}$/;
+const PLAYLIST_ID_RE = /^(PL|UU|LL|FL|OL)[A-Za-z0-9_-]{10,}$/;
 // A referrer detail is often an opaque video/channel ID, which is exactly the
 // "numbers mean nothing" problem — so link IDs out to the actual video/channel.
 function detailCell(detail) {
@@ -535,6 +602,8 @@ function detailCell(detail) {
     const title = meta[d] && meta[d].title;
     return `<a href="https://www.youtube.com/watch?v=${encodeURIComponent(d)}" target="_blank" rel="noopener">${title ? esc(title) : esc(d)}</a>`;
   }
+  if (PLAYLIST_ID_RE.test(d))
+    return `<a href="https://www.youtube.com/playlist?list=${encodeURIComponent(d)}" target="_blank" rel="noopener">a playlist</a>`;
   if (CHANNEL_ID_RE.test(d))
     return `<a href="https://www.youtube.com/channel/${encodeURIComponent(d)}" target="_blank" rel="noopener">${esc(d)}</a>`;
   return esc(d);
@@ -733,6 +802,10 @@ async function init() {
     when ? 'updated ' + when.toLocaleString() : '',
   ].filter(Boolean).join(' · ');
 
+  const saved = openState();
+  document.querySelectorAll('details.section[data-key]').forEach(d => {
+    if (saved[d.dataset.key] !== undefined) d.open = saved[d.dataset.key];
+  });
   renderAttention();
   populateSources();
   renderMetrics();
@@ -854,239 +927,362 @@ function renderMetrics() {
 }
 
 // ---- Needs attention -------------------------------------------------------
-// monitor.py compares every video's last seven complete days with the 28
-// before them and writes what changed to data/attention.json. YouTube Studio
-// only watches new uploads; this is the watch on the back catalogue.
+// monitor.py compares every video with itself (this week against last week,
+// and the week before for slower climbs) and sorts what changed by what to do
+// about it. actions.py measures what was done, and what worked before is shown
+// next to each suggestion.
 let ATTENTION = null;
-const ATT_SHOWN = 5;           // rows per group before "Show all"
-const attOpen = new Set();     // groups currently showing every row
+const CARDS_SHOWN = 6;          // cards per group before "Show all"
+const showAll = new Set();      // groups showing every card
 
+// Logging an action opens this repository's "Log an action" issue form.
+const REPO = (() => {
+  const h = location.hostname;
+  if (h.endsWith('.github.io')) return `${h.split('.')[0]}/${location.pathname.split('/').filter(Boolean)[0] || ''}`;
+  return 'MLMariss/youtube-analyzer';
+})();
+// Mirrors actions.KINDS: these labels are what the issue form expects.
+const KIND_LABEL = {
+  thumbnail: 'Thumbnail / Test & Compare', title: 'Title', description: 'Description', tags: 'Tags',
+  pinned_comment: 'Pinned comment', end_screen: 'End screen / cards', playlist: 'Playlist',
+  follow_up: 'Follow-up video or Short', community_post: 'Community post',
+  reply_comments: 'Replied to comments', external: 'Outside promotion', other: 'Other',
+};
+const SITUATION_LABEL = {
+  packaging: 'reach up, clicks down', clicks: 'clicks dropping', wave: 'rising',
+  losing: 'losing reach', conversation: 'conversation', '*': 'any situation',
+};
+const HOW_LABEL = { jump: 'jumped this week', drop: 'dropped this week',
+                    climb: 'climbing two weeks', slide: 'sliding two weeks' };
+
+const studio = (id, page) => `https://studio.youtube.com/video/${encodeURIComponent(id)}/` +
+  ({ edit: 'edit', comments: 'comments', analytics: 'analytics/tab-reach_viewers/period-default' }[page] || 'edit');
 const addDays = (d, n) => new Date(Date.parse(d + 'T00:00:00Z') + n * 864e5).toISOString().slice(0, 10);
 const shortDate = d => new Date(d + 'T00:00:00Z')
   .toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' });
-// Older videos run at a few views a day, so keep one decimal below ten.
-const rate = n => (n === null || n === undefined) ? '—'
-  : n === 0 ? '0' : (Math.abs(n) < 10 ? Number(n).toFixed(1) : fmt(n));
-const signed = n => (n > 0 ? '+' : n < 0 ? '−' : '') + fmt(Math.abs(n));
+const signedPct = n => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n).toFixed(Math.abs(n) < 10 ? 1 : 0) + '%';
 const ageLabel = d => d >= 365 ? `${(d / 365).toFixed(1)} years old` : `${d} days old`;
-const watchUrl = id => `https://www.youtube.com/watch?v=${encodeURIComponent(id)}`;
-const studioUrl = id =>
-  `https://studio.youtube.com/video/${encodeURIComponent(id)}/analytics/tab-overview/period-default`;
 const attTitle = id => ((ATTENTION.videos || {})[id] || {}).title
   || (((SUMMARY && SUMMARY.video_meta) || {})[id] || {}).title || id;
 
-// The arrow and the figure carry the direction; colour only reinforces it.
-function change(before, now, upIsGood = true) {
-  if (!before) return now ? `<span class="att-delta ${upIsGood ? 'good' : 'bad'}">↑ from 0</span>` : '';
-  const r = now / before;
-  if (r >= 1) return `<span class="att-delta ${upIsGood ? 'good' : 'bad'}">↑ ×${r >= 10 ? Math.round(r) : r.toFixed(1)}</span>`;
-  return `<span class="att-delta ${upIsGood ? 'bad' : 'good'}">↓ ${Math.round((1 - r) * 100)}%</span>`;
+function logUrl(id, situation, key) {
+  const label = key ? KIND_LABEL[key] : '';
+  const p = new URLSearchParams({
+    template: 'log-action.yml',
+    title: `Action: ${label || '…'} — ${attTitle(id)}`,
+    video: `https://studio.youtube.com/video/${id}/edit`,
+    situation: situation || '',
+  });
+  if (label) p.set('action', label);
+  return `https://github.com/${REPO}/issues/new?${p}`;
 }
-const rateLine = (r, unit) =>
-  `<div>${rate(r.before)} → <b>${rate(r.now)}</b> ${unit}/day ${change(r.before, r.now)}</div>`;
 
+// ---- Trend lines -------------------------------------------------------------
 function sparkGeom(vals) {
-  const W = 160, H = 36, pad = 3, n = vals.length, max = Math.max(...vals, 1);
-  return { W, H, pad, n,
-           x: i => pad + i * (W - 2 * pad) / (n - 1),
-           y: v => H - pad - ((v || 0) / max) * (H - 2 * pad) };
+  const W = 150, H = 34, pad = 3, n = vals.length, max = Math.max(...vals, 1);
+  return { W, H, pad, n, x: i => pad + i * (W - 2 * pad) / (n - 1), y: v => H - pad - ((v || 0) / max) * (H - 2 * pad) };
 }
-
-function attSpark(id, metric) {
-  const s = (ATTENTION.series || {})[id];
-  const vals = s && s[metric];
-  if (!vals || vals.length < 8) return '<span></span>';
-  const g = sparkGeom(vals);
-  const pts = vals.map((v, i) => `${g.x(i).toFixed(1)},${g.y(v).toFixed(1)}`);
-  const split = g.n - 7;   // the recent week
-  return `<svg class="att-spark" viewBox="0 0 ${g.W} ${g.H}" data-id="${esc(id)}" data-metric="${metric}"
-      role="img" aria-label="${metric} per day over the last ${g.n} days, the last 7 highlighted">
-    <line class="att-spark-base" x1="${g.pad}" y1="${g.H - g.pad}" x2="${g.W - g.pad}" y2="${g.H - g.pad}"/>
-    <polyline class="att-spark-old" points="${pts.slice(0, split + 1).join(' ')}"/>
-    <polyline class="att-spark-new" points="${pts.slice(split).join(' ')}"/>
-    <circle class="att-spark-dot" r="3" cx="${g.x(g.n - 1).toFixed(1)}" cy="${g.y(vals[g.n - 1]).toFixed(1)}"/>
-    <circle class="att-spark-hover" r="3.5"/>
+function seriesFor(ref) {
+  const [kind, key, metric] = ref.split('|');
+  const s = kind === 'g' ? (ATTENTION.game_series || {})[key] : (ATTENTION.series || {})[key];
+  return s && s[metric] ? { from: s.from, vals: s[metric], metric } : null;
+}
+function spark(ref) {
+  const s = seriesFor(ref);
+  if (!s || s.vals.length < 15) return '<span></span>';
+  const g = sparkGeom(s.vals);
+  const pts = s.vals.map((v, i) => `${g.x(i).toFixed(1)},${g.y(v).toFixed(1)}`);
+  const n = g.n, lastStart = n - 14, thisStart = n - 7;
+  return `<svg class="spark-mini" viewBox="0 0 ${g.W} ${g.H}" preserveAspectRatio="none" data-ref="${esc(ref)}"
+      role="img" aria-label="${s.metric} per day, last ${n} days; last week shaded, this week highlighted">
+    <rect class="sm-band" x="${g.x(lastStart).toFixed(1)}" y="0" width="${(g.x(thisStart - 1) - g.x(lastStart)).toFixed(1)}" height="${g.H}"/>
+    <line class="sm-base" x1="${g.pad}" y1="${g.H - g.pad}" x2="${g.W - g.pad}" y2="${g.H - g.pad}" vector-effect="non-scaling-stroke"/>
+    <polyline class="sm-old" points="${pts.slice(0, thisStart).join(' ')}" vector-effect="non-scaling-stroke"/>
+    <polyline class="sm-new" points="${pts.slice(thisStart - 1).join(' ')}" vector-effect="non-scaling-stroke"/>
+    <circle class="sm-dot" r="3" cx="${g.x(n - 1).toFixed(1)}" cy="${g.y(s.vals[n - 1]).toFixed(1)}"/>
+    <circle class="sm-hover" r="3.5"/>
   </svg>`;
 }
-
-function attSparkHover(evt) {
+function miniSparkHover(evt) {
   const tip = document.getElementById('att-tip');
-  const svg = evt.target.closest ? evt.target.closest('svg.att-spark') : null;
-  document.querySelectorAll('.att-spark-hover').forEach(c => {
-    if (!svg || !svg.contains(c)) c.style.opacity = 0;
-  });
+  const svg = evt.target.closest ? evt.target.closest('svg.spark-mini') : null;
+  document.querySelectorAll('.sm-hover').forEach(c => { if (!svg || !svg.contains(c)) c.style.opacity = 0; });
   if (!svg) { tip.style.opacity = 0; return; }
-  const s = ATTENTION.series[svg.dataset.id], metric = svg.dataset.metric, vals = s[metric];
-  const g = sparkGeom(vals), rect = svg.getBoundingClientRect();
-  const i = Math.max(0, Math.min(g.n - 1,
-    Math.round((evt.clientX - rect.left - g.pad) / (rect.width - 2 * g.pad) * (g.n - 1))));
-  const dot = svg.querySelector('.att-spark-hover');
-  dot.setAttribute('cx', g.x(i)); dot.setAttribute('cy', g.y(vals[i])); dot.style.opacity = 1;
-  tip.textContent = `${shortDate(addDays(s.from, i))}: ${fmt(vals[i])} ${metric}`;
-  tip.style.left = (rect.left + g.x(i)) + 'px';
-  tip.style.top = (rect.top + g.y(vals[i])) + 'px';
+  const s = seriesFor(svg.dataset.ref);
+  if (!s) return;
+  const g = sparkGeom(s.vals), rect = svg.getBoundingClientRect();
+  const xv = (evt.clientX - rect.left) / rect.width * g.W;
+  const i = Math.max(0, Math.min(g.n - 1, Math.round((xv - g.pad) / (g.W - 2 * g.pad) * (g.n - 1))));
+  const dot = svg.querySelector('.sm-hover');
+  dot.setAttribute('cx', g.x(i)); dot.setAttribute('cy', g.y(s.vals[i])); dot.style.opacity = 1;
+  tip.textContent = `${shortDate(addDays(s.from, i))}: ${fmt(s.vals[i])} ${s.metric}`;
+  tip.style.left = (rect.left + g.x(i) / g.W * rect.width) + 'px';
+  tip.style.top = (rect.top + g.y(s.vals[i]) / g.H * rect.height) + 'px';
   tip.style.opacity = 1;
 }
 
-// What drove a rise or fall: the traffic sources, each with its top search
-// terms, suggesting videos or referring sites.
-function driverLines(drivers) {
+// ---- Card pieces -------------------------------------------------------------
+// One metric: last week -> this week, the change, and whether it is a clear
+// change for this video (dir) or within its normal week-to-week swing.
+function statRow(label, last, now, dir, f, ref) {
+  const change = last ? (now - last) / last * 100 : null;
+  const shown = change === null ? (now ? 'from 0' : 'no change') : signedPct(change);
+  const delta = dir
+    ? `<span class="st-d ${dir > 0 ? 'good' : 'bad'}">${dir > 0 ? '▲' : '▼'} ${shown}</span>`
+    : `<span class="st-d flat">${shown} · normal swing</span>`;
+  return `<div class="stat"><span class="st-k">${label}</span>
+    <span class="st-v">${f(last)} → <b>${f(now)}</b>${delta}</span>${ref ? spark(ref) : ''}</div>`;
+}
+
+function detailLabel(source, detail) {
+  return source === '5' ? `“${esc(detail)}”` : detailCell(detail);
+}
+
+// What drove the change: the traffic sources, each with its top details.
+function whyLine(drivers, unit) {
   if (!drivers || !drivers.length) return '';
-  return `<div class="att-drivers">${drivers.map(d => {
-    const details = (d.details || []).map(x =>
-      `${d.source === '5' ? `“${esc(x.detail)}”` : detailCell(x.detail)} <span class="muted">${signed(x.gain)}</span>`);
-    return `<div><b>${esc(sourceLabel(d.source))}</b> ${signed(d.gain)} views this week` +
-      `<span class="muted"> (${rate(d.before)} → ${rate(d.now)}/day)</span>` +
-      (details.length ? ` · ${details.join(', ')}` : '') + '</div>';
-  }).join('')}</div>`;
+  const parts = drivers.map(d => {
+    const gain = d.this - d.last;
+    const det = (d.details || []).map(x => `${detailLabel(d.source, x.detail)} ${signed(x.this - x.last)}`);
+    return `<strong>${esc(sourceLabel(d.source))}</strong> ${signed(gain)} ${unit} (${fmt(d.last)} → ${fmt(d.this)})` +
+      (det.length ? `: ${det.join(', ')}` : '');
+  });
+  return `<div class="vc-why"><span class="inl">Why</span>${parts.join(' · ')}</div>`;
+}
+const signed = n => (n > 0 ? '+' : n < 0 ? '−' : '±') + fmt(Math.abs(n));
+
+function learnedText(l) {
+  if (!l) return '';
+  const where = l.scope === 'here' ? 'in this situation' : 'before';
+  const parts = [l.better && `${l.better} better`, l.unclear && `${l.unclear} no clear change`, l.worse && `${l.worse} worse`]
+    .filter(Boolean).join(', ');
+  const med = l.median_change === null || l.median_change === undefined ? ''
+    : ` · median ${l.metric} ${signedPct(l.median_change)}`;
+  return `<span class="learned">Tried ${l.tries}× ${where}: ${parts}${med}</span>`;
 }
 
-function attRow(e, { metric = 'views', nums = '', extra = '' } = {}) {
-  const id = e.video_id, v = (ATTENTION.videos || {})[id] || {};
-  const isNew = e.first_seen === ATTENTION.data_through;
-  // Age counts to the newest analytics day, so an upload newer than that has
-  // none yet; show its publish date instead.
-  const age = v.age_days === null || v.age_days === undefined ? ''
-    : v.age_days < 0 ? `published ${shortDate(v.published)} · ` : esc(ageLabel(v.age_days)) + ' · ';
-  return `<div class="att-row">
+function planList(steps, id, situation) {
+  if (!steps || !steps.length) return '';
+  return `<ol class="vc-plan">${steps.map(s => {
+    const link = s.link && id ? ` <a class="did" href="${studio(id, s.link)}" target="_blank" rel="noopener">Open in Studio ↗</a>` : '';
+    const did = s.key && id ? ` <a class="did" href="${logUrl(id, situation, s.key)}" target="_blank" rel="noopener">✓ Did this</a>` : '';
+    return `<li>${esc(s.text)}${link}${did}${learnedText(s.learned)}</li>`;
+  }).join('')}</ol>`;
+}
+
+function resultChip(r, label) {
+  if (!r) return `<span class="chip-result flat">${label}: pending</span>`;
+  if (r.verdict === 'too little data') return `<span class="chip-result flat">${label}: too little data</span>`;
+  const metric = { ctr: 'CTR', views: 'views', search_views: 'search views' }[r.metric] || r.metric;
+  const change = r.change === null || r.change === undefined ? '' : ` ${signedPct(r.change)} ${metric}`;
+  if (r.verdict === 'unclear') return `<span class="chip-result flat">${label}:${change} (no clear change)</span>`;
+  return `<span class="chip-result ${r.verdict === 'better' ? 'good' : 'bad'}">${label}: ${r.verdict === 'better' ? '▲' : '▼'}${change}</span>`;
+}
+
+function historyFor(id) {
+  const acts = (ATTENTION.actions || []).filter(a => a.video_id === id).slice(0, 2);
+  if (!acts.length) return '';
+  return `<div class="vc-history"><span class="inl">Done before</span>${acts.map(a =>
+    `${esc(KIND_LABEL[a.kind] || a.kind)} on ${shortDate(a.date)}` +
+    (a.source === 'detected' ? ' (detected)' : '') + ' — ' +
+    ['7', '14', '28'].map(h => resultChip((a.results || {})[h], `${h} days`)).join(' · ')).join('<br>')}</div>`;
+}
+
+function buttons(id, situation, extra = '') {
+  return `<div class="vc-actions">
+    <a class="btn primary" href="${studio(id, 'edit')}" target="_blank" rel="noopener">Edit in Studio</a>
+    <a class="btn" href="${studio(id, 'analytics')}" target="_blank" rel="noopener">Reach in Studio</a>
+    ${extra}
+    <button type="button" class="btn" data-focus="${esc(id)}">Show in table</button>
+    <a class="btn" href="${logUrl(id, situation)}" target="_blank" rel="noopener">Log action</a>
+  </div>`;
+}
+
+function videoCard(c) {
+  const id = c.video_id, v = (ATTENTION.videos || {})[id] || {}, s = c.signals;
+  const how = HOW_LABEL[s[c.lead].how];
+  const flags = (c.flags || []).map(f => `<span class="tag">${f === 'comments' ? 'comments ▲' : 'dislikes ▲'}</span>`).join('');
+  const comments = c.situation === 'conversation' || (c.flags || []).includes('comments')
+    ? `<a class="btn" href="${studio(id, 'comments')}" target="_blank" rel="noopener">Comments</a>` : '';
+  return `<article class="vcard">
     <div>
-      <div class="att-title">${isNew ? '<span class="att-new" title="First flagged in this update">New</span>' : ''}<a
-        href="${watchUrl(id)}" target="_blank" rel="noopener">${esc(attTitle(id))}</a></div>
-      <div class="att-sub">${age}<a href="${studioUrl(id)}" target="_blank" rel="noopener">Studio ↗</a>
-        · <button type="button" class="link" data-focus="${esc(id)}">Show in table</button></div>
-      ${extra}
+      <div class="vc-meta">${c.first_seen === ATTENTION.data_through ? '<span class="att-new">New</span>' : ''}
+        ${v.game ? `<span class="tag">${esc(v.game)}</span>` : ''}${how ? `<span class="tag how">${how}</span>` : ''}${flags}
+        <span>${v.age_days === null || v.age_days === undefined ? '' : esc(ageLabel(v.age_days))}</span></div>
+      <h4 class="vc-title"><a href="${studio(id, 'edit')}" target="_blank" rel="noopener">${esc(attTitle(id))}</a></h4>
     </div>
-    ${attSpark(id, metric)}
-    <div class="att-nums">${nums}</div>
-  </div>`;
+    <div class="vc-stats">
+      ${statRow('Impressions', s.impressions.weeks[1], s.impressions.weeks[2], s.impressions.dir, fmt, `v|${id}|impressions`)}
+      ${statRow('CTR', s.ctr.last, s.ctr.this, s.ctr.dir, pct, null)}
+      ${statRow('Views', s.views.weeks[1], s.views.weeks[2], s.views.dir, fmt, `v|${id}|views`)}
+    </div>
+    ${whyLine(c.drivers, c.lead === 'impressions' ? 'impressions' : 'views')}
+    ${planList(c.plan, id, c.situation)}
+    ${buttons(id, c.situation, comments)}
+    ${historyFor(id)}
+  </article>`;
 }
 
-const UPLOAD_METRICS = [['views', 'Views', fmt], ['impressions', 'Impressions', fmt],
-                        ['ctr', 'CTR', pct], ['avg_view_pct', 'Avg % viewed', pct]];
-function uploadRow(e) {
-  if (e.pending) return attRow(e, {
-    nums: '<div class="muted">analytics in 2–3 days</div>',
-    extra: `<div class="att-drivers"><div>Too new for the analytics reports. Public counter:
-      <b>${fmt(e.public_views)}</b> views so far.</div></div>`,
-  });
-  // Rank 1 = best of all uploads at the same age; top and bottom thirds are marked.
-  const pills = UPLOAD_METRICS.map(([k, label, f]) => {
-    const c = e.compare[k] || {};
-    if (c.value === null || c.value === undefined) return '';
-    const third = c.of / 3;
-    const cls = !c.rank || c.of < 4 ? '' : c.rank <= third ? 'good' : c.rank > c.of - third ? 'bad' : '';
-    const mark = cls === 'good' ? '↑ ' : cls === 'bad' ? '↓ ' : '';
-    return `<span class="att-pill">${label} <b>${f(c.value)}</b> <span class="${cls}">${mark}#${c.rank} of ${c.of}</span>` +
-      (c.typical === null ? '' : ` <span class="muted">· typical ${f(c.typical)}</span>`) + '</span>';
+function gameCard(g) {
+  const up = g.direction > 0, t = g.totals;
+  const dirOf = (a, b) => (b - a) / Math.max(a, 1) >= 0.1 ? 1 : (a - b) / Math.max(a, 1) >= 0.1 ? -1 : 0;
+  const rows = g.members.map(m => {
+    const flags = [m.situation === 'packaging' ? '<span class="tag how">reach ▲ clicks ▼ → test thumbnail</span>' : '',
+                   ...(m.flags || []).map(f => `<span class="tag">${f} ▲</span>`)].join(' ');
+    return `<tr><td><a href="${studio(m.video_id, 'edit')}" target="_blank" rel="noopener">${esc(attTitle(m.video_id))}</a> ${flags}</td>
+      <td>${fmt(m.impressions[0])} → <b>${fmt(m.impressions[1])}</b></td>
+      <td>${fmt(m.views[0])} → <b>${fmt(m.views[1])}</b></td>
+      <td>${pct(m.ctr[0])} → ${pct(m.ctr[1])}</td>
+      <td><a class="btn small" href="${logUrl(m.video_id, m.situation)}" target="_blank" rel="noopener">Log</a></td></tr>`;
   }).join('');
-  const kind = { short: 'Shorts', long: 'long-form uploads', all: 'uploads' }[e.cohort_format] || 'uploads';
-  return attRow(e, {
-    nums: `<div>Day ${e.days}</div><div class="muted">vs ${e.compare.views.of - 1} ${kind}</div>`,
-    extra: `<div class="att-pills">${pills}</div>`,
-  });
+  return `<article class="vcard">
+    <div>
+      <div class="vc-meta">${g.first_seen === ATTENTION.data_through ? '<span class="att-new">New</span>' : ''}
+        <span class="tag">Game</span><span>${g.members.length} videos moving together</span></div>
+      <h4 class="vc-title">${esc(g.label)} ${up ? 'is waking up' : 'is cooling down'}</h4>
+    </div>
+    <div class="vc-stats">
+      ${statRow('Impressions', t.impressions[1], t.impressions[2], dirOf(t.impressions[1], t.impressions[2]), fmt, `g|${g.game}|impressions`)}
+      ${statRow('Views', t.views[1], t.views[2], dirOf(t.views[1], t.views[2]), fmt, `g|${g.game}|views`)}
+    </div>
+    ${planList(g.plan, null, null)}
+    <details class="members"><summary>Show the ${g.members.length} videos</summary>
+      <div class="scroll-x"><table class="mtable"><thead><tr><th>Video (opens Studio)</th><th>Impressions</th><th>Views</th><th>CTR</th><th></th></tr></thead>
+      <tbody>${rows}</tbody></table></div>
+    </details>
+  </article>`;
 }
 
-const REACTION_KEYS = { dislikes: 'dislikes', comments: 'comments', unsubscribes: 'subscribers_lost' };
+function earlyHtml(E) {
+  const out = [];
+  if ((E.flares || []).length) {
+    out.push('<h4>Games that flared on one day</h4>' + E.flares.map(f => `<div class="early-row">
+      <div><b>${esc(f.label)}</b> flared on ${shortDate(f.date)}: ${f.videos} of ${f.of} videos spiked together,
+        ${fmt(f.impressions)} impressions that day against ${fmt(f.usual)} usually. Likely news: an update, DLC,
+        sale or trailer. Not a trend yet.</div></div>`).join(''));
+  }
+  const row = (id, text) => `<div class="early-row"><div><a href="${studio(id, 'edit')}" target="_blank" rel="noopener"><b>${esc(attTitle(id))}</b></a><br>${text}</div>
+    <div class="vc-actions"><a class="btn small" href="${studio(id, 'analytics')}" target="_blank" rel="noopener">Reach in Studio</a>
+    <button type="button" class="btn small" data-focus="${esc(id)}">Show in table</button></div></div>`;
+  if ((E.today || []).length) {
+    out.push('<h4>Moving today (public view counter)</h4>' + E.today.map(t =>
+      row(t.video_id, `${fmt(t.views.now)} views a day by the public counter, usually ${fmt(t.views.usual)}` +
+        (t.comments > 0 ? ` · +${fmt(t.comments)} comments` : ''))).join(''));
+  }
+  if ((E.building || []).length) {
+    out.push('<h4>Building: up three days running</h4>' + E.building.map(b =>
+      row(b.video_id, `${b.metric} up three days running: ${fmt(b.weeks[1])} last week, ${fmt(b.weeks[2])} this week so far.`)).join(''));
+  }
+  return out.join('');
+}
 
-const TOPIC_TITLES = { search: 'Searches', external: 'Outside sites', suggested: "Other channels' videos" };
-const TOPIC_COLUMN = { search: 'Search term', external: 'Site', suggested: 'Suggesting video' };
-function topicTable(name, entries) {
-  if (!entries || !entries.length) return '';
-  const key = 'topic-' + name, all = attOpen.has(key);
-  const rows = (all ? entries : entries.slice(0, 8)).map(t => {
-    const label = name === 'search' ? `“${esc(t.detail)}”` : detailCell(t.detail);
-    const lands = (t.videos || []).map(v =>
-      `<a href="${watchUrl(v.video_id)}" target="_blank" rel="noopener">${esc(attTitle(v.video_id))}</a>`).join('<br>');
-    return `<tr><td>${t.first_seen === ATTENTION.data_through ? '<span class="att-new">New</span>' : ''}${label}</td>
-      <td>${rate(t.before)} → <b>${rate(t.now)}</b>${change(t.before, t.now)}</td><td>${lands}</td></tr>`;
+function topicsHtml(T) {
+  const boxes = [['search', 'Search terms', 'Search term'], ['external', 'Outside sites', 'Site'],
+                 ['suggested', "Other channels' videos", 'Suggesting video']].map(([k, title, col]) => {
+    const rows = (T[k] || []).slice(0, 10).map(t => `<tr>
+      <td>${t.first_seen === ATTENTION.data_through ? '<span class="att-new">New</span> ' : ''}${detailLabel(k === 'search' ? '5' : '', t.detail)}</td>
+      <td>${fmt(t.last)} → <b>${fmt(t.this)}</b></td>
+      <td style="text-align:left;white-space:normal">${(t.videos || []).map(v =>
+        `<a href="${studio(v.video_id, 'edit')}" target="_blank" rel="noopener">${esc(attTitle(v.video_id))}</a>`).join('<br>')}</td></tr>`).join('');
+    return rows ? `<div class="box"><h4>${title}</h4><div class="scroll-x"><table class="att-table"><thead><tr><th>${col}</th>
+      <th>Views last → this week</th><th style="text-align:left">Lands on</th></tr></thead><tbody>${rows}</tbody></table></div></div>` : '';
   }).join('');
-  return `<div class="panel-box"><h3>${TOPIC_TITLES[name]}</h3>
-    <table><thead><tr><th>${TOPIC_COLUMN[name]}</th><th>Views/day</th><th style="text-align:left">Lands on</th></tr></thead>
-    <tbody>${rows}</tbody></table>
-    ${entries.length > 8 ? `<button class="att-more" data-more="${key}">${all ? 'Show fewer' : `Show all ${entries.length}`}</button>` : ''}
-  </div>`;
+  return boxes ? `<div class="topics">${boxes}</div>` : '';
 }
 
-function attGroup(key, title, rule, rows) {
-  const all = attOpen.has(key);
-  return `<div class="att-group">
-    <div class="att-group-head"><h3>${title}<span class="att-count">${rows.length}</span></h3>
-      <span class="att-rule">${rule}</span></div>
-    ${(all ? rows : rows.slice(0, ATT_SHOWN)).join('')}
-    ${rows.length > ATT_SHOWN ? `<button class="att-more" data-more="${key}">${all ? 'Show fewer' : `Show all ${rows.length}`}</button>` : ''}
-  </div>`;
+function learnedHtml(A) {
+  // Per situation; the "any situation" summary only where an action was tried in several.
+  const acts = A.actions || [], all = A.playbook || [];
+  const spread = k => all.filter(p => p.kind === k && p.situation !== '*').length;
+  const book = all.filter(p => p.situation !== '*' || spread(p.kind) > 1);
+  const intro = `<p class="empty-state">${acts.length ? '' : 'Nothing measured yet. '}Use <b>✓ Did this</b> on a suggestion
+    or <b>Log action</b> on any card. Title, description, tag and thumbnail changes are picked up on their own.
+    Each action is measured 7, 14 and 28 days later against the same days before it.</p>`;
+  const pb = book.length ? `<div class="scroll-x"><table class="att-table"><thead><tr><th>What you did</th><th>When it was</th>
+      <th>Tries</th><th>Better</th><th>No clear change</th><th>Worse</th><th>Median change</th></tr></thead><tbody>${book.map(p => `<tr>
+      <td>${esc(p.label)}</td><td>${esc(SITUATION_LABEL[p.situation] || p.situation)}</td><td>${p.tries}</td>
+      <td class="good">${p.better}</td><td>${p.unclear}</td><td class="bad">${p.worse}</td>
+      <td>${p.median_change === null ? '—' : `${signedPct(p.median_change)} ${esc(p.metric)}`}</td></tr>`).join('')}</tbody></table></div>` : '';
+  const recent = acts.length ? `<h4 style="margin:16px 0 4px;font-size:15px">Recent actions</h4><div class="scroll-x"><table class="att-table">
+      <thead><tr><th>Video</th><th>What</th><th>Date</th><th>Recorded</th><th>Results</th></tr></thead><tbody>${acts.slice(0, 20).map(a => `<tr>
+      <td><a href="${studio(a.video_id, 'edit')}" target="_blank" rel="noopener">${esc(attTitle(a.video_id))}</a></td>
+      <td>${esc(KIND_LABEL[a.kind] || a.kind)}</td><td>${shortDate(a.date)}</td>
+      <td>${a.issue ? `<a href="${esc(a.issue.url)}" target="_blank" rel="noopener">logged #${a.issue.number}</a>` : 'detected'}</td>
+      <td style="text-align:left">${['7', '14', '28'].map(h => resultChip((a.results || {})[h], `${h}d`)).join(' · ')}</td></tr>`).join('')}
+      </tbody></table></div>` : '';
+  return intro + pb + recent +
+    `<div class="vc-actions" style="margin-top:12px"><a class="btn" href="https://github.com/${REPO}/issues/new?template=log-action.yml" target="_blank" rel="noopener">Log an action</a></div>`;
 }
 
-const HEALTH_ICON = { error: ['●', 'bad'], warn: ['▲', 'warn'], info: ['i', 'muted'] };
+// ---- Groups ------------------------------------------------------------------
+const GROUPS = [
+  { key: 'packaging', title: 'Fix the packaging',
+    what: 'CTR fell on its own last week: impressions came (or held) but clicks did not follow. A thumbnail test or a title refresh is the move.',
+    body: A => A.cards.filter(c => c.situation === 'packaging' || c.situation === 'clicks').map(videoCard) },
+  { key: 'games-up', title: 'Games waking up',
+    what: 'Several older videos of one game moved up together: the topic is active again.',
+    body: A => (A.games || []).filter(g => g.direction > 0).map(gameCard) },
+  { key: 'wave', title: 'Ride the wave',
+    what: 'Impressions or views clearly up on the video\'s own last week. Point the new viewers onward.',
+    body: A => A.cards.filter(c => c.situation === 'wave').map(videoCard) },
+  { key: 'early', title: 'Early signals',
+    what: 'Not confirmed by a full week yet. Worth a look before it shows in the weekly numbers.',
+    raw: A => { const E = A.early || {}; return earlyHtml(E); },
+    count: A => { const E = A.early || {}; return (E.flares || []).length + (E.today || []).length + (E.building || []).length; } },
+  { key: 'losing', title: 'Losing reach',
+    what: 'Clearly down on the video\'s own last week. The source that dropped shows where to look.',
+    body: A => A.cards.filter(c => c.situation === 'losing').map(videoCard)
+      .concat((A.games || []).filter(g => g.direction < 0).map(gameCard)) },
+  { key: 'conversation', title: 'Conversation',
+    what: 'Far more comments or dislikes than last week.',
+    body: A => A.cards.filter(c => c.situation === 'conversation').map(videoCard) },
+  { key: 'topics', title: 'Searches and sites on the rise',
+    what: 'Search terms, outside sites and other channels\' videos sending clearly more views than last week.',
+    raw: A => topicsHtml(A.topics || {}),
+    count: A => Object.values(A.topics || {}).reduce((n, es) => n + es.length, 0) },
+  { key: 'learned', title: 'Actions and what worked', always: true, closed: true,
+    what: 'What you did, and how each video did 7, 14 and 28 days later.',
+    raw: A => learnedHtml(A), count: A => (A.actions || []).length },
+];
+
+const OPEN_KEY = 'yt-analyzer-open';
+function openState() { try { return JSON.parse(localStorage.getItem(OPEN_KEY) || '{}'); } catch (e) { return {}; } }
+function rememberOpen(key, open) {
+  try { const s = openState(); s[key] = open; localStorage.setItem(OPEN_KEY, JSON.stringify(s)); } catch (e) { /* private mode */ }
+}
 
 function renderAttention() {
   const el = document.getElementById('attention');
   const A = ATTENTION;
-  if (!A) {
-    el.innerHTML = `<div class="att-head"><h2>Needs attention</h2></div>
-      <p class="att-quiet">Appears after the next collector run, which writes <code>data/attention.json</code>.</p>`;
+  if (!A || !A.cards) {
+    el.innerHTML = `<p class="quiet">The new view appears after the next collector run, which writes <code>data/attention.json</code>.</p>`;
     return;
   }
-  const head = `<div class="att-head"><h2>Needs attention</h2>
-    <span class="stamp">${shortDate(A.recent.from)}–${shortDate(A.recent.to)} compared with the 4 weeks before</span></div>`;
-  const health = (A.health || []).length ? `<div class="att-health">${A.health.map(h => {
-    const [ico, cls] = HEALTH_ICON[h.level] || HEALTH_ICON.info;
-    return `<div class="att-h"><span class="ico ${cls}">${ico}</span><span>${esc(h.message)}</span></div>`;
-  }).join('')}</div>` : '';
-
-  const groups = [
-    ['moving_today', 'Moving today', 'same-day jumps',
-     'Public view counter since the previous collector run, far above the usual — the analytics run 2–3 days behind.',
-     (A.moving_today || []).map(e => attRow(e, {
-       nums: `<div><b>${fmt(e.views.now)}</b> views/day${change(e.views.usual, e.views.now)}</div>` +
-             `<div class="muted">usually ${rate(e.views.usual)}/day</div>`,
-       extra: (e.likes > 0 || e.comments > 0) ? `<div class="att-drivers"><div>Since the previous run: ${
-         [e.likes > 0 ? `+${fmt(e.likes)} likes` : '', e.comments > 0 ? `+${fmt(e.comments)} comments` : '']
-           .filter(Boolean).join(', ')}</div></div>` : '',
-     }))],
-    ['rising', 'Rising · back catalogue', 'rising older videos',
-     'Older than 30 days, views or impressions at least doubled. Worth a pinned comment, a description refresh, cards to newer videos or a follow-up.',
-     (A.rising || []).map(e => attRow(e, {
-       metric: e.trigger === 'impressions' ? 'impressions' : 'views',
-       nums: rateLine(e.views, 'views') + rateLine(e.impressions, 'impr.'),
-       extra: driverLines(e.drivers),
-     }))],
-    ['falling', 'Falling', 'falling videos',
-     'Established videos whose views halved. The source that dropped shows where — lost search ranking is often fixable with a title or description refresh.',
-     (A.falling || []).map(e => attRow(e, { nums: rateLine(e.views, 'views') + rateLine(e.impressions, 'impr.'),
-                                             extra: driverLines(e.drivers) }))],
-    ['ctr_drop', 'CTR drop', 'CTR drops',
-     'Clicks per impression down 25% or more while impressions held steady: a thumbnail or title test candidate.',
-     (A.ctr_drop || []).map(e => attRow(e, {
-       metric: 'impressions',
-       nums: `<div>CTR ${pct(e.ctr.before)} → <b>${pct(e.ctr.now)}</b>${change(e.ctr.before, e.ctr.now)}</div>` +
-             rateLine(e.impressions, 'impr.'),
-     }))],
-    ['new_uploads', 'New uploads', 'recent uploads',
-     'First 28 days, against your other uploads at the same age. #1 is the best of them.',
-     (A.new_uploads || []).map(uploadRow)],
-    ['reaction', 'Audience reaction', 'audience-reaction spikes',
-     'Dislikes, comments or unsubscribes well above what the video usually gets.',
-     (A.reaction || []).map(e => attRow(e, {
-       nums: e.kinds.map(k => `<div><b>${fmt(e.week[REACTION_KEYS[k]])}</b> ${k} this week ` +
-         `<span class="muted">(usually ${rate(e.usual_week[REACTION_KEYS[k]])})</span></div>`).join(''),
-     }))],
-  ];
-  const quiet = [];
-  let body = '';
-  for (const [key, title, quietLabel, rule, rows] of groups) {
-    if (rows.length) body += attGroup(key, title, rule, rows);
-    // Without two snapshots there is nothing to say about today yet.
-    else if (key !== 'moving_today' || A.snapshot) quiet.push(quietLabel);
+  document.getElementById('att-range').textContent =
+    `${shortDate(A.this_week.from)}–${shortDate(A.this_week.to)} vs ${shortDate(A.last_week.from)}–${shortDate(A.last_week.to)} · every video against its own last week`;
+  const HEALTH = { error: 'error', warn: 'warn', info: '' };
+  const health = (A.health || []).length
+    ? `<div class="att-health">${A.health.map(h => `<div class="att-h ${HEALTH[h.level] || ''}">${esc(h.message)}</div>`).join('')}</div>` : '';
+  const saved = openState(), quiet = [];
+  let html = '';
+  for (const g of GROUPS) {
+    const cards = g.body ? g.body(A) : null;
+    const raw = g.raw ? g.raw(A) : '';
+    const n = cards ? cards.length : g.count(A);
+    if (!n && !g.always) { quiet.push(g.title.toLowerCase()); continue; }
+    const open = saved[g.key] !== undefined ? saved[g.key] : !g.closed;
+    const all = showAll.has(g.key);
+    const content = cards
+      ? `<div class="cards">${(all ? cards : cards.slice(0, CARDS_SHOWN)).join('')}</div>` +
+        (cards.length > CARDS_SHOWN ? `<p style="margin:12px 0 0"><button type="button" class="btn" data-more="${g.key}">${all ? 'Show fewer' : `Show all ${cards.length}`}</button></p>` : '')
+      : `<div class="${g.key === 'early' ? 'early' : ''}">${raw}</div>`;
+    html += `<details class="group" data-key="${g.key}" ${open ? 'open' : ''}>
+      <summary><span class="fold">▶</span><h3>${g.title}</h3>${n ? `<span class="count">${n}</span>` : ''}
+        <span class="group-what">${g.what}</span></summary>
+      <div class="group-body">${content}</div></details>`;
   }
-  const topics = Object.keys(TOPIC_TITLES).map(n => topicTable(n, (A.topics || {})[n])).join('');
-  if (topics) {
-    body += `<div class="att-group"><div class="att-group-head"><h3>Rising topics</h3>
-      <span class="att-rule">Searches, sites and other channels' videos sending at least 3× their usual views — what is heating up.</span></div>
-      <div class="att-topics">${topics}</div></div>`;
-  } else quiet.push('rising topics');
   const list = quiet.length > 1 ? quiet.slice(0, -1).join(', ') + ' or ' + quiet[quiet.length - 1] : quiet[0];
-  el.innerHTML = head + health + body + (quiet.length ? `<p class="att-quiet">No ${list} this week.</p>` : '');
+  el.innerHTML = health + html + (quiet.length ? `<p class="quiet">Nothing this week in ${list}.</p>` : '');
 }
 
 // "Show in table": filter the table down to the video and open its breakdown.
@@ -1099,6 +1295,8 @@ function focusVideo(id) {
   expanded = id;
   renderMetrics();
   render();
+  const sec = document.querySelector('details.section[data-key="channel"]');
+  if (sec && !sec.open) sec.open = true;
   const row = document.querySelector(`tr.row[data-id="${CSS.escape(id)}"]`);
   if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
@@ -1402,15 +1600,25 @@ attEl.addEventListener('click', e => {
   const more = e.target.closest('[data-more]');
   if (more) {
     const k = more.dataset.more;
-    if (attOpen.has(k)) attOpen.delete(k); else attOpen.add(k);
+    if (showAll.has(k)) showAll.delete(k); else showAll.add(k);
     renderAttention();
     return;
   }
   const focus = e.target.closest('[data-focus]');
   if (focus) focusVideo(focus.dataset.focus);
 });
-attEl.addEventListener('mousemove', attSparkHover);
+attEl.addEventListener('mousemove', miniSparkHover);
 attEl.addEventListener('mouseleave', () => { document.getElementById('att-tip').style.opacity = 0; });
+// Remember which sections and groups are folded ('toggle' does not bubble).
+document.addEventListener('toggle', e => {
+  const d = e.target;
+  if (d.matches && d.matches('details.section, details.group') && d.dataset.key) rememberOpen(d.dataset.key, d.open);
+}, true);
+// The table header sticks just below the page header, whatever its height.
+const setHeaderH = () => document.documentElement.style.setProperty(
+  '--header-h', document.querySelector('header').offsetHeight + 'px');
+window.addEventListener('resize', setHeaderH);
+setHeaderH();
 
 // Clicking a row opens its breakdown; clicking it again closes it.
 document.getElementById('rows').addEventListener('click', e => {
