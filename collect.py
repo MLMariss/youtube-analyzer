@@ -528,6 +528,9 @@ def main():
             if len(missing) > 5:
                 print(f"    ... and {len(missing) - 5} more")
     state["jobs"] = jobs
+    if offered:
+        # monitor.py's health check only asks for jobs YouTube can create.
+        state["offered"] = sorted(offered)
 
     print(f"\nCollecting reports...")
     totals = {"new": 0, "replaced": 0, "failed": 0, "skipped": 0}
