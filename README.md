@@ -167,6 +167,7 @@ clicks separately, then divide. Retention is weighted by views the same way.
 | `has not been used in project` 403 | Reporting API not enabled in Library |
 | Dashboard says "no data yet" | Jobs not created, or <48h since creation |
 | A report type is skipped | Not available for this channel; harmless |
+| Log says *Not offered by YouTube* | Deprecated report, or a wrong id in `report_types.py`; a following *missing from report_types.py* line names the id YouTube does offer |
 | `redirect_uri_mismatch` | Web client without `http://localhost:8765/` registered |
 
 ## Data retention

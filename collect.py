@@ -165,20 +165,35 @@ def create_job(creds, report_type_id):
     return payload["id"]
 
 
-def ensure_jobs(creds, wanted_ids, dry_run=False):
+def check_registry(offered, wanted_ids):
+    """
+    Name every mismatch between report_types.py and what YouTube offers.
+
+    A wrong id (say _a2 where YouTube offers _a1) is otherwise indistinguishable
+    from a report this channel cannot have, and its data then expires
+    uncollected every day without anyone noticing.
+    """
+    unoffered = [r for r in wanted_ids if r not in offered]
+    unregistered = sorted(offered - set(CHANNEL_REPORTS))
+    if unoffered:
+        print("  Not offered by YouTube (deprecated, or a wrong id in report_types.py):")
+        for r in unoffered:
+            print(f"    - {r}")
+    if unregistered:
+        print("  Offered by YouTube but missing from report_types.py:")
+        for r in unregistered:
+            print(f"    - {r}")
+
+
+def ensure_jobs(creds, wanted_ids, offered, dry_run=False):
     """Create a reporting job for each wanted report type that lacks one."""
     existing = list_jobs(creds)
-    try:
-        allowed = available_report_types(creds)
-    except Exception as e:
-        print(f"  ! could not list report types ({e}); attempting all anyway")
-        allowed = set(wanted_ids)
 
     created = {}
     for rid in wanted_ids:
         if rid in existing:
             continue
-        if allowed and rid not in allowed:
+        if offered and rid not in offered:
             print(f"  - {rid}: not available for this channel, skipping")
             continue
         if dry_run:
@@ -450,11 +465,21 @@ def main():
     state = load_state()
 
     print(f"\nEnsuring reporting jobs ({len(wanted)} report types)...")
+    try:
+        offered = available_report_types(creds)
+    except Exception as e:
+        print(f"  ! could not list report types ({str(e)[:200]}); assuming all are offered")
+        offered = None
+    if offered:
+        check_registry(offered, wanted)
+
     if args.create_jobs:
-        jobs = ensure_jobs(creds, wanted, dry_run=args.dry_run)
+        jobs = ensure_jobs(creds, wanted, offered, dry_run=args.dry_run)
     else:
         jobs = list_jobs(creds)
-        missing = [r for r in wanted if r not in jobs]
+        # Only reports a job could actually be created for; check_registry has
+        # already named the rest.
+        missing = [r for r in wanted if r not in jobs and (not offered or r in offered)]
         if missing:
             print(f"  {len(missing)} report type(s) have no job yet. "
                   "Re-run with --create-jobs to schedule them.")
