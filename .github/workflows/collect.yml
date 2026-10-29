@@ -2,10 +2,11 @@ name: Collect YouTube analytics
 
 on:
   schedule:
-    # 02:00 UTC = 05:00 Riga (EEST, UTC+3). Note GitHub runs cron in UTC and
-    # does not follow daylight saving, so in winter (EET, UTC+2) this lands at
-    # 04:00 local. Adjust to '0 3 * * *' if you want 05:00 year-round in winter.
-    - cron: '0 2 * * *'
+    # 02:23 UTC = 05:23 Riga in summer (EEST, UTC+3), 04:23 in winter (EET,
+    # UTC+2): GitHub runs cron in UTC and ignores daylight saving. The odd
+    # minute is deliberate. Schedules on the hour queue behind everyone else's;
+    # at '0 2 * * *' runs started five to seven hours late.
+    - cron: '23 2 * * *'
   workflow_dispatch:
     inputs:
       create_jobs:
@@ -32,10 +33,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 

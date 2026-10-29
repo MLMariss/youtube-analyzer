@@ -82,9 +82,10 @@ otherwise push the site past GitHub Pages' 1 GB limit.
 
 ## Daily operation
 
-Runs at **02:00 UTC = 05:00 Riga** (summer). GitHub cron is UTC and ignores DST,
-so in winter it lands at 04:00 local; change the cron to `0 3 * * *` if that
-matters.
+Runs at **02:23 UTC** — 05:23 Riga in summer, 04:23 in winter, since GitHub cron
+is UTC and ignores DST. The odd minute is deliberate: schedules on the hour
+queue behind everyone else's, and at `0 2 * * *` runs started five to seven
+hours late.
 
 Each run: refresh jobs → list reports → skip anything already archived →
 download the rest → write shards → rebuild summaries → commit.
