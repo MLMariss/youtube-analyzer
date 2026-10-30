@@ -11135,7 +11135,7 @@
     "playlist_province_a2": "0c217b96-e686-44cc-9daf-7651980893b0",
     "playlist_traffic_source_a2": "2f9ca6e0-4576-40ed-98ba-9cb41adb4726"
   },
-  "last_run": "2026-10-29T19:17:33.608122+00:00",
+  "last_run": "2026-10-30T08:47:29.784753+00:00",
   "offered": [
     "channel_annotations_a1",
     "channel_basic_a3",
@@ -11159,12 +11159,6 @@
     "playlist_traffic_source_a2"
   ],
   "runs": [
-    {
-      "at": "2026-09-01T07:39:59.502643+00:00",
-      "backfilled": 23,
-      "failed": 0,
-      "new": 0
-    },
     {
       "at": "2026-09-02T07:02:14.550524+00:00",
       "backfilled": 1,
@@ -11518,6 +11512,12 @@
       "backfilled": 0,
       "failed": 0,
       "new": 11
+    },
+    {
+      "at": "2026-10-30T08:47:29.784753+00:00",
+      "backfilled": 0,
+      "failed": 0,
+      "new": 0
     }
   ]
 }
