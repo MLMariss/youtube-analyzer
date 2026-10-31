@@ -1075,6 +1075,11 @@ function sinceLine(sig) {
 }
 const shiftBasis = sh => `vs before ${shortDate(sh.date)}`;
 
+// The game's Steam update behind a change (patches.py).
+const steamLink = u => u.url ? `<a href="${esc(u.url)}" target="_blank" rel="noopener">${esc(u.title)}</a>` : esc(u.title);
+const updateLine = u => u
+  ? `<div class="vc-why"><span class="inl">Update</span>${steamLink(u)} · ${shortDate(u.date)} on Steam</div>` : '';
+
 function learnedText(l) {
   if (!l) return '';
   const where = l.scope === 'here' ? 'in this situation' : 'before';
@@ -1145,6 +1150,7 @@ function videoCard(c) {
       ${row('Views', 'views')}
     </div>
     ${sinceLine(s)}
+    ${updateLine(c.update)}
     ${whyLine(c.drivers, (c.lead === 'impressions' ? 'impressions' : 'views') + (byShift ? ' a week' : ''))}
     ${planList(c.plan, id, c.situation)}
     ${buttons(id, c.situation, comments)}
@@ -1181,6 +1187,7 @@ function gameCard(g) {
       ${row('Views', 'views')}
     </div>
     ${sh ? sinceLine({ views: { shift: sh.views }, impressions: { shift: sh.impressions } }) : ''}
+    ${updateLine(g.update)}
     ${whyLine(g.drivers, sh ? `${sh.lead} a week` : 'impressions')}
     ${planList(g.plan, null, null)}
     <details class="members"><summary>Show the ${g.members.length} videos</summary>
@@ -1195,8 +1202,9 @@ function earlyHtml(E) {
   if ((E.flares || []).length) {
     out.push('<h4>Games that flared on one day</h4>' + E.flares.map(f => `<div class="early-row">
       <div><b>${esc(f.label)}</b> flared on ${shortDate(f.date)}: ${f.videos} of ${f.of} videos spiked together,
-        ${fmt(f.impressions)} impressions that day against ${fmt(f.usual)} usually. Likely news: an update, DLC,
-        sale or trailer. Not a trend yet.</div></div>`).join(''));
+        ${fmt(f.impressions)} impressions that day against ${fmt(f.usual)} usually. ${f.update
+          ? `On Steam: ${steamLink(f.update)} (${shortDate(f.update.date)}).`
+          : 'Likely news: an update, DLC, sale or trailer.'} Not a trend yet.</div></div>`).join(''));
   }
   const row = (id, text) => `<div class="early-row"><div><a href="${studio(id, 'edit')}" target="_blank" rel="noopener"><b>${esc(attTitle(id))}</b></a><br>${text}</div>
     <div class="vc-actions"><a class="btn small" href="${studio(id, 'analytics')}" target="_blank" rel="noopener">Reach in Studio</a>
@@ -1211,6 +1219,14 @@ function earlyHtml(E) {
       row(b.video_id, `${b.metric} up three days running: ${fmt(b.weeks[1])} last week, ${fmt(b.weeks[2])} this week so far.`)).join(''));
   }
   return out.join('');
+}
+
+// Recent patches that share a topic with an older video on the game.
+function updatesHtml(U) {
+  return U.map(u => `<div class="early-row"><div><b>${esc(u.label)}</b>: ${steamLink(u)} (${shortDate(u.date)}) touches
+    ${u.videos.map(v => `<a href="${studio(v.video_id, 'edit')}" target="_blank" rel="noopener">${esc(attTitle(v.video_id))}</a>
+      (${v.words.map(w => `“${esc(w)}”`).join(', ')})`).join(' and ')}.
+    Pin a comment on what changed and refresh the description; a video on the update rides it.</div></div>`).join('');
 }
 
 function topicsHtml(T) {
@@ -1259,6 +1275,9 @@ const GROUPS = [
   { key: 'games-up', title: 'Games waking up',
     what: 'Several older videos of one game moved up together, this week or since a date they rose and stayed up: the topic is active again.',
     body: A => (A.games || []).filter(g => g.direction > 0).map(gameCard) },
+  { key: 'updates', title: 'Game updates touching your videos',
+    what: 'Patches from the last six weeks that share a topic with an older video of yours on the game: its advice may be out of date, and the update is a topic to cover.',
+    raw: A => updatesHtml(A.updates || []), count: A => (A.updates || []).length },
   { key: 'wave', title: 'Ride the wave',
     what: 'Impressions or views clearly up on the video\'s own last week, or still well above where they were before a recent rise. Point the new viewers onward.',
     body: A => A.cards.filter(c => c.situation === 'wave').map(videoCard) },
@@ -1312,7 +1331,7 @@ function renderAttention() {
     const content = cards
       ? `<div class="cards">${(all ? cards : cards.slice(0, CARDS_SHOWN)).join('')}</div>` +
         (cards.length > CARDS_SHOWN ? `<p style="margin:12px 0 0"><button type="button" class="btn" data-more="${g.key}">${all ? 'Show fewer' : `Show all ${cards.length}`}</button></p>` : '')
-      : `<div class="${g.key === 'early' ? 'early' : ''}">${raw}</div>`;
+      : `<div class="${g.key === 'early' || g.key === 'updates' ? 'early' : ''}">${raw}</div>`;
     html += `<details class="group" data-key="${g.key}" ${open ? 'open' : ''}>
       <summary><span class="fold">▶</span><h3>${g.title}</h3>${n ? `<span class="count">${n}</span>` : ''}
         <span class="group-what">${g.what}</span></summary>

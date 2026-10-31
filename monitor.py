@@ -31,6 +31,8 @@ same-day jumps in the public view counter.
 
 Each card carries concrete next steps; actions.py records what was done and
 measures whether it helped, and those results are shown next to the steps.
+patches.py names the Steam update behind a change, where there is one, and
+lists recent patches that touch the topic of an older video.
 
 Writes data/attention.json.
 
@@ -49,6 +51,7 @@ from datetime import date, datetime, timedelta, timezone
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import actions
+import patches
 from signals import SWING, Z_CLEAR, building_up, ctr_change, ctr_of, shift, weekly_change, z_count
 from report_types import CHANNEL_REPORTS
 from summarize import DATA_DIR, data_through, iter_shards, num, source_key, write_json
@@ -73,6 +76,7 @@ SHIFT_SETTLE = 60     # days after upload before a video's level means anything 
 SHIFT_LOOKBACK = 182  # days searched for shifts
 SETTLING_DAYS = 91    # within this long of a rise, easing back is the wave settling, not lost reach
 STALE_DAYS = 60       # a game's newest video older than this is worth saying
+COVERED_MIN = 20      # views over four weeks before a game's Steam updates are followed
 
 SEARCH, BROWSE, SUGGESTED, EXTERNAL = "5", "3", "7", "9"
 PLAYLIST_SOURCES = ("14", "18")   # Playlists, Playlist page
@@ -408,8 +412,12 @@ def step(key, text, link="edit"):
     return {"key": key, "text": text, "link": link}
 
 
-def plan_for(sit, sig, drv, newer, game_label):
-    """Concrete next steps for one video, from what changed and what drove it."""
+def plan_for(sit, sig, drv, newer, game_label, update=None, touched=False):
+    """
+    Concrete next steps for one video, from what changed and what drove it.
+    `update` is the game's Steam update behind the change; `touched`, whether
+    it shares a topic with this video.
+    """
     term, site = first_detail(drv, SEARCH), first_detail(drv, EXTERNAL)
     main = drv[0]["source"] if drv else None
     ctr = sig["ctr"]
@@ -439,9 +447,14 @@ def plan_for(sit, sig, drv, newer, game_label):
             steps.append(step("pinned_comment", f"Pin a comment linking {newer_title}." if newer else
                               "Pin a comment pointing to your playlist on this topic.", "comments"))
             if game_label:
-                steps.append(step("follow_up", f"{game_label} is drawing interest again: a new video or "
+                why = f" after {quoted(update['title'], 70)}" if update else ""
+                steps.append(step("follow_up", f"{game_label} is drawing interest again{why}: a new video or "
                                                "Short on it now rides the wave.", None))
     elif sit == "losing":
+        if update and touched:
+            steps.append(step("title", f"{quoted(update['title'], 70)} ({short_date(update['date'])}) changed what "
+                                       "this video covers: refresh the title, description and a pinned comment "
+                                       "for the update."))
         if main == SEARCH:
             lost = [d["detail"] for d in drv[0]["details"][:2]]
             steps.append(step("title", "Search traffic fell" + (" for " + ", ".join(f"“{x}”" for x in lost)
@@ -470,8 +483,21 @@ def plan_for(sit, sig, drv, newer, game_label):
     return steps
 
 
-def game_plan(direction, label, members, newest, term, moved, end):
-    """Next steps for a whole game card; `moved` is the game's own shift, if any."""
+def update_step(label, update, covering):
+    """What to do about the Steam update behind a game's change."""
+    said = f"{short_date(update['date'])}: {quoted(update['title'], 90)} on Steam."
+    if covering:
+        return step(None, f"{said} Your {quoted(covering, 50)} touches it: refresh its title, description "
+                          "and pinned comment for the update.", None)
+    return step(None, f"{said} None of your {label} videos covers it yet: that is the topic.", None)
+
+
+def game_plan(direction, label, members, newest, term, moved, end, update=None, covering=None):
+    """
+    Next steps for a whole game card; `moved` is the game's own shift, if any,
+    `update` the Steam update behind the change and `covering` the title of
+    one of your videos that shares its topic.
+    """
     steps = []
     if direction > 0:
         stale = ""
@@ -486,12 +512,15 @@ def game_plan(direction, label, members, newest, term, moved, end):
                                            f"and is still at {lift:.1f}× it: a new video or Short on it now rides "
                                            f"that interest." + stale
                               + (f" People search for “{term}”." if term else ""), None))
-            steps.append(step(None, f"Look up what happened to {label} around {short_date(moved['date'])}: an "
+            steps.append(update_step(label, update, covering) if update else
+                         step(None, f"Look up what happened to {label} around {short_date(moved['date'])}: an "
                                     "update, a sale, a big creator's video. That is the topic to cover.", None))
         else:
             steps.append(step("follow_up", f"{label} is waking up across {len(members)} videos: a new video "
                                            "or Short on it now rides the wave." + stale
                               + (f" People search for “{term}”." if term else ""), None))
+            if update:
+                steps.append(update_step(label, update, covering))
         if newest:
             steps.append(step("pinned_comment", f"Pin a comment on the biggest risers linking your newest "
                                                 f"{label} video, {quoted(newest['title'])}.", None))
@@ -793,13 +822,40 @@ def main():
     sources = {"impressions": (imp_source, imp_detail, imp_covered),
                "views": (view_source, view_detail, view_covered)}
 
+    # Steam updates for the games on the panel, and for any game still
+    # watched enough that an outdated video matters.
+    flares = game_flares(daily, games, end)
+    month = span(end, 28)
+    watched = Counter()
+    for vid, g in games.items():
+        if g and vid in daily:
+            watched[g] += sum(daily[vid].get(d, {}).get("views", 0.0) for d in month)
+    keys = {g for g, n in watched.items() if n >= COVERED_MIN}
+    keys |= {c["game"] for c in flagged.values() if c["game"]} | {g for g, _ in groups} | {f["game"] for f in flares}
+    steam = patches.load(names, keys)
+    calendar = datetime.now(timezone.utc).date()
+    recent = iso(end - timedelta(days=10))
+    videos_of = defaultdict(list)
+    for vid, g in games.items():
+        if g and meta.get(vid, {}).get("title"):
+            videos_of[g].append((vid, meta[vid]["title"]))
+
+    def update_for(g, sig, lead, basis):
+        """The Steam update behind a change: next to a shift's date, or since shortly before this week."""
+        if basis == "shift":
+            return patches.near(steam.get(g), sig[lead]["shift"]["date"])
+        return patches.within(steam.get(g), recent, iso(calendar))
+
     for vid, card in flagged.items():
         sig, sit, lead, basis = card["signals"], card["situation"], card["lead"], card["basis"]
         direction = (sig[lead]["shift"]["dir"] if basis == "shift" else sig[lead]["dir"]) \
             or (-1 if sit in ("clicks", "losing") else 1)
         card["drivers"] = drivers([vid], direction, *windows(sig, lead, basis, end), *sources[lead])
         g = card["game"]
-        card["plan"] = plan_for(sit, sig, card["drivers"], card.pop("newer"), names.get(g) if g else None)
+        card["update"] = update_for(g, sig, lead, basis) if g else None
+        touched = bool(card["update"] and patches.covered_by(card["update"], names[g], [(vid, meta[vid].get("title"))]))
+        card["plan"] = plan_for(sit, sig, card["drivers"], card.pop("newer"), names.get(g) if g else None,
+                                card["update"], touched)
 
     # Three or more videos of one game moving the same way, or the game as a
     # whole shifting with two of them: one game card.
@@ -830,6 +886,9 @@ def main():
         term = terms.most_common(1)[0][0] if terms and direction > 0 else None
         newest_video = ({"video_id": newest[g], "title": meta[newest[g]].get("title"),
                          "published": iso(published[newest[g]])} if newest.get(g) else None)
+        update = (patches.near(steam.get(g), move["shift"]["date"]) if move
+                  else patches.within(steam.get(g), recent, iso(calendar)))
+        covering = patches.covered_by(update, names[g], videos_of[g]) if update else []
         game_cards.append({
             "game": g, "label": names[g], "direction": direction, "totals": totals,
             "shift": {"lead": lead, "of": move["of"], "weeks": {m: move["signals"][m]["weeks"] for m in METRICS},
@@ -842,17 +901,21 @@ def main():
                          "ctr": [c["signals"]["ctr"]["last"], c["signals"]["ctr"]["this"]],
                          "shift": c["signals"][c["lead"]]["shift"] if c["basis"] == "shift" else None,
                          "lead": c["lead"], "flags": c["flags"]} for c in members],
+            "update": update,
             "plan": game_plan(direction, names[g], members, newest_video, term,
-                              move["shift"] if move else None, end),
+                              move["shift"] if move else None, end, update,
+                              meta[covering[0][0]].get("title") if covering else None),
         })
         in_game.update(vids)
     game_cards.sort(key=lambda c: (-c["direction"], -len(c["members"])))
     rank = lambda c: abs(c["signals"][c["lead"]]["shift"]["z"] if c["basis"] == "shift" else c["signals"][c["lead"]]["z"])
     cards = sorted((c for v, c in flagged.items() if v not in in_game), key=lambda c: -rank(c))
 
-    flares = game_flares(daily, games, end)
     for f in flares:
         f["label"] = names[f["game"]]
+        f["update"] = patches.near(steam.get(f["game"]), f["date"], before=3, after=1)
+    updates = patches.touching(steam, names, videos_of,
+                               {v: iso(p) for v, p in published.items()}, calendar)
     today, snapshot_span, snapshot_days = snapshot_movers(daily, ages, through)
     topics = rising_topics(topic_daily, topic_videos, meta, end)
 
@@ -874,6 +937,7 @@ def main():
     referenced |= {v["video_id"] for es in topics.values() for e in es for v in e["videos"]}
     referenced |= {a["video_id"] for a in logged}
     referenced |= {newest[g] for g in newest}
+    referenced |= {v["video_id"] for u in updates for v in u["videos"]}
     videos = {vid: {"title": meta.get(vid, {}).get("title"),
                     "published": (meta.get(vid, {}).get("published_at") or "")[:10] or None,
                     "age_days": ages.get(vid), "game": names.get(games.get(vid)) if games.get(vid) else None}
@@ -906,6 +970,7 @@ def main():
         "games": game_cards,
         "early": {"building": building, "flares": flares, "today": today, "snapshot": snapshot_span},
         "topics": topics,
+        "updates": updates,
         "actions": logged,
         "playbook": playbook,
         "videos": videos,
@@ -919,7 +984,7 @@ def main():
     print(f"  · cards: {dict(counts)} ({shifted} from shifts) | games: {len(game_cards)} "
           f"({sum(len(g['members']) for g in game_cards)} videos, {sum(1 for g in game_cards if g['shift'])} from shifts)"
           f" | building: {len(building)} | flares: {len(flares)} | today: {len(today)}"
-          f" | topics: {sum(len(e) for e in topics.values())} | actions: {len(logged)}")
+          f" | topics: {sum(len(e) for e in topics.values())} | updates: {len(updates)} | actions: {len(logged)}")
     return 0
 
 
