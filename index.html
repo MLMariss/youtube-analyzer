@@ -305,6 +305,7 @@
   .st-v b { font-weight: 700; }
   .st-d { font-size: 14.5px; font-weight: 700; margin-left: 8px; white-space: nowrap; }
   .st-d.flat { color: var(--muted); font-weight: 500; }
+  .st-basis { font-size: 13px; color: var(--muted); margin-left: 6px; white-space: nowrap; }
   .vc-why { font-size: 15px; color: var(--text-2); line-height: 1.5; }
   .vc-why b, .vc-why strong { color: var(--text); }
   .vc-why a, .early a, .mtable a, .att-table a { color: var(--link); }
@@ -359,6 +360,7 @@
   /* Trend: 28 days, last week shaded, this week in the accent over the muted past. */
   svg.spark-mini { width: 150px; height: 34px; display: block; overflow: visible; cursor: crosshair; }
   .sm-band { fill: var(--surface-2); }
+  .sm-mark { stroke: var(--accent); stroke-width: 1; stroke-dasharray: 2 2; }
   .sm-base { stroke: var(--baseline); stroke-width: 1; }
   .sm-old { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
   .sm-new { fill: none; stroke: var(--accent); stroke-width: 2.25; stroke-linejoin: round; stroke-linecap: round; }
@@ -928,7 +930,8 @@ function renderMetrics() {
 
 // ---- Needs attention -------------------------------------------------------
 // monitor.py compares every video with itself (this week against last week,
-// and the week before for slower climbs) and sorts what changed by what to do
+// and the week before for slower climbs; and its level now against where it
+// was before a lasting rise or fall) and sorts what changed by what to do
 // about it. actions.py measures what was done, and what worked before is shown
 // next to each suggestion.
 let ATTENTION = null;
@@ -954,6 +957,10 @@ const SITUATION_LABEL = {
 };
 const HOW_LABEL = { jump: 'jumped this week', drop: 'dropped this week',
                     climb: 'climbing two weeks', slide: 'sliding two weeks' };
+// A shift: the date a level moved and stayed moved, and where last week stood
+// against the average since (trend -1, 0, 1).
+const SHIFT_NOW = { 1: ['easing off', 'holding', 'still rising'], '-1': ['still falling', 'holding', 'recovering'] };
+const shiftTag = sh => `${sh.dir > 0 ? 'up' : 'down'} since ${shortDate(sh.date)} · ${SHIFT_NOW[sh.dir][sh.trend + 1]}`;
 
 const studio = (id, page) => `https://studio.youtube.com/video/${encodeURIComponent(id)}/` +
   ({ edit: 'edit', comments: 'comments', analytics: 'analytics/tab-reach_viewers/period-default' }[page] || 'edit');
@@ -985,7 +992,7 @@ function sparkGeom(vals) {
 function seriesFor(ref) {
   const [kind, key, metric] = ref.split('|');
   const s = kind === 'g' ? (ATTENTION.game_series || {})[key] : (ATTENTION.series || {})[key];
-  return s && s[metric] ? { from: s.from, vals: s[metric], metric } : null;
+  return s && s[metric] ? { from: s.from, vals: s[metric], metric, mark: s.mark } : null;
 }
 function spark(ref) {
   const s = seriesFor(ref);
@@ -993,9 +1000,12 @@ function spark(ref) {
   const g = sparkGeom(s.vals);
   const pts = s.vals.map((v, i) => `${g.x(i).toFixed(1)},${g.y(v).toFixed(1)}`);
   const n = g.n, lastStart = n - 14, thisStart = n - 7;
+  const at = s.mark ? Math.round((Date.parse(s.mark) - Date.parse(s.from)) / 864e5) : -1;
+  const mark = at >= 0 && at < n
+    ? `<line class="sm-mark" x1="${g.x(at).toFixed(1)}" y1="0" x2="${g.x(at).toFixed(1)}" y2="${g.H}" vector-effect="non-scaling-stroke"/>` : '';
   return `<svg class="spark-mini" viewBox="0 0 ${g.W} ${g.H}" preserveAspectRatio="none" data-ref="${esc(ref)}"
-      role="img" aria-label="${s.metric} per day, last ${n} days; last week shaded, this week highlighted">
-    <rect class="sm-band" x="${g.x(lastStart).toFixed(1)}" y="0" width="${(g.x(thisStart - 1) - g.x(lastStart)).toFixed(1)}" height="${g.H}"/>
+      role="img" aria-label="${s.metric} per day, last ${n} days; last week shaded, this week highlighted${s.mark ? `, dashed line on ${shortDate(s.mark)}` : ''}">
+    <rect class="sm-band" x="${g.x(lastStart).toFixed(1)}" y="0" width="${(g.x(thisStart - 1) - g.x(lastStart)).toFixed(1)}" height="${g.H}"/>${mark}
     <line class="sm-base" x1="${g.pad}" y1="${g.H - g.pad}" x2="${g.W - g.pad}" y2="${g.H - g.pad}" vector-effect="non-scaling-stroke"/>
     <polyline class="sm-old" points="${pts.slice(0, thisStart).join(' ')}" vector-effect="non-scaling-stroke"/>
     <polyline class="sm-new" points="${pts.slice(thisStart - 1).join(' ')}" vector-effect="non-scaling-stroke"/>
@@ -1022,16 +1032,17 @@ function miniSparkHover(evt) {
 }
 
 // ---- Card pieces -------------------------------------------------------------
-// One metric: last week -> this week, the change, and whether it is a clear
-// change for this video (dir) or within its normal week-to-week swing.
-function statRow(label, last, now, dir, f, ref) {
+// One metric: last week -> this week (or another `basis`, such as the level
+// before a shift), the change, and whether it is a clear change for this
+// video (dir) or within its normal swing.
+function statRow(label, last, now, dir, f, ref, basis) {
   const change = last ? (now - last) / last * 100 : null;
   const shown = change === null ? (now ? 'from 0' : 'no change') : signedPct(change);
   const delta = dir
     ? `<span class="st-d ${dir > 0 ? 'good' : 'bad'}">${dir > 0 ? '▲' : '▼'} ${shown}</span>`
     : `<span class="st-d flat">${shown} · normal swing</span>`;
   return `<div class="stat"><span class="st-k">${label}</span>
-    <span class="st-v">${f(last)} → <b>${f(now)}</b>${delta}</span>${ref ? spark(ref) : ''}</div>`;
+    <span class="st-v">${f(last)} → <b>${f(now)}</b>${delta}${basis ? `<span class="st-basis">${esc(basis)}</span>` : ''}</span>${ref ? spark(ref) : ''}</div>`;
 }
 
 function detailLabel(source, detail) {
@@ -1050,6 +1061,24 @@ function whyLine(drivers, unit) {
   return `<div class="vc-why"><span class="inl">Why</span>${parts.join(' · ')}</div>`;
 }
 const signed = n => (n > 0 ? '+' : n < 0 ? '−' : '±') + fmt(Math.abs(n));
+
+// Each lasting shift: the level before, last week, the best (or worst) week
+// since, and how far last week still is from the old level.
+function sinceLine(sig) {
+  const parts = ['views', 'impressions'].filter(m => sig[m] && sig[m].shift).map(m => {
+    const sh = sig[m].shift, x = sh.now / Math.max(sh.before, 1);
+    return `<strong>${sh.dir > 0 ? 'Up' : 'Down'} since ${shortDate(sh.date)}</strong>: ${fmt(sh.before)} → ${fmt(sh.now)} ${m} a week ` +
+      `(${sh.dir > 0 ? 'best' : 'lowest'} ${fmt(sh.peak)}, week of ${shortDate(sh.peak_from)}), ` +
+      (x >= 1 ? `still ${x.toFixed(1)}× the level before` : `still ${Math.round((1 - x) * 100)}% below the level before`);
+  });
+  return parts.length ? `<div class="vc-why"><span class="inl">Since</span>${parts.join(' · ')}</div>` : '';
+}
+const shiftBasis = sh => `vs before ${shortDate(sh.date)}`;
+
+// The game's Steam update behind a change (patches.py).
+const steamLink = u => u.url ? `<a href="${esc(u.url)}" target="_blank" rel="noopener">${esc(u.title)}</a>` : esc(u.title);
+const updateLine = u => u
+  ? `<div class="vc-why"><span class="inl">Update</span>${steamLink(u)} · ${shortDate(u.date)} on Steam</div>` : '';
 
 function learnedText(l) {
   if (!l) return '';
@@ -1100,7 +1129,11 @@ function buttons(id, situation, extra = '') {
 
 function videoCard(c) {
   const id = c.video_id, v = (ATTENTION.videos || {})[id] || {}, s = c.signals;
-  const how = HOW_LABEL[s[c.lead].how];
+  const byShift = c.basis === 'shift';
+  const how = byShift ? shiftTag(s[c.lead].shift) : HOW_LABEL[s[c.lead].how];
+  const row = (label, m) => byShift && s[m].shift
+    ? statRow(label, s[m].shift.before, s[m].shift.now, s[m].shift.dir, fmt, `v|${id}|${m}`, shiftBasis(s[m].shift))
+    : statRow(label, s[m].weeks[1], s[m].weeks[2], s[m].dir, fmt, `v|${id}|${m}`);
   const flags = (c.flags || []).map(f => `<span class="tag">${f === 'comments' ? 'comments ▲' : 'dislikes ▲'}</span>`).join('');
   const comments = c.situation === 'conversation' || (c.flags || []).includes('comments')
     ? `<a class="btn" href="${studio(id, 'comments')}" target="_blank" rel="noopener">Comments</a>` : '';
@@ -1112,11 +1145,13 @@ function videoCard(c) {
       <h4 class="vc-title"><a href="${studio(id, 'edit')}" target="_blank" rel="noopener">${esc(attTitle(id))}</a></h4>
     </div>
     <div class="vc-stats">
-      ${statRow('Impressions', s.impressions.weeks[1], s.impressions.weeks[2], s.impressions.dir, fmt, `v|${id}|impressions`)}
+      ${row('Impressions', 'impressions')}
       ${statRow('CTR', s.ctr.last, s.ctr.this, s.ctr.dir, pct, null)}
-      ${statRow('Views', s.views.weeks[1], s.views.weeks[2], s.views.dir, fmt, `v|${id}|views`)}
+      ${row('Views', 'views')}
     </div>
-    ${whyLine(c.drivers, c.lead === 'impressions' ? 'impressions' : 'views')}
+    ${sinceLine(s)}
+    ${updateLine(c.update)}
+    ${whyLine(c.drivers, (c.lead === 'impressions' ? 'impressions' : 'views') + (byShift ? ' a week' : ''))}
     ${planList(c.plan, id, c.situation)}
     ${buttons(id, c.situation, comments)}
     ${historyFor(id)}
@@ -1124,10 +1159,15 @@ function videoCard(c) {
 }
 
 function gameCard(g) {
-  const up = g.direction > 0, t = g.totals;
+  const up = g.direction > 0, sh = g.shift, t = sh ? sh.weeks : g.totals;
   const dirOf = (a, b) => (b - a) / Math.max(a, 1) >= 0.1 ? 1 : (a - b) / Math.max(a, 1) >= 0.1 ? -1 : 0;
+  // A shift card shows the whole game added up, as the shift was measured on it.
+  const row = (label, m) => sh && sh[m]
+    ? statRow(label, sh[m].before, sh[m].now, sh[m].dir, fmt, `g|${g.game}|${m}`, shiftBasis(sh[m]))
+    : statRow(label, t[m][1], t[m][2], sh ? sh.dirs[m] : dirOf(t[m][1], t[m][2]), fmt, `g|${g.game}|${m}`);
   const rows = g.members.map(m => {
     const flags = [m.situation === 'packaging' ? '<span class="tag how">reach ▲ clicks ▼ → test thumbnail</span>' : '',
+                   m.shift ? `<span class="tag how">${esc(shiftTag(m.shift))}: ${fmt(m.shift.before)} → ${fmt(m.shift.now)} ${m.lead} a week</span>` : '',
                    ...(m.flags || []).map(f => `<span class="tag">${f} ▲</span>`)].join(' ');
     return `<tr><td><a href="${studio(m.video_id, 'edit')}" target="_blank" rel="noopener">${esc(attTitle(m.video_id))}</a> ${flags}</td>
       <td>${fmt(m.impressions[0])} → <b>${fmt(m.impressions[1])}</b></td>
@@ -1138,13 +1178,17 @@ function gameCard(g) {
   return `<article class="vcard">
     <div>
       <div class="vc-meta">${g.first_seen === ATTENTION.data_through ? '<span class="att-new">New</span>' : ''}
-        <span class="tag">Game</span><span>${g.members.length} videos moving together</span></div>
+        <span class="tag">Game</span>${sh ? `<span class="tag how">${esc(shiftTag(sh[sh.lead]))}</span>` : ''}
+        <span>${sh ? `${g.members.length} of its ${sh.of} older videos moved with it` : `${g.members.length} videos moving together`}</span></div>
       <h4 class="vc-title">${esc(g.label)} ${up ? 'is waking up' : 'is cooling down'}</h4>
     </div>
     <div class="vc-stats">
-      ${statRow('Impressions', t.impressions[1], t.impressions[2], dirOf(t.impressions[1], t.impressions[2]), fmt, `g|${g.game}|impressions`)}
-      ${statRow('Views', t.views[1], t.views[2], dirOf(t.views[1], t.views[2]), fmt, `g|${g.game}|views`)}
+      ${row('Impressions', 'impressions')}
+      ${row('Views', 'views')}
     </div>
+    ${sh ? sinceLine({ views: { shift: sh.views }, impressions: { shift: sh.impressions } }) : ''}
+    ${updateLine(g.update)}
+    ${whyLine(g.drivers, sh ? `${sh.lead} a week` : 'impressions')}
     ${planList(g.plan, null, null)}
     <details class="members"><summary>Show the ${g.members.length} videos</summary>
       <div class="scroll-x"><table class="mtable"><thead><tr><th>Video (opens Studio)</th><th>Impressions</th><th>Views</th><th>CTR</th><th></th></tr></thead>
@@ -1158,8 +1202,9 @@ function earlyHtml(E) {
   if ((E.flares || []).length) {
     out.push('<h4>Games that flared on one day</h4>' + E.flares.map(f => `<div class="early-row">
       <div><b>${esc(f.label)}</b> flared on ${shortDate(f.date)}: ${f.videos} of ${f.of} videos spiked together,
-        ${fmt(f.impressions)} impressions that day against ${fmt(f.usual)} usually. Likely news: an update, DLC,
-        sale or trailer. Not a trend yet.</div></div>`).join(''));
+        ${fmt(f.impressions)} impressions that day against ${fmt(f.usual)} usually. ${f.update
+          ? `On Steam: ${steamLink(f.update)} (${shortDate(f.update.date)}).`
+          : 'Likely news: an update, DLC, sale or trailer.'} Not a trend yet.</div></div>`).join(''));
   }
   const row = (id, text) => `<div class="early-row"><div><a href="${studio(id, 'edit')}" target="_blank" rel="noopener"><b>${esc(attTitle(id))}</b></a><br>${text}</div>
     <div class="vc-actions"><a class="btn small" href="${studio(id, 'analytics')}" target="_blank" rel="noopener">Reach in Studio</a>
@@ -1174,6 +1219,14 @@ function earlyHtml(E) {
       row(b.video_id, `${b.metric} up three days running: ${fmt(b.weeks[1])} last week, ${fmt(b.weeks[2])} this week so far.`)).join(''));
   }
   return out.join('');
+}
+
+// Recent patches that share a topic with an older video on the game.
+function updatesHtml(U) {
+  return U.map(u => `<div class="early-row"><div><b>${esc(u.label)}</b>: ${steamLink(u)} (${shortDate(u.date)}) touches
+    ${u.videos.map(v => `<a href="${studio(v.video_id, 'edit')}" target="_blank" rel="noopener">${esc(attTitle(v.video_id))}</a>
+      (${v.words.map(w => `“${esc(w)}”`).join(', ')})`).join(' and ')}.
+    Pin a comment on what changed and refresh the description; a video on the update rides it.</div></div>`).join('');
 }
 
 function topicsHtml(T) {
@@ -1220,17 +1273,20 @@ const GROUPS = [
     what: 'CTR fell on its own last week: impressions came (or held) but clicks did not follow. A thumbnail test or a title refresh is the move.',
     body: A => A.cards.filter(c => c.situation === 'packaging' || c.situation === 'clicks').map(videoCard) },
   { key: 'games-up', title: 'Games waking up',
-    what: 'Several older videos of one game moved up together: the topic is active again.',
+    what: 'Several older videos of one game moved up together, this week or since a date they rose and stayed up: the topic is active again.',
     body: A => (A.games || []).filter(g => g.direction > 0).map(gameCard) },
+  { key: 'updates', title: 'Game updates touching your videos',
+    what: 'Patches from the last six weeks that share a topic with an older video of yours on the game: its advice may be out of date, and the update is a topic to cover.',
+    raw: A => updatesHtml(A.updates || []), count: A => (A.updates || []).length },
   { key: 'wave', title: 'Ride the wave',
-    what: 'Impressions or views clearly up on the video\'s own last week. Point the new viewers onward.',
+    what: 'Impressions or views clearly up on the video\'s own last week, or still well above where they were before a recent rise. Point the new viewers onward.',
     body: A => A.cards.filter(c => c.situation === 'wave').map(videoCard) },
   { key: 'early', title: 'Early signals',
     what: 'Not confirmed by a full week yet. Worth a look before it shows in the weekly numbers.',
     raw: A => { const E = A.early || {}; return earlyHtml(E); },
     count: A => { const E = A.early || {}; return (E.flares || []).length + (E.today || []).length + (E.building || []).length; } },
   { key: 'losing', title: 'Losing reach',
-    what: 'Clearly down on the video\'s own last week. The source that dropped shows where to look.',
+    what: 'Clearly down on the video\'s own last week, or still well below where it was before it fell. The source that dropped shows where to look.',
     body: A => A.cards.filter(c => c.situation === 'losing').map(videoCard)
       .concat((A.games || []).filter(g => g.direction < 0).map(gameCard)) },
   { key: 'conversation', title: 'Conversation',
@@ -1259,7 +1315,7 @@ function renderAttention() {
     return;
   }
   document.getElementById('att-range').textContent =
-    `${shortDate(A.this_week.from)}–${shortDate(A.this_week.to)} vs ${shortDate(A.last_week.from)}–${shortDate(A.last_week.to)} · every video against its own last week`;
+    `${shortDate(A.this_week.from)}–${shortDate(A.this_week.to)} vs ${shortDate(A.last_week.from)}–${shortDate(A.last_week.to)} · every video against its own last week, and against where it was before any lasting rise or fall`;
   const HEALTH = { error: 'error', warn: 'warn', info: '' };
   const health = (A.health || []).length
     ? `<div class="att-health">${A.health.map(h => `<div class="att-h ${HEALTH[h.level] || ''}">${esc(h.message)}</div>`).join('')}</div>` : '';
@@ -1275,7 +1331,7 @@ function renderAttention() {
     const content = cards
       ? `<div class="cards">${(all ? cards : cards.slice(0, CARDS_SHOWN)).join('')}</div>` +
         (cards.length > CARDS_SHOWN ? `<p style="margin:12px 0 0"><button type="button" class="btn" data-more="${g.key}">${all ? 'Show fewer' : `Show all ${cards.length}`}</button></p>` : '')
-      : `<div class="${g.key === 'early' ? 'early' : ''}">${raw}</div>`;
+      : `<div class="${g.key === 'early' || g.key === 'updates' ? 'early' : ''}">${raw}</div>`;
     html += `<details class="group" data-key="${g.key}" ${open ? 'open' : ''}>
       <summary><span class="fold">▶</span><h3>${g.title}</h3>${n ? `<span class="count">${n}</span>` : ''}
         <span class="group-what">${g.what}</span></summary>

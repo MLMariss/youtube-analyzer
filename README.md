@@ -105,7 +105,8 @@ so the next run retries it.
 collect.py         the collector
 summarize.py       builds dashboard JSON from shards
 monitor.py         flags videos that need attention, with next steps
-signals.py         week-on-week change tests (shared)
+signals.py         week-on-week and shift tests (shared)
+patches.py         Steam updates behind a change, and patches touching a video
 actions.py         the learning loop: logs, measures, remembers
 auth.py            refresh-token OAuth
 mint_token.py      one-time token minting
@@ -122,6 +123,7 @@ data/
   videos.json     titles and thumbnails (refreshed, not accumulated)
   snapshots.json  public counts and change fingerprints, last 30 days only
   attention.json  what the "Needs attention" panel shows
+  steam.json      Steam app per game and its recent announcements (editable)
   actions.json    every logged or detected action and its measured results
   state.json      which reports have been archived
 ```
@@ -134,40 +136,78 @@ build step, no login — open it (or serve the folder) and it renders.
 ### Needs attention
 
 The panel at the top watches the whole library, not just new uploads, and
-compares **every video with itself**, never with a channel average: this week
-(the last seven complete days) against last week, and against the week before
-for slower climbs. A change counts only when
+compares **every video with itself**, never with a channel average, two ways.
 
-- it is about **3× bigger than that video's normal week-to-week swing**
-  (measured on this channel: impressions ±17%, views ±27%, CTR ±9%; small
-  counts also allow for plain counting noise, so 0 → 3 never counts),
+**This week** (the last seven complete days) against last week, and against the
+week before for slower climbs. A change counts only when
+
+- it is at least **twice that video's normal week-to-week swing**, judged as a
+  ratio (measured on this channel: impressions ±23%, views ±27%, CTR ±8%;
+  small counts also allow for plain counting noise, so 0 → 3 never counts).
+  In practice a busy video has to move about 1.6× in a week, roughly the top
+  5% of weeks,
 - it **survives removing the week's single biggest day**, so one random spike
   cannot trigger it, and
 - the **last three days still agree**, so a burst that already faded does not.
 
 Two weeks in a row the same way (each week clearly up on the one before) counts
-as a climb or a slide even when neither step alone is dramatic. Falls must start
-from a level worth protecting (100 impressions or 7 views a week).
+as a climb or a slide even when neither step alone is dramatic.
+
+**Shifts**: the date a video's level moved and stayed moved. Every date in the
+last six months is tried as a split, the level since then against the twelve
+weeks before, and the split that stands out most counts when it is about the
+top 5% (roughly three times the old level for a busy video). The days after it
+are searched again, so a game that rose in June and again in September reports
+September. A shift stays on the panel **for as long as last week is still
+clearly away from the old level**, and its card says whether it is still
+rising, holding or easing off. This is what catches a game update on Sep 4
+whose extra traffic is fading week on week but is still twice the summer level
+in late October, which the week-on-week test alone stops seeing after a week.
+Within three months of a rise, a video easing back is the wave settling, not
+lost reach. Shifts start 60 days after upload, so launch decay never counts.
+
+Rises must reach a level worth having (50 impressions or 10 views a week),
+falls must start from one worth protecting (150 impressions or 25 views a
+week), and CTR changes need 100 impressions in each week.
 
 What changed is grouped by what to do about it:
 
 | Group | Means | First move |
 |---|---|---|
 | Fix the packaging | CTR fell while impressions rose or held | thumbnail Test & Compare, title refresh |
-| Games waking up | 3+ older videos of one game moving up together | ride it: new video or Short, pinned comments, playlist |
-| Ride the wave | impressions or views clearly up | point new viewers onward: end screen, pinned comment |
+| Games waking up | 3+ older videos of one game moving up together, or the game's videos added up shifting with 2+ of them | ride it: new video or Short, pinned comments, playlist; cover the update behind it |
+| Game updates touching your videos | a patch from the last six weeks shares a topic with an older video on the game | pin what changed, refresh the description; the update is a topic |
+| Ride the wave | impressions or views clearly up, or still well above where they were before a rise | point new viewers onward: end screen, pinned comment |
 | Early signals | up 3 days running; a whole game spiking on one day; same-day jumps in the public counter | look before the weekly numbers confirm it |
-| Losing reach | impressions or views clearly down (also whole games cooling) | depends on the source that dropped |
+| Losing reach | impressions or views clearly down, or still well below where they were before a fall (also whole games cooling) | depends on the source that dropped |
 | Conversation | far more comments or dislikes than last week | reply, pin an answer |
 | Searches and sites on the rise | search terms, outside sites, other channels' videos sending clearly more views | the topic is heating up |
 
 Each card shows last week → this week for impressions, CTR and views (with
-whether the change is clear or within the normal swing), a four-week trend with
-last week shaded, **why** (the traffic source and the search terms, suggesting
-videos or sites behind it) and numbered next steps that name the specifics:
-the search term to use, your newest video on the same game to link to. Titles
+whether the change is clear or within the normal swing), or for a shift the
+weekly level before it → last week, with a *Since* line (the best week since,
+and how far it still is from the old level). The trend line covers four weeks
+with last week shaded, stretched back to four weeks before a shift with the
+shift date dashed. **Why** names the traffic sources and search terms,
+suggesting videos or sites behind the change (for a shift, per week since it
+against before), and numbered next steps name the specifics: the search term
+to use, your newest video on the same game to link to and how old it is. Titles
 and buttons open **YouTube Studio**; *Show in table* opens the video's full
 breakdown below. Every section and group folds away, and the page remembers.
+
+**Game updates.** For the games on the panel, and any game whose videos had 20+
+views in the last four weeks, `patches.py` finds the Steam app and its
+developer announcements (Steam's public store search and news feed; no key).
+A card then names the update behind a change: the one closest to a shift's
+date, or the latest patch since shortly before this week. Its plan says
+whether any of your videos on the game covers it yet (Whiskerwood's Sep 4
+shift: Patch #26, The Nautical Update, and none did). Patches whose titles
+share a topic word with an older video of yours on the game ("Tax Office"
+against "How To Skip Taxes") are listed under *Game updates touching your
+videos*. The match is on words, so a wrong game can creep in: `data/steam.json`
+holds the app chosen for each game, and an entry edited by hand with
+`"manual": true` (an `appid`, or `null` for "not on Steam") is left alone.
+Without network access the last saved news is used.
 
 Games are recognised from titles ("Tropico 6: …", "How To … in Whiskerwood").
 The thresholds sit at the top of `signals.py` and `monitor.py`.
