@@ -180,6 +180,11 @@
         "create_time": "2026-11-05T15:12:31.716866Z",
         "report_id": "20741120869",
         "row_count": 0
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T05:52:58.754873Z",
+        "report_id": "17766529546",
+        "row_count": 0
       }
     },
     "channel_basic_a3": {
@@ -1052,6 +1057,11 @@
         "create_time": "2026-11-05T14:59:30.972397Z",
         "report_id": "20740987711",
         "row_count": 564
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T06:51:03.602004Z",
+        "report_id": "17767302683",
+        "row_count": 530
       }
     },
     "channel_cards_a1": {
@@ -1729,6 +1739,16 @@
         "create_time": "2026-11-05T11:37:13.221881Z",
         "report_id": "17760606233",
         "row_count": 1
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T06:07:30.377832Z",
+        "report_id": "17766760504",
+        "row_count": 0
+      },
+      "2026-11-05": {
+        "create_time": "2026-11-07T07:27:39.739317Z",
+        "report_id": "17767746295",
+        "row_count": 2
       }
     },
     "channel_combined_a3": {
@@ -2406,6 +2426,11 @@
         "create_time": "2026-11-05T14:18:14.783666Z",
         "report_id": "17763654021",
         "row_count": 800
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T06:12:44.895461Z",
+        "report_id": "17766828037",
+        "row_count": 782
       }
     },
     "channel_demographics_a1": {
@@ -3083,6 +3108,11 @@
         "create_time": "2026-11-05T15:45:06.215649Z",
         "report_id": "20741402619",
         "row_count": 239
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T03:59:28.965737Z",
+        "report_id": "17765347537",
+        "row_count": 174
       }
     },
     "channel_device_os_a3": {
@@ -3760,6 +3790,11 @@
         "create_time": "2026-11-05T15:01:15.080280Z",
         "report_id": "20741018949",
         "row_count": 687
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T04:51:45.904177Z",
+        "report_id": "17765957530",
+        "row_count": 673
       }
     },
     "channel_end_screens_a1": {
@@ -3942,6 +3977,16 @@
         "create_time": "2026-11-05T10:33:45.151449Z",
         "report_id": "17759740482",
         "row_count": 75
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T04:42:52.170029Z",
+        "report_id": "17765833635",
+        "row_count": 72
+      },
+      "2026-11-05": {
+        "create_time": "2026-11-07T07:50:02.818514Z",
+        "report_id": "17768098320",
+        "row_count": 42
       }
     },
     "channel_playback_location_a3": {
@@ -4619,6 +4664,11 @@
         "create_time": "2026-11-05T14:56:25.013520Z",
         "report_id": "20740938555",
         "row_count": 612
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T05:11:28.231149Z",
+        "report_id": "20744083270",
+        "row_count": 597
       }
     },
     "channel_province_a3": {
@@ -5296,6 +5346,11 @@
         "create_time": "2026-11-05T10:29:36.602953Z",
         "report_id": "17759590060",
         "row_count": 175
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T05:42:30.537849Z",
+        "report_id": "20744392480",
+        "row_count": 181
       }
     },
     "channel_reach_basic_a1": {
@@ -5973,6 +6028,11 @@
         "create_time": "2026-11-05T14:15:36.766488Z",
         "report_id": "17763567948",
         "row_count": 316
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T06:30:41.670174Z",
+        "report_id": "17767042021",
+        "row_count": 259
       }
     },
     "channel_reach_combined_a1": {
@@ -6650,6 +6710,16 @@
         "create_time": "2026-11-05T12:17:03.070921Z",
         "report_id": "20738193190",
         "row_count": 2403
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T04:46:56.347941Z",
+        "report_id": "20743896182",
+        "row_count": 4677
+      },
+      "2026-11-05": {
+        "create_time": "2026-11-07T07:09:14.272766Z",
+        "report_id": "17767524567",
+        "row_count": 2530
       }
     },
     "channel_sharing_service_a1": {
@@ -6832,6 +6902,16 @@
         "create_time": "2026-11-05T10:24:59.925467Z",
         "report_id": "17759534607",
         "row_count": 0
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T06:49:21.040661Z",
+        "report_id": "17767277765",
+        "row_count": 0
+      },
+      "2026-11-05": {
+        "create_time": "2026-11-07T08:30:52.844440Z",
+        "report_id": "17768716276",
+        "row_count": 1
       }
     },
     "channel_subtitles_a3": {
@@ -7509,6 +7589,11 @@
         "create_time": "2026-11-05T12:40:24.526704Z",
         "report_id": "17761818882",
         "row_count": 636
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T06:34:22.568020Z",
+        "report_id": "17767103355",
+        "row_count": 614
       }
     },
     "channel_traffic_source_a3": {
@@ -8186,6 +8271,11 @@
         "create_time": "2026-11-05T13:27:43.267980Z",
         "report_id": "20739923393",
         "row_count": 683
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T04:26:31.690700Z",
+        "report_id": "17765664991",
+        "row_count": 661
       }
     },
     "playlist_basic_a2": {
@@ -8863,6 +8953,11 @@
         "create_time": "2026-11-05T15:00:59.081237Z",
         "report_id": "20740966345",
         "row_count": 6
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T04:19:59.984481Z",
+        "report_id": "17765554030",
+        "row_count": 8
       }
     },
     "playlist_combined_a2": {
@@ -9540,6 +9635,16 @@
         "create_time": "2026-11-05T16:17:44.725879Z",
         "report_id": "17764151630",
         "row_count": 6
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T05:39:40.846674Z",
+        "report_id": "17766432930",
+        "row_count": 8
+      },
+      "2026-11-05": {
+        "create_time": "2026-11-07T07:42:52.624710Z",
+        "report_id": "17768055732",
+        "row_count": 15
       }
     },
     "playlist_device_os_a2": {
@@ -10217,6 +10322,16 @@
         "create_time": "2026-11-05T18:06:08.195943Z",
         "report_id": "20742297360",
         "row_count": 6
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T06:12:01.302083Z",
+        "report_id": "20744595897",
+        "row_count": 8
+      },
+      "2026-11-05": {
+        "create_time": "2026-11-07T07:10:32.004487Z",
+        "report_id": "17767597071",
+        "row_count": 15
       }
     },
     "playlist_playback_location_a2": {
@@ -10894,6 +11009,11 @@
         "create_time": "2026-11-05T17:44:46.618724Z",
         "report_id": "20742216923",
         "row_count": 6
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T05:16:21.173848Z",
+        "report_id": "17766148975",
+        "row_count": 8
       }
     },
     "playlist_province_a2": {
@@ -11571,6 +11691,16 @@
         "create_time": "2026-11-05T16:56:53.660844Z",
         "report_id": "20741958727",
         "row_count": 3
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T06:45:50.609600Z",
+        "report_id": "17767222720",
+        "row_count": 8
+      },
+      "2026-11-05": {
+        "create_time": "2026-11-07T08:38:13.427271Z",
+        "report_id": "20745761769",
+        "row_count": 10
       }
     },
     "playlist_traffic_source_a2": {
@@ -12248,6 +12378,16 @@
         "create_time": "2026-11-05T15:41:53.342472Z",
         "report_id": "17764076136",
         "row_count": 6
+      },
+      "2026-11-04": {
+        "create_time": "2026-11-07T06:07:50.826953Z",
+        "report_id": "17766770210",
+        "row_count": 8
+      },
+      "2026-11-05": {
+        "create_time": "2026-11-07T08:19:14.301433Z",
+        "report_id": "17768575770",
+        "row_count": 15
       }
     }
   },
@@ -12273,7 +12413,7 @@
     "playlist_province_a2": "0c217b96-e686-44cc-9daf-7651980893b0",
     "playlist_traffic_source_a2": "2f9ca6e0-4576-40ed-98ba-9cb41adb4726"
   },
-  "last_run": "2026-11-06T09:34:00.333718+00:00",
+  "last_run": "2026-11-07T08:58:10.908752+00:00",
   "offered": [
     "channel_annotations_a1",
     "channel_basic_a3",
@@ -12297,12 +12437,6 @@
     "playlist_traffic_source_a2"
   ],
   "runs": [
-    {
-      "at": "2026-09-09T07:18:29.785069+00:00",
-      "backfilled": 2,
-      "failed": 0,
-      "new": 8
-    },
     {
       "at": "2026-09-10T07:14:36.022066+00:00",
       "backfilled": 0,
@@ -12656,6 +12790,12 @@
       "backfilled": 4,
       "failed": 0,
       "new": 20
+    },
+    {
+      "at": "2026-11-07T08:58:10.908752+00:00",
+      "backfilled": 0,
+      "failed": 0,
+      "new": 28
     }
   ]
 }
