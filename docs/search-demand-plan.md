@@ -23,7 +23,7 @@ topics surfaces first.
 | Focus | **Discovery only.** No demand board for games you already cover: your dashboard shows those through your own data. |
 | Build order | 1. Unanswered questions → 2. New games radar → 3. Areas heating up |
 | Radar breadth | Your genres (city builders & colony sims, survival & base building, tactics & strategy) **plus neighbours** (factory, automation, management) |
-| Data source now | **SerpApi free tier**, about 250 searches/month. Free only. |
+| Data source now | **SerpApi free tier**: 250 searches per cycle (renews on the 12th), 250/hour. Free only. |
 | Long-term | **Official Google Trends API.** Apply for the alpha now. It covers web search, so it can replace SerpApi cleanly later. |
 | Budget | Automation capped at **200 searches/month**. **50 a month stay free** for your manual checks. |
 | Geography | Worldwide now. Americas / Europe / Asia / All later, with the official API. |
@@ -69,14 +69,15 @@ so the section shows *new this run* separately from *still rising*.
 
 ## Phase 0: Setup (you, about 15 minutes)
 
-- [ ] Create a free SerpApi account and add the repo secret **`SERPAPI_KEY`**.
+- [x] Create a free SerpApi account. Confirmed 12 Nov 2026: Free Plan, **250 searches
+  per cycle, renewing on the 12th** (next 12 Dec 2026), rate limit 250/hour.
+- [ ] Add the repo secret **`SERPAPI_KEY`**.
 - [ ] Apply for the **Google Trends API alpha** at
   developers.google.com/search/apis/trends. Use case: *finding rising game
   topics for a creator channel*.
 - [ ] Optional: allow `serpapi.com` in this cloud environment so I can test
   from here. Otherwise testing runs through a workflow dispatch.
 - [ ] My first calls check five things:
-  - the free quota (250 or 100)
   - the games category id for `cat`
   - the topic "type" field in `RELATED_TOPICS`
   - that SerpApi's account endpoint is free
@@ -245,11 +246,14 @@ seed, with a button. You approve it, so the radar widens with you.
 | Your manual checks | 50 |
 
 **Enforcement:**
+- The 200 cap follows SerpApi's cycle, which runs from the 12th to the 12th,
+  not the calendar month.
 - Before spending, the run reads the searches left from SerpApi's account
   endpoint. A local ledger in `data/discover.json` is the backup.
 - Near the cap, things are dropped in this order: Phase 5, then Phase 3, then
   Phase 2 sizing refreshes.
-- **If the free tier is 100:**
+- **If the cap is ever tighter** (searches used elsewhere, or SerpApi cuts the
+  free tier), the lean profile:
   - Phase 1 monthly for the top 12: ~12
   - Phase 2 monthly: ~18
   - Phase 3 monthly: ~10
