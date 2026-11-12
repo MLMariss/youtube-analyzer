@@ -1,6 +1,7 @@
 # Discovery from Google search demand — project plan
 
-Status: **planned**, nothing built yet. Agreed 12 Nov 2026. Each phase below
+Status: **Phase 1 built** (12 Nov 2026), waiting for its first live searches.
+Phases 2–6 planned. Each phase below
 has a checklist; tick items as they ship so this file stays the source of truth.
 
 ## Goal
@@ -71,7 +72,7 @@ so the section shows *new this run* separately from *still rising*.
 
 - [x] Create a free SerpApi account. Confirmed 12 Nov 2026: Free Plan, **250 searches
   per cycle, renewing on the 12th** (next 12 Dec 2026), rate limit 250/hour.
-- [ ] Add the repo secret **`SERPAPI_KEY`**.
+- [x] Add the repo secret **`SERPAPI_KEY`**.
 - [ ] Apply for the **Google Trends API alpha** at
   developers.google.com/search/apis/trends. Use case: *finding rising game
   topics for a creator channel*.
@@ -119,18 +120,22 @@ Each card links to the Google results and the Trends page for the query, and
 has *Dismiss*.
 
 **Done when:**
-- [ ] `trends.py` exists: the SerpApi provider, budget ledger, caching and key
-  redaction.
-- [ ] `discover.py` exists with the filter and this stream.
-- [ ] `data/discover.json` exists, and the `data/discover/` snapshots are
-  excluded from Pages.
-- [ ] The Discover section is on the dashboard.
-- [ ] The workflow step and secret are in, and the README section is written.
+- [x] `trends.py` exists: the SerpApi provider, budget ledger (by SerpApi's
+  cycle) and key redaction. Each game's latest pull is kept in
+  `data/discover.json`, so no search is repeated before it is due.
+- [x] `discover.py` exists with the filter and this stream.
+- [x] `data/discover.json` is written, and the raw pulls go to
+  `data/discover_archive/<date>/`, excluded from Pages. It isn't
+  `data/discover/`: Jekyll excludes by path prefix, which would also have
+  hidden `data/discover.json`.
+- [x] The Discover section is on the dashboard, with Dismiss through
+  `.github/ISSUE_TEMPLATE/discover-dismiss.yml`.
+- [x] The workflow step and secret are in, and the README section is written.
 - [ ] Verified:
-  - `--dry-run` (games, searches it would spend)
-  - `--max-searches 2` live, with queries checked against trends.google.com
-  - an offline run, and one with a missing key, still builds the dashboard
-  - screenshots at phone and desktop width
+  - [x] `--dry-run` (games, searches it would spend)
+  - [ ] `--max-searches 2` live, with queries checked against trends.google.com
+  - [x] an offline run, and one with a missing key, still builds the dashboard
+  - [x] screenshots at phone and desktop width
 
 ## Phase 2: New games radar (about 40 searches/month)
 
@@ -175,8 +180,8 @@ shared with your best-performing games).
 
 **Done when:**
 - [ ] Seeds, Steam candidates, sizing, ranking and the cards ship.
-- [ ] A new `.github/ISSUE_TEMPLATE/discover.yml` handles Track/Dismiss, and
-  the run reads it.
+- [ ] A *Track* form joins `discover-dismiss.yml` (Phase 1), and the run reads
+  it.
 
 ## Phase 3: Areas heating up (about 20 searches/month)
 
@@ -273,9 +278,9 @@ The repo's rules stay:
 | `trends.py` (new) | Provider (SerpApi now, official later), budget ledger, caching, redacting the key from every log and error |
 | `discover.py` (new) | The filter, the three streams, ranking, Track/Dismiss from issues |
 | `data/discover.json` (new) | **Editable:** seeds, yardstick, per-game term/skip. **Generated:** items with first seen, rise, sizing, Steam match, budget used. |
-| `data/discover/<date>/` | Raw rising lists (point-in-time, can't be re-pulled). Excluded from Pages in `_config.yml`. |
+| `data/discover_archive/<date>/` | Raw rising lists (point-in-time, can't be re-pulled). Excluded from Pages in `_config.yml`. |
 | `.github/workflows/collect.yml` | **Discover** step after *Find videos that need attention*. `continue-on-error`, `SERPAPI_KEY` + `GITHUB_TOKEN`, dispatch input `discover_force`. Summary shows searches used and left. The daily cron stays; `discover.py` decides what is due. |
-| `.github/ISSUE_TEMPLATE/discover.yml` | Track / Dismiss form (Phase 2) |
+| `.github/ISSUE_TEMPLATE/discover-dismiss.yml` | Dismiss form (Phase 1); a Track form follows in Phase 2 |
 | `index.html` | **Discover** section with *Unanswered questions*, *New games*, *Areas heating up*, and a "How to read this" box |
 | `README.md` | Link to this plan now; a section when Phase 1 ships |
 

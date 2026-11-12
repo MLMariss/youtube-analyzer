@@ -59,6 +59,7 @@ the "unverified app" warning); the script prints three values.
 | `YT_CLIENT_ID` | from step 2 |
 | `YT_CLIENT_SECRET` | from step 2 |
 | `YT_REFRESH_TOKEN` | from step 2 |
+| `SERPAPI_KEY` | optional, for *Discover*: the API key from a free [SerpApi](https://serpapi.com) account (*Your Account → API Key*) |
 
 Never commit these.
 
@@ -93,17 +94,14 @@ hours late.
 Each run: refresh jobs → list reports → skip anything already archived →
 download the rest → write shards → snapshot public view counts and each
 video's title/description/tag/thumbnail fingerprint → rebuild summaries → flag
-videos that need attention → measure logged and detected actions → commit.
+videos that need attention → measure logged and detected actions → search
+Google Trends for what is not on the dashboard yet → commit.
 
 Runs are **idempotent**. Re-running downloads nothing new. Backfill corrections
 replace exactly one day's shard, and a failed download is *not* marked archived,
 so the next run retries it.
 
 ## Layout
-
-Planned next: discovery from Google search demand (unanswered questions in your
-games, a new-games radar, areas heating up). See
-[docs/search-demand-plan.md](docs/search-demand-plan.md).
 
 ```
 collect.py         the collector
@@ -112,13 +110,17 @@ monitor.py         flags videos that need attention, with next steps
 signals.py         week-on-week and shift tests (shared)
 patches.py         Steam updates behind a change, and patches touching a video
 actions.py         the learning loop: logs, measures, remembers
+discover.py        what is not on the dashboard yet (Discover)
+trends.py          Google Trends through SerpApi, and the search budget
 auth.py            refresh-token OAuth
 mint_token.py      one-time token minting
 report_types.py    registry of all report types
 index.html         read-only dashboard
-_config.yml        keeps data/reports/ off the published Pages site
+_config.yml        keeps the raw archives off the published Pages site
+docs/search-demand-plan.md   the Discover roadmap, phase by phase
 .github/workflows/collect.yml
-.github/ISSUE_TEMPLATE/log-action.yml   the "Log action" form
+.github/ISSUE_TEMPLATE/log-action.yml        the "Log action" form
+.github/ISSUE_TEMPLATE/discover-dismiss.yml  the "Dismiss" form on Discover
 data/
   reports/<report_type>/<YYYY-MM-DD>.json   permanent archive, one file per day
   summary.json    per-video totals across 7d/28d/90d/365d/all
@@ -129,6 +131,8 @@ data/
   attention.json  what the "Needs attention" panel shows
   steam.json      Steam app per game and its recent announcements (editable)
   actions.json    every logged or detected action and its measured results
+  discover.json   what Discover shows, its search budget, and per-game search terms (editable)
+  discover_archive/<YYYY-MM-DD>/   raw Google Trends pulls, kept since they cannot be pulled again
   state.json      which reports have been archived
 ```
 
@@ -234,6 +238,38 @@ Notice → act → measure → remember:
 
 Issues are public, like the rest of this repository.
 
+### Discover
+
+What is **not** on the dashboard yet, from Google web search, worldwide. The
+roadmap is in [docs/search-demand-plan.md](docs/search-demand-plan.md); the
+first part is live:
+
+**Unanswered questions in your games.** For the games you cover that still
+bring views (20+ in 28 days, from your titles), Google's related searches over
+the last three months are pulled from Google Trends, and every search one of
+your videos already answers is dropped: when all its words appear in one of
+your titles on the game, or in a YouTube search that already brings those
+videos views. Piracy, shop and spec searches go too. What is left is sorted
+by intent (problem, how-to, news, topic) with how much it rose (*Breakout* is
+more than +5000%), the video of yours that comes closest, and the Steam
+announcement a news search is about. Other games people searched alongside
+are listed apart, as leads. *Dismiss* opens a pre-filled issue; the next run
+hides the search and closes the issue.
+
+**Budget.** SerpApi's free plan gives 250 searches a cycle, renewing on the
+12th. `trends.py` spends at most **200** of them and leaves 50 for checks by
+hand; it reads the searches left from SerpApi before spending. The top 12
+games are searched every 14 days and the next 12 every 30, three searches a
+run, about 40 a cycle. Without `SERPAPI_KEY` the last results stay up.
+
+**Editing.** In `data/discover.json`, under `settings → games`, a game's
+search `term`, its `cat` (8 is Google's Games category, which keeps
+*Foundation* the game) or `"skip": true`, with `"manual": true` so the run
+leaves the entry alone. `dismissed` holds what you hid.
+
+Google Trends gives shares, never counts: a big rise on a small search can
+still be a handful of people.
+
 ### Table and filters
 
 - **Time window** (`7 days … All time`) sets the period the metrics are
@@ -266,6 +302,12 @@ python collect.py                    # normal run
 python collect.py --only channel_reach_basic_a1
 python summarize.py
 python monitor.py
+
+export SERPAPI_KEY=...
+python discover.py --dry-run         # which games are due, what it would spend
+python discover.py --max-searches 1  # one search now
+python trends.py account             # searches left on the SerpApi plan
+python trends.py queries "tropico 6" # one manual check (uses a search)
 ```
 
 ## A note on averaging
@@ -288,6 +330,8 @@ clicks separately, then divide. Retention is weighted by views the same way.
 | A report type is skipped | Not available for this channel; harmless |
 | Log says *Not offered by YouTube* | Deprecated report, or a wrong id in `report_types.py`; a following *missing from report_types.py* line names the id YouTube does offer |
 | `redirect_uri_mismatch` | Web client without `http://localhost:8765/` registered |
+| Discover says *SERPAPI_KEY is not set* | Add the secret (setup step 3); the last results stay up meanwhile |
+| Discover says *too little Google data* for a game | Give it a better `term` (or `cat`) under `settings → games` in `data/discover.json`, with `"manual": true` |
 
 ## Data retention
 
