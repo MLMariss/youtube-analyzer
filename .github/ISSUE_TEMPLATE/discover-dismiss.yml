@@ -1,0 +1,22 @@
+name: Dismiss a discovery
+description: Hide a search from the dashboard's Discover section. The dashboard fills this in.
+title: "Dismiss: "
+labels: ["discover"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The next collector run hides it from Discover, records it under `dismissed` in
+        `data/discover.json`, and closes this issue. To show it again, remove it there.
+  - type: input
+    id: item
+    attributes:
+      label: What to hide
+      description: The search, exactly as Discover shows it.
+    validations:
+      required: true
+  - type: input
+    id: game
+    attributes:
+      label: Game
+      description: Hide it only on this game's card (the dashboard fills it in). Empty hides it everywhere.

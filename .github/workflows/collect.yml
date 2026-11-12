@@ -17,6 +17,10 @@ on:
         description: 'Show what would happen without writing'
         type: boolean
         default: false
+      discover_searches:
+        description: 'Google Trends searches Discover may spend this run (empty = the usual 3)'
+        type: string
+        default: ''
 
 concurrency:
   # Never let two runs commit to the same branch at once.
@@ -69,6 +73,20 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python monitor.py
 
+      - name: Discover what is not on the dashboard yet
+        if: ${{ inputs.dry_run != true }}
+        # Google Trends through SerpApi's free tier (docs/search-demand-plan.md).
+        # Like the panel above, a failure here must never stop the commit below.
+        continue-on-error: true
+        env:
+          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SEARCHES: ${{ inputs.discover_searches }}
+        run: |
+          ARGS=""
+          if [[ "$SEARCHES" =~ ^[0-9]+$ ]]; then ARGS="--max-searches $SEARCHES"; fi
+          python discover.py $ARGS
+
       - name: Commit new data
         if: ${{ inputs.dry_run != true }}
         run: |
@@ -102,6 +120,11 @@ jobs:
           for root, _, files in os.walk('data/reports'):
               total += sum(1 for f in files if f.endswith('.json'))
           print(f"- Archived day-shards: **{total}**")
+          if os.path.exists('data/discover.json'):
+              b = json.load(open('data/discover.json')).get('budget', {})
+              left = b.get('plan_left')
+              print(f"- Discover: **{b.get('used', 0)} of {b.get('cap', 200)}** Google Trends searches this cycle"
+                    + (f", {left} left on the SerpApi plan" if left is not None else ""))
           PY
           else
             echo "No state file yet." >> $GITHUB_STEP_SUMMARY

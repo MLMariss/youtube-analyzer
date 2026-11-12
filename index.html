@@ -372,6 +372,27 @@
     transform: translate(-50%, -135%); opacity: 0; transition: opacity .08s;
     font-variant-numeric: tabular-nums; z-index: 30;
   }
+  /* Discover: what is not on the dashboard yet (discover.py) */
+  .tag.i-problem { color: var(--bad); border-color: var(--bad); background: transparent; }
+  .tag.i-howto { color: var(--link); border-color: var(--accent); background: transparent; }
+  .tag.i-news { color: var(--warn); border-color: var(--warn); background: transparent; }
+  ul.dq { list-style: none; margin: 0; padding: 0; }
+  ul.dq li { padding: 11px 0; border-top: 1px solid var(--line); }
+  ul.dq li:first-child { border-top: 0; padding-top: 0; }
+  .dq-main { display: flex; flex-wrap: wrap; gap: 6px 9px; align-items: center; font-size: 15.5px; }
+  .dq-q { font-weight: 650; overflow-wrap: anywhere; }
+  .rise { font-weight: 700; color: var(--good); font-variant-numeric: tabular-nums; font-size: 14.5px; }
+  .rise.breakout {
+    color: var(--accent-ink); background: var(--accent); border-radius: 5px; padding: 1px 7px;
+    font-size: 12px; text-transform: uppercase; letter-spacing: .05em;
+  }
+  .rise.top { color: var(--muted); font-weight: 600; }
+  .dq-sub { font-size: 14px; color: var(--text-2); margin-top: 4px; line-height: 1.45; }
+  .dq-sub a, .dq-links a, .disc-foot a { color: var(--link); }
+  .dq-links { font-size: 13.5px; margin-top: 4px; color: var(--muted); }
+  .disc-foot { color: var(--text-2); font-size: 14px; margin: 4px 2px 14px; line-height: 1.5; }
+  .disc-foot code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+
   @media (max-width: 720px) {
     .stat { grid-template-columns: 96px minmax(0, 1fr); }
     .stat svg.spark-mini { grid-column: 1 / -1; width: 100%; }
@@ -421,6 +442,12 @@
     <div id="attention"></div>
   </details>
   <div class="att-tip" id="att-tip"></div>
+
+  <details class="section" data-key="discover" open>
+    <summary><span class="fold">▶</span><h2>Discover</h2>
+      <span class="stamp">what is not on your dashboard yet · Google web search, worldwide</span></summary>
+    <div id="discover"></div>
+  </details>
 
   <details class="section" data-key="channel" open>
   <summary><span class="fold">▶</span><h2>Channel and all videos</h2>
@@ -784,13 +811,14 @@ async function init() {
       '<span style="color:var(--muted)">' + esc(e.message) + '</span>', true);
     return;
   }
-  [DAILY, TRAFFIC, TDETAIL, DEVICES, DEMOGRAPHICS, ATTENTION] = await Promise.all([
+  [DAILY, TRAFFIC, TDETAIL, DEVICES, DEMOGRAPHICS, ATTENTION, DISCOVER] = await Promise.all([
     loadOptional('data/daily.json'),
     loadOptional('data/traffic.json'),
     loadOptional('data/traffic_detail.json'),
     loadOptional('data/devices.json'),
     loadOptional('data/demographics.json'),
     loadOptional('data/attention.json'),
+    loadOptional('data/discover.json'),
   ]);
 
   const when = SUMMARY.generated_at ? new Date(SUMMARY.generated_at) : null;
@@ -809,6 +837,7 @@ async function init() {
     if (saved[d.dataset.key] !== undefined) d.open = saved[d.dataset.key];
   });
   renderAttention();
+  renderDiscover();
   populateSources();
   renderMetrics();
   renderSpark();
@@ -935,6 +964,7 @@ function renderMetrics() {
 // about it. actions.py measures what was done, and what worked before is shown
 // next to each suggestion.
 let ATTENTION = null;
+let DISCOVER = null;
 const CARDS_SHOWN = 6;          // cards per group before "Show all"
 const showAll = new Set();      // groups showing every card
 
@@ -1341,6 +1371,107 @@ function renderAttention() {
   el.innerHTML = health + html + (quiet.length ? `<p class="quiet">Nothing this week in ${list}.</p>` : '');
 }
 
+// ---- Discover ----------------------------------------------------------------
+// What is not on the dashboard yet (discover.py, docs/search-demand-plan.md).
+const INTENT_LABEL = { problem: 'Problem', howto: 'How-to', news: 'News', topic: 'Topic' };
+const enc = encodeURIComponent;
+const trendsUrl = (q, cat) => `https://trends.google.com/trends/explore?date=today%203-m&q=${enc(q)}${cat ? `&cat=${enc(cat)}` : ''}`;
+const riseHtml = e => e.breakout ? '<span class="rise breakout">Breakout</span>'
+  : e.rise ? `<span class="rise">+${fmt(e.rise)}%</span>`
+  : e.score !== null && e.score !== undefined ? `<span class="rise top" title="Share of the game's searches, 0–100">top · ${e.score}</span>` : '';
+
+function dismissUrl(query, card) {
+  const p = new URLSearchParams({
+    template: 'discover-dismiss.yml',
+    title: `Dismiss: ${query} — ${card.label}`,
+    item: query, game: card.game,
+  });
+  return `https://github.com/${REPO}/issues/new?${p}`;
+}
+
+function questionCard(c) {
+  const isNew = e => !!e.new;
+  const rows = c.items.map(e => {
+    const closest = e.closest
+      ? `Closest of yours: <a href="${studio(e.closest.video_id, 'edit')}" target="_blank" rel="noopener">${esc(e.closest.title)}</a>
+         (shares ${e.closest.words.map(w => `“${esc(w)}”`).join(', ')}): add it there, or make a new one.`
+      : `None of your ${c.label ? esc(c.label) + ' ' : ''}videos touches it.`;
+    const steam = e.steam ? ` On Steam: ${e.steam.url
+      ? `<a href="${esc(e.steam.url)}" target="_blank" rel="noopener">${esc(e.steam.title)}</a>` : esc(e.steam.title)} (${shortDate(e.steam.date)}).` : '';
+    return `<li>
+      <div class="dq-main">${isNew(e) ? '<span class="att-new">New</span>' : ''}
+        <span class="tag i-${esc(e.intent)}">${INTENT_LABEL[e.intent] || 'Topic'}</span>
+        <span class="dq-q">${esc(e.query)}</span>${riseHtml(e)}</div>
+      <div class="dq-sub">${closest}${steam}</div>
+      <div class="dq-links"><a href="https://www.google.com/search?q=${enc(e.query)}" target="_blank" rel="noopener">Google</a> ·
+        <a href="https://www.youtube.com/results?search_query=${enc(e.query)}" target="_blank" rel="noopener">YouTube</a> ·
+        <a href="${trendsUrl(e.query)}" target="_blank" rel="noopener">Trends</a> ·
+        <a href="${dismissUrl(e.query, c)}" target="_blank" rel="noopener" title="Hide it from Discover (opens a GitHub issue)">Dismiss</a></div>
+    </li>`;
+  }).join('');
+  const also = (c.also || []).length
+    ? `<div class="vc-why"><span class="inl">Searched alongside</span>${c.also.map(a =>
+        `<a href="https://www.google.com/search?q=${enc(a.query)}" target="_blank" rel="noopener">${esc(a.query)}</a>${
+          a.breakout ? ' (Breakout)' : a.rise ? ` (+${fmt(a.rise)}%)` : ''}`).join(', ')}</div>` : '';
+  return `<div class="vcard">
+    <div class="vc-meta"><span class="tag">${c.videos} videos</span>
+      <span>${fmt(c.views_28d)} views in 28 days · searched ${shortDate(c.searched)}</span></div>
+    <h3 class="vc-title"><a href="${trendsUrl(c.term, c.cat)}" target="_blank" rel="noopener" title="Open the same search on Google Trends">${esc(c.label)}</a></h3>
+    ${rows ? `<ul class="dq">${rows}</ul>` : '<p class="quiet" style="margin:0">Every rising search on it is one you already cover.</p>'}
+    ${also}
+  </div>`;
+}
+
+function renderDiscover() {
+  const el = document.getElementById('discover');
+  const D = DISCOVER;
+  if (!D || !D.questions) {
+    el.innerHTML = `<p class="quiet">Discover fills in after the next collector run with the <code>SERPAPI_KEY</code> secret set.
+      It looks for what is not on your dashboard yet, starting with rising Google searches about your games that none of your videos answers.</p>`;
+    return;
+  }
+  const HEALTH = { error: 'error', warn: 'warn', info: '' };
+  const health = (D.health || []).length
+    ? `<div class="att-health">${D.health.map(h => `<div class="att-h ${HEALTH[h.level] || ''}">${esc(h.message)}</div>`).join('')}</div>` : '';
+  const cards = D.questions.map(questionCard);
+  const n = D.questions.reduce((k, c) => k + c.items.length, 0);
+  const saved = openState();
+  const open = saved['disc-questions'] !== undefined ? saved['disc-questions'] : true;
+  const all = showAll.has('disc-questions');
+  const searched = (D.schedule || {}).ranked || [];
+  const pending = Math.max(0, searched.length - Object.keys(D.pulls || {}).filter(k => searched.includes(k)).length);
+  const body = cards.length
+    ? `<div class="cards">${(all ? cards : cards.slice(0, CARDS_SHOWN)).join('')}</div>` +
+      (cards.length > CARDS_SHOWN ? `<p style="margin:12px 0 0"><button type="button" class="btn" data-more="disc-questions">${all ? 'Show fewer' : `Show all ${cards.length} games`}</button></p>` : '')
+    : `<p class="empty-state">Nothing unanswered yet.${pending ? ` ${pending} of your games still wait for their first search; a few are searched each day.` : ''}</p>`;
+  const B = D.budget || {};
+  const plan = B.plan_left !== null && B.plan_left !== undefined
+    ? ` · ${fmt(B.plan_left)} left on the SerpApi plan${B.plan_checked ? ` as of ${shortDate(B.plan_checked)}` : ''}` : '';
+  el.innerHTML = health + `<details class="group" data-key="disc-questions" ${open ? 'open' : ''}>
+      <summary><span class="fold">▶</span><h3>Unanswered questions in your games</h3>${n ? `<span class="count">${n}</span>` : ''}
+        <span class="group-what">Rising Google searches about games you cover that none of your videos answers yet.
+          Searches people already find you with, and anything you dismissed, are left out.</span></summary>
+      <div class="group-body">${body}</div></details>
+    <p class="disc-foot">Google Trends through SerpApi: <b>${fmt(B.used || 0)} of ${fmt(B.cap || 200)}</b> searches used this cycle${
+      B.next_cycle ? ` (renews ${shortDate(B.next_cycle)})` : ''}${plan}. Your top 12 games are searched every 14 days, the next 12 every 30.
+      ${pending ? `${pending} still wait for a first search. ` : ''}Search terms per game, and games to skip, are under
+      <code>settings → games</code> in <code>data/discover.json</code>. The roadmap is in
+      <a href="https://github.com/${REPO}/blob/main/docs/search-demand-plan.md" target="_blank" rel="noopener">docs/search-demand-plan.md</a>.</p>
+    <details class="glossary" data-key="disc-help"><summary>How to read this</summary><dl class="gloss-body">
+      <div><dt>+250% · Breakout</dt><dd>How much a search grew over the last three months against the three before, worldwide.
+        Breakout means more than +5000%, usually something new. A big rise on a small search can still be a handful of people:
+        Google Trends shows shares, never counts.</dd></div>
+      <div><dt>top · 45</dt><dd>One of the game's most searched queries, as a share of its searches (0–100). Listed when none of your videos covers it.</dd></div>
+      <div><dt>Problem · How-to · News · Topic</dt><dd>What the search asks for. Problems and how-tos are the quickest videos to make;
+        news is tied to the Steam announcement it is about, where there is one.</dd></div>
+      <div><dt>Closest of yours</dt><dd>Your video on the game that shares the most topic words. Adding the answer there
+        (description, pinned comment, chapter) can be enough; otherwise it is a new video.</dd></div>
+      <div><dt>What is left out</dt><dd>Searches one of your titles already answers, YouTube searches that already bring you views,
+        piracy, shop and spec searches, and anything you dismissed.</dd></div>
+      <div><dt>Searched alongside</dt><dd>Other games people looked up in the same searches. A lead for a new game, not a question about this one.</dd></div>
+    </dl></details>`;
+}
+
 // "Show in table": filter the table down to the video and open its breakdown.
 function focusVideo(id) {
   if (!((SUMMARY.windows || {})[currentWindow] || {})[id])
@@ -1662,6 +1793,13 @@ attEl.addEventListener('click', e => {
   }
   const focus = e.target.closest('[data-focus]');
   if (focus) focusVideo(focus.dataset.focus);
+});
+document.getElementById('discover').addEventListener('click', e => {
+  const more = e.target.closest('[data-more]');
+  if (!more) return;
+  const k = more.dataset.more;
+  if (showAll.has(k)) showAll.delete(k); else showAll.add(k);
+  renderDiscover();
 });
 attEl.addEventListener('mousemove', miniSparkHover);
 attEl.addEventListener('mouseleave', () => { document.getElementById('att-tip').style.opacity = 0; });

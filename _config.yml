@@ -3,6 +3,9 @@
 # The dashboard reads only index.html and the summary files in data/*.json.
 # The raw archive in data/reports/ is hundreds of MB and grows by roughly
 # 3 MB a day; Pages caps a published site at 1 GB, so it stays in the
-# repository but off the site.
+# repository but off the site. Discover's raw Google Trends pulls are kept the
+# same way. Jekyll matches these as path prefixes, so the archive's name must
+# not be the start of a file the dashboard reads (data/discover.json).
 exclude:
   - data/reports
+  - data/discover_archive
