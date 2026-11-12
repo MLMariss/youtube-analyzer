@@ -101,6 +101,10 @@ so the next run retries it.
 
 ## Layout
 
+Planned next: discovery from Google search demand (unanswered questions in your
+games, a new-games radar, areas heating up). See
+[docs/search-demand-plan.md](docs/search-demand-plan.md).
+
 ```
 collect.py         the collector
 summarize.py       builds dashboard JSON from shards
