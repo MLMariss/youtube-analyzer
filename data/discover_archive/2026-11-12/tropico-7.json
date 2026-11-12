@@ -1,0 +1,70 @@
+{
+ "cat": null,
+ "date": "2026-11-12",
+ "game": "tropico 7",
+ "range": "today 3-m",
+ "rising": [
+  {
+   "breakout": true,
+   "query": "tropico 7 demo",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "anno 117",
+   "rise": null
+  },
+  {
+   "breakout": false,
+   "query": "switch 2",
+   "rise": 450
+  }
+ ],
+ "term": "tropico 7",
+ "top": [
+  {
+   "query": "tropico 7 release date",
+   "score": 100
+  },
+  {
+   "query": "tropico 7 demo",
+   "score": 54
+  },
+  {
+   "query": "steam",
+   "score": 37
+  },
+  {
+   "query": "xbox",
+   "score": 16
+  },
+  {
+   "query": "anno",
+   "score": 15
+  },
+  {
+   "query": "switch 2",
+   "score": 13
+  },
+  {
+   "query": "tropico 6 release date",
+   "score": 11
+  },
+  {
+   "query": "gta 6",
+   "score": 10
+  },
+  {
+   "query": "tropico 6 steam",
+   "score": 8
+  },
+  {
+   "query": "tropico 6 ps5",
+   "score": 8
+  },
+  {
+   "query": "anno 117",
+   "score": 1
+  }
+ ]
+}

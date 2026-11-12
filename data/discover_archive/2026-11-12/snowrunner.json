@@ -1,0 +1,146 @@
+{
+ "cat": 8,
+ "date": "2026-11-12",
+ "game": "snowrunner",
+ "range": "today 3-m",
+ "rising": [
+  {
+   "breakout": true,
+   "query": "snowrunner mod installer",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "snowrunner купить",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "snowrunner magyarítás",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "is snowrunner on xbox game pass",
+   "rise": null
+  },
+  {
+   "breakout": false,
+   "query": "snowrunner xbox series s",
+   "rise": 250
+  },
+  {
+   "breakout": false,
+   "query": "snowrunner walkthrough",
+   "rise": 60
+  },
+  {
+   "breakout": false,
+   "query": "mods snowrunner pc",
+   "rise": 50
+  }
+ ],
+ "term": "snowrunner",
+ "top": [
+  {
+   "query": "snowrunner mods",
+   "score": 100
+  },
+  {
+   "query": "snowrunner game",
+   "score": 48
+  },
+  {
+   "query": "xbox snowrunner",
+   "score": 45
+  },
+  {
+   "query": "snowrunner mod",
+   "score": 40
+  },
+  {
+   "query": "snowrunner ps5",
+   "score": 30
+  },
+  {
+   "query": "snowrunner ps4",
+   "score": 29
+  },
+  {
+   "query": "snowrunner steam",
+   "score": 20
+  },
+  {
+   "query": "snowrunner dlc",
+   "score": 14
+  },
+  {
+   "query": "snowrunner multiplayer",
+   "score": 12
+  },
+  {
+   "query": "snowrunner switch",
+   "score": 11
+  },
+  {
+   "query": "mudrunner",
+   "score": 10
+  },
+  {
+   "query": "snowrunner cheat",
+   "score": 10
+  },
+  {
+   "query": "snowrunner map",
+   "score": 10
+  },
+  {
+   "query": "snowrunner best mods",
+   "score": 10
+  },
+  {
+   "query": "snowrunner xbox one",
+   "score": 9
+  },
+  {
+   "query": "snowrunner save game",
+   "score": 8
+  },
+  {
+   "query": "snowrunner key",
+   "score": 8
+  },
+  {
+   "query": "snowrunner game download",
+   "score": 8
+  },
+  {
+   "query": "snowrunner mobile",
+   "score": 7
+  },
+  {
+   "query": "snowrunner nintendo switch",
+   "score": 7
+  },
+  {
+   "query": "snowrunner gameplay",
+   "score": 7
+  },
+  {
+   "query": "mods snowrunner pc",
+   "score": 6
+  },
+  {
+   "query": "snowrunner моды",
+   "score": 6
+  },
+  {
+   "query": "snowrunner pc game",
+   "score": 6
+  },
+  {
+   "query": "snow runner",
+   "score": 6
+  }
+ ]
+}
