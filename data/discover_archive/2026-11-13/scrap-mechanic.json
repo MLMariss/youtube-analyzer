@@ -1,0 +1,136 @@
+{
+ "cat": null,
+ "date": "2026-11-13",
+ "game": "scrap mechanic",
+ "range": "today 3-m",
+ "rising": [
+  {
+   "breakout": false,
+   "query": "snowrunner",
+   "rise": 1000
+  },
+  {
+   "breakout": false,
+   "query": "scrap mechanic 攻略",
+   "rise": 300
+  },
+  {
+   "breakout": false,
+   "query": "scrap mechanic car designs",
+   "rise": 250
+  },
+  {
+   "breakout": false,
+   "query": "scrap mechanic cable roll",
+   "rise": 200
+  },
+  {
+   "breakout": false,
+   "query": "scrap mechanic turret",
+   "rise": 80
+  }
+ ],
+ "term": "scrap mechanic",
+ "top": [
+  {
+   "query": "scrap mechanic survival",
+   "score": 100
+  },
+  {
+   "query": "scrap mechanic car",
+   "score": 80
+  },
+  {
+   "query": "scrap mechanic 1.0",
+   "score": 77
+  },
+  {
+   "query": "scrap mechanic farm",
+   "score": 72
+  },
+  {
+   "query": "scrap mechanic drilling thunder",
+   "score": 65
+  },
+  {
+   "query": "scrap mechanic game",
+   "score": 64
+  },
+  {
+   "query": "steam scrap mechanic",
+   "score": 59
+  },
+  {
+   "query": "scrap mechanic suspension",
+   "score": 58
+  },
+  {
+   "query": "scrap mechanic mod",
+   "score": 56
+  },
+  {
+   "query": "scrap mechanic map",
+   "score": 56
+  },
+  {
+   "query": "scrap mechanic chapter 2",
+   "score": 46
+  },
+  {
+   "query": "scrap mechanic warehouse",
+   "score": 42
+  },
+  {
+   "query": "scrap mechanic price",
+   "score": 40
+  },
+  {
+   "query": "wiki scrap mechanic",
+   "score": 35
+  },
+  {
+   "query": "scrap mechanic key",
+   "score": 35
+  },
+  {
+   "query": "scrap mechanic blocks",
+   "score": 34
+  },
+  {
+   "query": "scrap mechanic bots",
+   "score": 34
+  },
+  {
+   "query": "scrap mechanic controller",
+   "score": 33
+  },
+  {
+   "query": "scrap mechanic raid",
+   "score": 32
+  },
+  {
+   "query": "scrap mechanic engine",
+   "score": 32
+  },
+  {
+   "query": "scrap mechanic mods",
+   "score": 32
+  },
+  {
+   "query": "scrap mechanic growlab",
+   "score": 29
+  },
+  {
+   "query": "scrap mechanic base",
+   "score": 26
+  },
+  {
+   "query": "scrap mechanic turret",
+   "score": 26
+  },
+  {
+   "query": "scrap mechanic bearing",
+   "score": 24
+  }
+ ]
+}

@@ -1,0 +1,122 @@
+{
+ "cat": null,
+ "date": "2026-11-13",
+ "game": "phoenix point",
+ "range": "today 3-m",
+ "rising": [
+  {
+   "breakout": true,
+   "query": "phoenix suns point guard issue",
+   "rise": null
+  },
+  {
+   "breakout": false,
+   "query": "phoenix point cook",
+   "rise": 50
+  },
+  {
+   "breakout": false,
+   "query": "turning point phoenix",
+   "rise": 40
+  }
+ ],
+ "term": "phoenix point",
+ "top": [
+  {
+   "query": "phoenix arizona",
+   "score": 100
+  },
+  {
+   "query": "phoenix point review",
+   "score": 75
+  },
+  {
+   "query": "phoenix contact",
+   "score": 57
+  },
+  {
+   "query": "phoenix hotel",
+   "score": 56
+  },
+  {
+   "query": "phoenix point game",
+   "score": 53
+  },
+  {
+   "query": "university of phoenix",
+   "score": 46
+  },
+  {
+   "query": "west point",
+   "score": 40
+  },
+  {
+   "query": "turning point phoenix",
+   "score": 35
+  },
+  {
+   "query": "turning point",
+   "score": 33
+  },
+  {
+   "query": "phoenix suns",
+   "score": 31
+  },
+  {
+   "query": "phoenix academy",
+   "score": 30
+  },
+  {
+   "query": "rocky point",
+   "score": 30
+  },
+  {
+   "query": "the phoenix hotel",
+   "score": 26
+  },
+  {
+   "query": "river phoenix",
+   "score": 24
+  },
+  {
+   "query": "phoenix point guide",
+   "score": 23
+  },
+  {
+   "query": "point of view phoenix",
+   "score": 22
+  },
+  {
+   "query": "phoenix to rocky point",
+   "score": 17
+  },
+  {
+   "query": "turning point usa phoenix",
+   "score": 16
+  },
+  {
+   "query": "phoenix tool",
+   "score": 16
+  },
+  {
+   "query": "phoenix dew point",
+   "score": 16
+  },
+  {
+   "query": "point break",
+   "score": 15
+  },
+  {
+   "query": "phoenix point cook",
+   "score": 15
+  },
+  {
+   "query": "turning point usa",
+   "score": 15
+  },
+  {
+   "query": "phoenix suns point guard issue",
+   "score": 1
+  }
+ ]
+}
