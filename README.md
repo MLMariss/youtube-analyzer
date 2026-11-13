@@ -134,6 +134,7 @@ data/
   steam.json      Steam app per game and its recent announcements (editable)
   actions.json    every logged or detected action and its measured results
   discover.json   what Discover shows, its search budget, and per-game search terms (editable)
+  baselines.json  calibrated search terms Discover measures sizes against (edited by hand, monthly)
   discover_archive/<YYYY-MM-DD>/   raw Google Trends pulls, kept since they cannot be pulled again
   state.json      which reports have been archived
 ```
@@ -272,11 +273,13 @@ opens a pre-filled issue; the next run hides the search and closes the issue.
 
 **How big, not just how fast.** A rise says nothing about size: +250% can be
 three people. Right after a game's searches are pulled, one more search puts
-the game and up to four of its questions on one scale, so each gets its share
-of the game's searches (at the busier of its three-month average and its last
-week, so a fresh problem counts at today's pace). Google never gives counts;
-set Keyword Planner's monthly searches for two or three of your games under
-**Search volumes** on the dashboard and every share becomes an estimated count. A question needs about
+up to four of its questions beside the **baseline** on one scale: a search
+term whose monthly searches are known (see *Baselines*), now *how to fish*,
+~350K a month. A question's count is the baseline's times its level against
+it, at the busier of its three-month average and its last week, so a fresh
+problem counts at today's pace. A question too small for Trends to read
+beside the baseline is under a few thousand searches a month: too small to be
+worth a video, and listed as such. A question needs about
 **100 searches a month** (or 1% of its game's searches until there are
 counts), must be big enough for Google to chart, and must not be a one-day
 spike that already faded. Searches in **another language** are a second class:
@@ -312,6 +315,38 @@ results stay up.
 
 The bar and its numbers sit at the top of `discover.py` (`MIN_MONTHLY`,
 `MIN_SHARE`, `FOREIGN_TOP`, `FOREIGN_FACTOR`).
+
+### Baselines
+
+Google never gives search counts: Trends gives shares, and Keyword Planner
+gives ranges ten times wide (100K – 1M) unless you run ads. Together they pin
+a term down. `data/baselines.json` holds the result; the first entry is the
+baseline every question and game is measured against, the rest are backups.
+No run writes that file. Recalibrate it once a month, when Keyword Planner
+has the month before (the dashboard reminds you):
+
+1. **Pick about 8 search terms** of different sizes, mostly ones people search
+   on their own (bare "witcher" is less good: Trends also counts "the witcher
+   3", Keyword Planner mostly not). The baselines themselves belong in it.
+2. **Google Trends:** compare them all (*Explore*, up to 8 terms), worldwide,
+   all categories, web search, *Custom time range* = the whole of last month
+   (e.g. 1–31 Oct). Note each term's **Average interest**.
+3. **Keyword Planner:** *Get search volume and forecasts* with the same terms,
+   *All locations*, *All languages*, date range = the same month. Note each
+   **Avg. monthly searches** (the export's 500,000 / 5,000,000 are just the
+   ranges again, not counts).
+4. **Narrow:** each term's range divided by its Trends average gives the
+   searches one Trends point stands for. Most terms overlap in a narrow band;
+   one that does not (Trends counts it differently) is left out. That band
+   times each term's average is its monthly searches, roughly ±12%.
+5. **Write it down** in `data/baselines.json`: `term`, `monthly`, `low`,
+   `high`, `month` ("2026-10"). Put the flattest term first.
+
+Claude can do step 4 from screenshots of the two charts. October 2026 gave:
+one Trends point ≈ 27K searches; *how to fish* ~350K (320K–400K), *wardogs*
+~330K, *valheim* ~790K. With a baseline, the Keyword Planner numbers set under
+*Search volumes* become a cross-check (✓ when a game's measured count fits
+its range).
 
 ### Table and filters
 
@@ -376,7 +411,8 @@ clicks separately, then divide. Retention is weighted by views the same way.
 | `redirect_uri_mismatch` | Web client without `http://localhost:8765/` registered |
 | Discover says *SERPAPI_KEY is not set* | Add the secret (setup step 3); the last results stay up meanwhile |
 | Discover says *too little Google data* for a game | Give it a better `term` (or `cat`) under `settings → games` in `data/discover.json`, with `"manual": true` |
-| Discover shows shares, not searches a month | Press **Set** under *Search volumes* for two or three games and paste Keyword Planner's numbers; the next daily runs compare every game with them |
+| Discover shows shares, not searches a month | Add a baseline to `data/baselines.json` (*Baselines*); or press **Set** under *Search volumes* for two or three games and paste Keyword Planner's numbers |
+| Discover says it is time to recalibrate | Last month's Keyword Planner numbers are out: redo *Baselines* steps 1–5 and update `data/baselines.json` |
 | A Set or Dismiss form changed nothing | The *Discover intake* workflow applies it within minutes (Actions tab); a form it cannot read is closed with a comment saying why |
 
 ## Data retention

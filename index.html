@@ -1427,6 +1427,13 @@ function dismissUrl(query, card) {
   return `https://github.com/${REPO}/issues/new?${p}`;
 }
 
+// What a question is compared with on Trends: the baseline (all of web search) and its game, as the sizes were measured.
+function compareTerms(c, query) {
+  const b = ((DISCOVER || {}).sizes || {}).baseline;
+  return b ? { terms: [b.term, c.term, query], cat: null, what: `“${b.term}” and ${c.label}` }
+    : { terms: [c.term, query], cat: c.cat, what: c.label };
+}
+
 function questionCard(c) {
   const isNew = e => !!e.new;
   const rows = c.items.map(e => {
@@ -1443,7 +1450,7 @@ function questionCard(c) {
       <div class="dq-sub">${closest}${steam}</div>
       <div class="dq-links"><a href="https://www.google.com/search?q=${enc(e.query)}" target="_blank" rel="noopener">Google</a> ·
         <a href="https://www.youtube.com/results?search_query=${enc(e.query)}" target="_blank" rel="noopener">YouTube</a> ·
-        <a href="${trendsUrl([c.term, e.query], c.cat)}" target="_blank" rel="noopener" title="This search beside ${esc(c.label)} on Google Trends">Trends</a> ·
+        <a href="${trendsUrl(compareTerms(c, e.query).terms, compareTerms(c, e.query).cat)}" target="_blank" rel="noopener" title="This search beside ${esc(compareTerms(c, e.query).what)} on Google Trends">Trends</a> ·
         <a href="${dismissUrl(e.query, c)}" target="_blank" rel="noopener" title="Hide it from Discover (opens a GitHub issue)">Dismiss</a></div>
     </li>`;
   }).join('');
@@ -1454,7 +1461,7 @@ function questionCard(c) {
   // Real searches under the bar, and other languages: listed, not cards, so nothing vanishes.
   const side = (title, list, why) => (list || []).length
     ? `<div class="vc-why"><span class="inl">${title}</span>${list.map(x =>
-        `<a href="${trendsUrl([c.term, x.query], c.cat)}" target="_blank" rel="noopener" title="Beside ${esc(c.label)} on Google Trends">${esc(x.query)}</a>
+        `<a href="${trendsUrl(compareTerms(c, x.query).terms, compareTerms(c, x.query).cat)}" target="_blank" rel="noopener" title="Beside ${esc(compareTerms(c, x.query).what)} on Google Trends">${esc(x.query)}</a>
          <span class="side-why">(${esc(why(x))})</span>`).join(', ')}</div>` : '';
   const small = side('Small or one-off', c.small, x => x.why);
   const langs = side('Other languages', c.other_languages,
@@ -1479,31 +1486,50 @@ function volumeUrl(label, value) {
   if (value) p.set('searches', value);
   return `https://github.com/${REPO}/issues/new?${p}`;
 }
+const monthName = m => m ? new Date(m + '-01T00:00:00Z').toLocaleString('en', { month: 'short', year: 'numeric', timeZone: 'UTC' }) : '';
+function baselineLine(Z) {
+  const b = Z.baseline;
+  if (!b) return '';
+  const span = has(b.low) && has(b.high) ? ` (${fmt(b.low)}–${fmt(b.high)})` : '';
+  const backups = (Z.backups || []).map(x => `${esc(x.term)} ~${fmt(x.monthly)}`).join(', ');
+  const due = Z.baseline_age_months === null || Z.baseline_age_months >= 2;
+  return `<p class="vol-how"><b>Baseline: “${esc(b.term)}” ~${fmt(b.monthly)} Google searches a month</b>${span}, calibrated for
+      ${esc(monthName(b.month))}${backups ? ` · backups: ${backups}` : ''}. Every game and every question is measured against it on
+      Google Trends; a search too small to read beside it counts as too small to be worth a video.
+      ${due ? '<b>Time to recalibrate:</b> last month\'s Keyword Planner numbers are out (README → Baselines).' : ''}</p>`;
+}
 function volumesHtml(Z) {
-  const known = Object.keys(Z.known || {}).length;
+  const known = Object.keys(Z.known || {}).length, B = Z.baseline;
   const rows = (Z.games || []).map(g => {
     const size = has(g.monthly) ? `${g.upper ? 'under ' : '~'}${fmt(g.monthly)}` : '—';
-    const from = g.from === 'planner' ? `Keyword Planner: ${esc(g.entered)}`
+    const planner = g.entered ? `Keyword Planner: ${esc(g.entered)}${g.fits === true ? ' ✓ fits' : g.fits === false ? ' ⚠ outside it' : ''}` : '';
+    const from = g.from === 'baseline' ? [`measured against “${esc(B.term)}”${g.upper ? ' (too small beside it to read)' : ''}`, planner].filter(Boolean).join(' · ')
+      : g.everyday_word ? ['name is an everyday word, so it is not measured on all of web search', planner].filter(Boolean).join(' · ')
+      : g.from === 'planner' ? planner
       : g.from === 'anchor' ? `estimated against ${esc(Z.anchor_label)}${g.upper ? ' (too small beside it to read well)' : ''}`
-      : known ? 'estimated on the next daily run' : '';
-    const act = g.from === 'planner'
+      : B || known ? ['measured on the next daily run', planner].filter(Boolean).join(' · ') : '';
+    const act = g.entered
       ? `<a href="${volumeUrl(g.label)}" target="_blank" rel="noopener">Change</a> ·
          <a href="${volumeUrl(g.label, 'clear')}" target="_blank" rel="noopener">Remove</a>`
-      : `<a class="btn small" href="${volumeUrl(g.label)}" target="_blank" rel="noopener">Set</a>`;
+      : `<a class="btn small" href="${volumeUrl(g.label)}" target="_blank" rel="noopener" title="Add Keyword Planner's number${B ? ' as a cross-check' : ''}">Set</a>`;
     return `<tr><td style="text-align:left;white-space:normal"><b>${esc(g.label)}</b>
         <div class="vol-sub">your views: ${fmt(g.views_28d)} in 28 days</div></td>
       <td style="white-space:normal"><b>${size}</b>${from ? `<div class="vol-sub">${from}</div>` : ''}
         <div class="vol-act">${act}</div></td></tr>`;
   }).join('');
-  return `<p class="vol-how">
+  const how = B
+    ? `<p class="vol-how"><b>Set</b> adds Keyword Planner's number for a game as a cross-check (✓ when the measured count fits its range):
+        <a href="${KEYWORD_PLANNER}" target="_blank" rel="noopener">Keyword Planner</a> → <i>Get search volume and forecasts</i>,
+        <i>All locations</i>, then paste <i>Avg. monthly searches</i>.</p>`
+    : `<p class="vol-how">
       <b>1.</b> Open <a href="${KEYWORD_PLANNER}" target="_blank" rel="noopener">Keyword Planner</a> →
       <i>Get search volume and forecasts</i>, type a game's name, set the location to <i>All locations</i>.
       <b>2.</b> Press <b>Set</b> next to the game here and paste <i>Avg. monthly searches</i> (a range like 10K – 100K is fine).
       <b>3.</b> Submit: the dashboard updates within a few minutes. Two or three games are enough, a big one, a middle one and a
-      niche one; every other game is then estimated by comparing it with them on Google Trends.</p>
-    ${rows ? `<table class="att-table vol-table"><thead><tr><th style="text-align:left">Game</th>
+      niche one; every other game is then estimated by comparing it with them on Google Trends.</p>`;
+  return baselineLine(Z) + how + (rows ? `<table class="att-table vol-table"><thead><tr><th style="text-align:left">Game</th>
       <th>Google searches a month</th></tr></thead><tbody>${rows}</tbody></table>`
-      : '<p class="empty-state">Your games appear here after their first Discover search.</p>'}`;
+      : '<p class="empty-state">Your games appear here after their first Discover search.</p>');
 }
 
 function renderDiscover() {
@@ -1533,7 +1559,10 @@ function renderDiscover() {
   const bar = has(Z.min_monthly)
     ? ` A question needs ~${fmt(Z.min_monthly)}+ searches a month (${shareTxt(Z.min_share)} of its game's searches until there are counts);
         one in another language needs ${Z.foreign_factor}× that and a top score of ${Z.foreign_top}+.` : '';
-  const sizes = known.length
+  const sizes = Z.baseline
+    ? `Searches a month are measured against the baseline “${esc(Z.baseline.term)}” (~${fmt(Z.baseline.monthly)} a month,
+        ${esc(monthName(Z.baseline.month))}), about ±12%.`
+    : known.length
     ? `Counts are estimates from your Keyword Planner numbers (${known.map(([k, v]) => `${esc(k)} ~${fmt(v)}`).join(', ')})${
         Z.anchor_label ? `, with ${esc(Z.anchor_label)} as the anchor${Z.calibrated ? ` (compared ${shortDate(Z.calibrated)})` : ''}` : ''}:
         order of magnitude, not exact.`
@@ -1547,8 +1576,10 @@ function renderDiscover() {
       <div class="group-body">${body}</div></details>
     <details class="group" data-key="disc-volumes" ${(saved['disc-volumes'] !== undefined ? saved['disc-volumes'] : !known.length) ? 'open' : ''}>
       <summary><span class="fold">▶</span><h3>Search volumes</h3>${known.length ? `<span class="count">${known.length}</span>` : ''}
-        <span class="group-what">How many Google searches a month each game gets. Set two or three from Keyword Planner and
-          Discover turns every share into searches a month.</span></summary>
+        <span class="group-what">${Z.baseline
+          ? `How many Google searches a month each game gets, measured against the baseline “${esc(Z.baseline.term)}”.
+             Keyword Planner numbers you set are a cross-check.`
+          : 'How many Google searches a month each game gets. Set two or three from Keyword Planner and Discover turns every share into searches a month.'}</span></summary>
       <div class="group-body">${volumesHtml(Z)}</div></details>
     <p class="disc-foot">Google Trends through SerpApi: <b>${fmt(B.used || 0)} of ${fmt(B.cap || 200)}</b> searches used this cycle${
       B.next_cycle ? ` (renews ${shortDate(B.next_cycle)})` : ''}${plan}. Your top 12 games are searched every 14 days, the next 12 every 30.
@@ -1560,8 +1591,10 @@ function renderDiscover() {
         Breakout means more than +5000%, usually something new. A rise says nothing about size: +250% can be three people.</dd></div>
       <div><dt>~1.1K/mo · 4% of Snowrunner searches</dt><dd>How big the search is, at the busier of its three-month average and its
         last week, so a problem that started days ago counts at today's pace. Google never gives counts: a share of the game's
-        searches comes from comparing the two on one scale, and searches a month from Keyword Planner numbers you enter for a
-        game or two. Order of magnitude, not exact.</dd></div>
+        searches comes from comparing the two on one scale. Searches a month come from the baseline: a search term (now
+        “how to fish”) whose monthly searches were pinned down by comparing several terms in Trends against Keyword Planner
+        for the same month, recalibrated monthly. Every question is measured against it; one Trends cannot read beside it is
+        under a few thousand a month, too small to be worth a video. Roughly ±12%, not exact.</dd></div>
       <div><dt>top · 45</dt><dd>One of the game's most searched queries, as a share of its busiest one (0–100). Listed when none of your videos covers it.</dd></div>
       <div><dt>Small or one-off</dt><dd>Real searches under the bar: too small for Google to chart, a one-day spike that already
         faded, or fewer searches than the bar. Listed so nothing vanishes; worth a look only if it keeps coming back.</dd></div>

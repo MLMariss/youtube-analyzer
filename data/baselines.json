@@ -1,0 +1,29 @@
+{
+  "_how": "Search terms whose monthly Google searches are pinned down. Discover measures every question against the first one; the others are backups. Recalibrate once a month: README -> Baselines.",
+  "baselines": [
+    {
+      "term": "how to fish",
+      "monthly": 350000,
+      "low": 320000,
+      "high": 400000,
+      "month": "2026-10",
+      "note": "Trends Oct 1-31 2026 against Keyword Planner Oct 2026 for 8 terms; aion 2, dune, ark, valheim, how to fish and wardogs agree on ~27K searches per Trends point (witcher slightly off, enshrouded far off). Flattest line of the 8."
+    },
+    {
+      "term": "wardogs",
+      "monthly": 330000,
+      "low": 290000,
+      "high": 370000,
+      "month": "2026-10",
+      "note": "Same calibration."
+    },
+    {
+      "term": "valheim",
+      "monthly": 790000,
+      "low": 700000,
+      "high": 890000,
+      "month": "2026-10",
+      "note": "Same calibration."
+    }
+  ]
+}

@@ -32,7 +32,8 @@ topics surfaces first.
 | Geography | Worldwide now. Americas / Europe / Asia / All later, with the official API. |
 | "Market or me" | **Second grade**, built only after discovery works |
 | Noise | **A rise is not a size.** Every item must be big enough to act on, not just real. Below the bar it is listed apart (*small or one-off*), never dropped silently. The same rule runs the whole dashboard: a *Needs attention* card needs a change worth 0.3% of the channel's weekly views. |
-| Sizes | Each question is measured against its game on one Trends scale. **Counts** come from a baseline: Keyword Planner's monthly searches for a few of your games, entered by hand; one is the anchor every other game is compared with. Order of magnitude, not exact. |
+| Sizes | Each question is measured against a **baseline** on one Trends scale: a search term whose monthly searches are pinned down (now *how to fish*, ~350K, Oct 2026). Too small to read beside it means too small to be worth a video. |
+| Baseline | Calibrated by hand monthly: ~8 terms compared in Trends and Keyword Planner for the same month; their 10×-wide ranges overlap in a ±12% band (README → Baselines). Kept in `data/baselines.json`. Keyword Planner numbers set per game are a cross-check. Automating the monthly calibration comes later. |
 | Scope | **All of web search**, not the Games category: a game reaching news, social media or business pages is a trend too. Only names that are everyday words (Foundation, Grounded, Icarus, Odyssey, Humankind, Windrose) stay in the Games category. |
 | Other languages | **A second class with a higher bar:** among the game's top searches at a score of 20+, and 4× the English count. The rest are listed apart. |
 | Where it shows | A new foldable **Discover** section on `index.html`, below *Needs attention* |
@@ -166,6 +167,9 @@ Each card links to the Google results and the Trends page for the query
   against mocked SerpApi responses
 - [x] *Search volumes* panel with a **Set** form per game, applied within
   minutes by `.github/workflows/discover-intake.yml` (Dismiss too)
+- [x] Baselines (`data/baselines.json`): questions and games measured against a
+  calibrated term; October 2026 calibrated by hand (how to fish ~350K)
+- [ ] Monthly calibration automated (8 terms in Trends against Keyword Planner)
 - [ ] Keyword Planner numbers entered for 2-3 games (a big, a middle and a
   small one), worldwide
 - [ ] The bar tuned after the first cycle of sizes
