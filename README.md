@@ -110,7 +110,7 @@ monitor.py         flags videos that need attention, with next steps
 signals.py         week-on-week and shift tests (shared)
 patches.py         Steam updates behind a change, and patches touching a video
 actions.py         the learning loop: logs, measures, remembers
-discover.py        what is not on the dashboard yet (Discover)
+discover.py        what is not on the dashboard yet (Discover); also applies Dismiss and Set forms
 trends.py          Google Trends through SerpApi, and the search budget
 auth.py            refresh-token OAuth
 mint_token.py      one-time token minting
@@ -121,6 +121,8 @@ docs/search-demand-plan.md   the Discover roadmap, phase by phase
 .github/workflows/collect.yml
 .github/ISSUE_TEMPLATE/log-action.yml        the "Log action" form
 .github/ISSUE_TEMPLATE/discover-dismiss.yml  the "Dismiss" form on Discover
+.github/ISSUE_TEMPLATE/discover-volume.yml   the "Set" form under Search volumes (Keyword Planner numbers)
+.github/workflows/discover-intake.yml        applies a Dismiss or Set form within minutes, no searches
 data/
   reports/<report_type>/<YYYY-MM-DD>.json   permanent archive, one file per day
   summary.json    per-video totals across 7d/28d/90d/365d/all
@@ -273,8 +275,8 @@ three people. Right after a game's searches are pulled, one more search puts
 the game and up to four of its questions on one scale, so each gets its share
 of the game's searches (at the busier of its three-month average and its last
 week, so a fresh problem counts at today's pace). Google never gives counts;
-enter Keyword Planner's monthly searches for one or more of your games and
-every share becomes an estimated count (see *Editing*). A question needs about
+set Keyword Planner's monthly searches for two or three of your games under
+**Search volumes** on the dashboard and every share becomes an estimated count. A question needs about
 **100 searches a month** (or 1% of its game's searches until there are
 counts), must be big enough for Google to chart, and must not be a one-day
 spike that already faded. Searches in **another language** are a second class:
@@ -296,12 +298,16 @@ results stay up.
   category, for a name that is an everyday word) or `"skip": true`, with
   `"manual": true` so the run leaves the entry alone.
 - `settings → searches_per_month`: Keyword Planner's average monthly searches
-  for a few of your games, worldwide (Google Ads → Tools → Keyword Planner →
-  *Get search volume and forecasts*, location *All locations*). A number or
-  the range it shows, e.g. `{"Snowrunner": "10K-100K", "Tropico 6": 40000}`.
+  for a few of your games, worldwide. The easy way is the dashboard: *Search
+  volumes* (under Discover) lists your games with **Set** next to each, which
+  opens a pre-filled form. Get the number from Google Ads → Tools → Keyword
+  Planner → *Get search volume and forecasts*, location *All locations*, and
+  paste it as shown (a range like `10K – 100K` is fine; without ad spend that
+  is all it shows, so counts are order of magnitude). The *Discover intake*
+  workflow stores it within a few minutes and closes the form's issue; type
+  `clear` to remove one. By hand it is e.g. `{"Snowrunner": "10K-100K"}`.
   Two or three games of different sizes work best; the one in the middle
-  becomes the anchor. Without ad spend Keyword Planner gives ranges, so counts
-  are order of magnitude.
+  becomes the anchor the other games are compared with.
 - `dismissed` holds what you hid.
 
 The bar and its numbers sit at the top of `discover.py` (`MIN_MONTHLY`,
@@ -370,7 +376,8 @@ clicks separately, then divide. Retention is weighted by views the same way.
 | `redirect_uri_mismatch` | Web client without `http://localhost:8765/` registered |
 | Discover says *SERPAPI_KEY is not set* | Add the secret (setup step 3); the last results stay up meanwhile |
 | Discover says *too little Google data* for a game | Give it a better `term` (or `cat`) under `settings → games` in `data/discover.json`, with `"manual": true` |
-| Discover shows shares, not searches a month | Enter Keyword Planner numbers under `settings → searches_per_month` in `data/discover.json`; the next runs compare every game with them |
+| Discover shows shares, not searches a month | Press **Set** under *Search volumes* for two or three games and paste Keyword Planner's numbers; the next daily runs compare every game with them |
+| A Set or Dismiss form changed nothing | The *Discover intake* workflow applies it within minutes (Actions tab); a form it cannot read is closed with a comment saying why |
 
 ## Data retention
 

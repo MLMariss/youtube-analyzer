@@ -171,6 +171,8 @@ INTENTS = [
                          r"console|commands?|mods?|walkthrough|where|unlock\w*|get|farm\w*|money|start\w*|setup|"
                          r"settings?|seeds?|maps?|tier list|endings?|boss\w*|recipes?|controls?)\b", re.I)),
 ]
+VOLUME_TITLE = "searches a month:"   # issues the dashboard's Set button opens
+CLEAR_WORDS = {"clear", "remove", "delete", "none", "-"}
 NOT_A_GAME = re.compile(r"\b(?:sale|gameplay|vs)\b", re.I)   # "steam summer sale", "player vs player"
 
 
@@ -263,25 +265,39 @@ def steam_news(keys):
     return out
 
 
-def dismissed_from_issues(state):
+def open_issues():
+    """The repository's open issues (not pull requests), or [] without GITHUB_TOKEN."""
+    try:
+        batch = actions.github("GET", "/issues?state=open&per_page=100")
+    except Exception as e:
+        print(f"  ! could not read issues: {str(e)[:120]}")
+        return []
+    return [i for i in batch or [] if "pull_request" not in i]
+
+
+def is_volume_issue(issue):
+    labels = {label.get("name") for label in issue.get("labels", [])}
+    return (issue.get("title") or "").lower().startswith(VOLUME_TITLE) or "discover-volume" in labels
+
+
+def close_issue(issue, note, reason="completed"):
+    try:
+        actions.github("POST", f"/issues/{issue['number']}/comments", {"body": note})
+        actions.github("PATCH", f"/issues/{issue['number']}", {"state": "closed", "state_reason": reason})
+    except Exception as e:
+        print(f"  ! could not close issue #{issue.get('number')}: {str(e)[:120]}")
+
+
+def dismissed_from_issues(state, issues):
     """
     Add "Dismiss: ..." issues (the dashboard opens them) to the dismissed
     list, then close them with a note: the list in discover.json is the record.
     """
-    try:
-        batch = actions.github("GET", "/issues?state=open&per_page=100")
-    except Exception as e:
-        print(f"  ! could not read dismiss issues: {str(e)[:120]}")
-        return
-    if batch is None:
-        return   # no GITHUB_TOKEN: nothing to read
     have = {(d.get("game"), d.get("item")) for d in state["dismissed"]}
-    for issue in batch:
-        if "pull_request" in issue:
-            continue
+    for issue in issues:
         title = issue.get("title") or ""
         labels = {label.get("name") for label in issue.get("labels", [])}
-        if not title.lower().startswith("dismiss:") and "discover" not in labels:
+        if is_volume_issue(issue) or (not title.lower().startswith("dismiss:") and "discover" not in labels):
             continue
         fields = actions.form_fields(issue.get("body"))
         item = (fields.get("what to hide") or title.split(":", 1)[-1].split("—")[0]).strip().strip('"“”').lower()
@@ -293,13 +309,45 @@ def dismissed_from_issues(state):
                                        "issue": issue.get("number")})
             have.add((game, item))
             print(f"  hid “{item}” ({game or 'any game'}), issue #{issue.get('number')}")
-        try:
-            actions.github("POST", f"/issues/{issue['number']}/comments",
-                           {"body": "Hidden from Discover. To show it again, remove it from "
-                                    "`dismissed` in `data/discover.json`."})
-            actions.github("PATCH", f"/issues/{issue['number']}", {"state": "closed", "state_reason": "completed"})
-        except Exception as e:
-            print(f"  ! could not close issue #{issue.get('number')}: {str(e)[:120]}")
+        close_issue(issue, "Hidden from Discover. To show it again, remove it from `dismissed` in `data/discover.json`.")
+
+
+def volumes_from_issues(state, names, issues):
+    """
+    Keyword Planner numbers from "Searches a month: ..." issues (the
+    dashboard's Set button opens them) into settings -> searches_per_month,
+    then close them with what was stored. "clear" removes a game's number.
+    """
+    store = state["settings"].setdefault("searches_per_month", {})
+    for issue in issues:
+        if not is_volume_issue(issue):
+            continue
+        fields = actions.form_fields(issue.get("body"))
+        game = (fields.get("game") or (issue.get("title") or "").split(":", 1)[-1]).strip()
+        value = (fields.get("searches a month") or "").strip()
+        key = game.lower()
+        if key not in names:
+            close_issue(issue, f"“{game}” is not one of the games Discover knows from your video titles, "
+                               "so nothing was changed. Use the Set button on the dashboard, which fills in the name.",
+                        "not_planned")
+            continue
+        n = None if value.lower() in CLEAR_WORDS else parse_monthly(value)
+        if value.lower() not in CLEAR_WORDS and not n:
+            close_issue(issue, f"“{value}” is not a number Discover can read, so nothing was changed. "
+                               "Copy Keyword Planner's *Avg. monthly searches*: a range like `10K – 100K`, or `40000`.",
+                        "not_planned")
+            continue
+        for k in [k for k in store if str(k).strip().lower() == key]:
+            del store[k]
+        if n:
+            store[names[key]] = value
+            print(f"  {names[key]}: {value} searches a month, issue #{issue.get('number')}")
+            close_issue(issue, f"Stored: **{names[key]}** about {n:,.0f} Google searches a month (from “{value}”). "
+                               "The dashboard shows it within a few minutes; the other games are compared with "
+                               "your numbers on the next daily run.")
+        else:
+            print(f"  {names[key]}: number removed, issue #{issue.get('number')}")
+            close_issue(issue, f"Removed the number for **{names[key]}**.")
 
 
 # ------------------------------------------------------------------ games and schedule
@@ -678,6 +726,11 @@ def main(argv=None):
     games = {vid: game_of(m.get("title"), names) for vid, m in meta.items()}
     views = views_by_game(games)
     settings = game_settings(state, names, names.keys())
+    if not args.dry_run:
+        # What you asked for on the dashboard: dismissals and Keyword Planner numbers.
+        issues = open_issues()
+        dismissed_from_issues(state, issues)
+        volumes_from_issues(state, names, issues)
     known = known_monthly(state, names)
     watched = sorted((g for g, n in views.items() if n >= MIN_VIEWS and not settings[g].get("skip")),
                      key=lambda g: -views[g])
@@ -727,8 +780,6 @@ def main(argv=None):
             print("  no Keyword Planner numbers under settings → searches_per_month: sizes stay shares")
         print(f"  {len(due)} pull(s) and {len(unmeasured)} sizing(s) due; the run stops at {args.max_searches} searches")
         return 0
-
-    dismissed_from_issues(state)
 
     spent = 0
 
@@ -805,8 +856,17 @@ def main(argv=None):
                        ". A better search term can help: set it under settings → games in data/discover.json."})
     if not known:
         health.append({"level": "info", "message": "Sizes are shares of each game's own searches. To see searches "
-                       "a month, enter Keyword Planner's monthly searches for one or more of your games under "
-                       "settings → searches_per_month in data/discover.json."})
+                       "a month, set Keyword Planner numbers for two or three games under Search volumes below."})
+
+    # Every searched game's size, for the dashboard's Search volumes panel (where the Set button is).
+    entered = {str(k).strip().lower(): v for k, v in state["settings"]["searches_per_month"].items()}
+    volumes = []
+    for key in ranked + [k for k in known if k not in ranked]:
+        monthly, upper = game_monthly(key, known, cal)
+        volumes.append({"game": key, "label": names[key], "views_28d": round(views.get(key, 0)),
+                        "entered": entered.get(key) if key in known else None,
+                        "monthly": round(monthly) if monthly else None, "upper": upper,
+                        "from": "planner" if key in known else "anchor" if monthly else None})
 
     ledger, acct = budget.ledger, budget.account
     write_json("discover.json", {
@@ -823,7 +883,7 @@ def main(argv=None):
         "sizes": {"anchor": cal.get("anchor") if cal.get("anchor") in known else None,
                   "anchor_label": names.get(cal.get("anchor")) if cal.get("anchor") in known else None,
                   "known": {names[k]: round(n) for k, n in known.items()}, "calibrated": cal.get("date"),
-                  "min_monthly": MIN_MONTHLY, "min_share": MIN_SHARE,
+                  "games": volumes, "min_monthly": MIN_MONTHLY, "min_share": MIN_SHARE,
                   "foreign_top": FOREIGN_TOP, "foreign_factor": FOREIGN_FACTOR},
         "questions": questions, "health": health, "range": DATE_RANGE,
         "schedule": {"ranked": ranked,
