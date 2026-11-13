@@ -280,7 +280,17 @@ def is_volume_issue(issue):
     return (issue.get("title") or "").lower().startswith(VOLUME_TITLE) or "discover-volume" in labels
 
 
+# With DISCOVER_CLOSE_LATER set (the intake workflow does), issues are closed
+# only after the commit is pushed (--close-issues): a run whose push fails
+# leaves them open, and the next run applies them again.
+CLOSE_LATER = os.environ.get("DISCOVER_CLOSE_LATER")
+_closures = []
+
+
 def close_issue(issue, note, reason="completed"):
+    if CLOSE_LATER:
+        _closures.append({"number": issue["number"], "note": note, "reason": reason})
+        return
     try:
         actions.github("POST", f"/issues/{issue['number']}/comments", {"body": note})
         actions.github("PATCH", f"/issues/{issue['number']}", {"state": "closed", "state_reason": reason})
@@ -705,7 +715,16 @@ def main(argv=None):
     ap.add_argument("--dry-run", action="store_true", help="show what would be searched; change nothing")
     ap.add_argument("--offline", action="store_true", help="no searches; rebuild from saved pulls")
     ap.add_argument("--max-searches", type=int, default=RUN_MAX, help=f"searches this run (default {RUN_MAX})")
+    ap.add_argument("--close-issues", metavar="FILE", help="close the issues a DISCOVER_CLOSE_LATER run listed, then stop")
     args = ap.parse_args(argv)
+
+    if args.close_issues:
+        for c in load_json(args.close_issues, []):
+            print(f"  closing issue #{c['number']}")
+            os.environ.pop("DISCOVER_CLOSE_LATER", None)
+            globals()["CLOSE_LATER"] = None
+            close_issue({"number": c["number"]}, c["note"], c["reason"])
+        return 0
 
     meta = load_json(os.path.join(DATA_DIR, "videos.json"), {}).get("videos") or {}
     if not meta:
@@ -889,6 +908,9 @@ def main(argv=None):
         "schedule": {"ranked": ranked,
                      "due": [k for k, _, _ in due if (state["pulls"].get(k) or {}).get("date") != iso(today)]},
     })
+    if CLOSE_LATER:
+        with open(CLOSE_LATER, "w", encoding="utf-8") as f:
+            json.dump(_closures, f, ensure_ascii=False)
     print(f"  {spent} search(es) this run; {budget.ledger.get('used', 0)} of {budget.cap} this cycle; "
           f"{sum(len(c['items']) for c in questions)} questions across {len(questions)} games, "
           f"{sum(len(c['small']) for c in questions)} small, "
