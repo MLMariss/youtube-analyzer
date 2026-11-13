@@ -178,6 +178,15 @@ Rises must reach a level worth having (50 impressions or 10 views a week),
 falls must start from one worth protecting (150 impressions or 25 views a
 week), and CTR changes need 100 impressions in each week.
 
+**Big enough to act on.** Real is not the same as worth an hour: 4 → 11 views a
+week can be a clear change and still not matter. A card needs a change worth
+at least **0.3% of the channel's weekly views** (about 23 a week at 7,600),
+counting ten impressions as one view and a CTR change as the clicks it wins or
+loses. The bar grows with the channel. Smaller changes are listed under
+*Small changes* (folded), so nothing vanishes. The same bar applies to rising
+searches and sites and to videos building up; conversation cards keep their
+own minimum (5 comments a week).
+
 What changed is grouped by what to do about it:
 
 | Group | Means | First move |
@@ -190,6 +199,7 @@ What changed is grouped by what to do about it:
 | Losing reach | impressions or views clearly down, or still well below where they were before a fall (also whole games cooling) | depends on the source that dropped |
 | Conversation | far more comments or dislikes than last week | reply, pin an answer |
 | Searches and sites on the rise | search terms, outside sites, other channels' videos sending clearly more views | the topic is heating up |
+| Small changes | real changes worth under the bar (folded) | nothing yet; watch for a repeat |
 
 Each card shows last week → this week for impressions, CTR and views (with
 whether the change is clear or within the normal swing), or for a shift the
@@ -246,29 +256,56 @@ first part is live:
 
 **Unanswered questions in your games.** For the games you cover that still
 bring views (20+ in 28 days, from your titles), Google's related searches over
-the last three months are pulled from Google Trends, and every search one of
-your videos already answers is dropped: when all its words appear in one of
-your titles on the game, or in a YouTube search that already brings those
-videos views. Piracy, shop and spec searches go too. What is left is sorted
-by intent (problem, how-to, news, topic) with how much it rose (*Breakout* is
-more than +5000%), the video of yours that comes closest, and the Steam
-announcement a news search is about. Other games people searched alongside
-are listed apart, as leads. *Dismiss* opens a pre-filled issue; the next run
-hides the search and closes the issue.
+the last three months are pulled from Google Trends, across all of web search
+(a game reaching news or social media is a trend too; only names that are
+everyday words, like *Foundation*, stay in the Games category). Every search
+one of your videos already answers is dropped: when all its words appear in
+one of your titles on the game, or in a YouTube search that already brings
+those videos views. Piracy, shop and spec searches go too, in other languages
+as well. What is left is sorted by intent (problem, how-to, news, topic) with
+how much it rose (*Breakout* is more than +5000%), how big it is, the video of
+yours that comes closest, and the Steam announcement a news search is about.
+Other games people searched alongside are listed apart, as leads. *Dismiss*
+opens a pre-filled issue; the next run hides the search and closes the issue.
+
+**How big, not just how fast.** A rise says nothing about size: +250% can be
+three people. Right after a game's searches are pulled, one more search puts
+the game and up to four of its questions on one scale, so each gets its share
+of the game's searches (at the busier of its three-month average and its last
+week, so a fresh problem counts at today's pace). Google never gives counts;
+enter Keyword Planner's monthly searches for one or more of your games and
+every share becomes an estimated count (see *Editing*). A question needs about
+**100 searches a month** (or 1% of its game's searches until there are
+counts), must be big enough for Google to chart, and must not be a one-day
+spike that already faded. Searches in **another language** are a second class:
+they need to be among the game's top searches (score 20+) and four times that
+count. Everything under the bar is still listed under the game, as *small or
+one-off* or *other languages*. *Trends* opens a question beside its game, so
+one too small to chart alone still shows, as a line near zero.
 
 **Budget.** SerpApi's free plan gives 250 searches a cycle, renewing on the
 12th. `trends.py` spends at most **200** of them and leaves 50 for checks by
 hand; it reads the searches left from SerpApi before spending. The top 12
-games are searched every 14 days and the next 12 every 30, three searches a
-run, about 40 a cycle. Without `SERPAPI_KEY` the last results stay up.
+games are searched every 14 days and the next 12 every 30, each with one or
+two sizing searches, and the games are compared with the anchor every 30
+days: six searches a run, about 86 a cycle. Without `SERPAPI_KEY` the last
+results stay up.
 
-**Editing.** In `data/discover.json`, under `settings → games`, a game's
-search `term`, its `cat` (8 is Google's Games category, which keeps
-*Foundation* the game) or `"skip": true`, with `"manual": true` so the run
-leaves the entry alone. `dismissed` holds what you hid.
+**Editing.** In `data/discover.json`:
+- `settings → games`: a game's search `term`, its `cat` (8 is Google's Games
+  category, for a name that is an everyday word) or `"skip": true`, with
+  `"manual": true` so the run leaves the entry alone.
+- `settings → searches_per_month`: Keyword Planner's average monthly searches
+  for a few of your games, worldwide (Google Ads → Tools → Keyword Planner →
+  *Get search volume and forecasts*, location *All locations*). A number or
+  the range it shows, e.g. `{"Snowrunner": "10K-100K", "Tropico 6": 40000}`.
+  Two or three games of different sizes work best; the one in the middle
+  becomes the anchor. Without ad spend Keyword Planner gives ranges, so counts
+  are order of magnitude.
+- `dismissed` holds what you hid.
 
-Google Trends gives shares, never counts: a big rise on a small search can
-still be a handful of people.
+The bar and its numbers sit at the top of `discover.py` (`MIN_MONTHLY`,
+`MIN_SHARE`, `FOREIGN_TOP`, `FOREIGN_FACTOR`).
 
 ### Table and filters
 
@@ -308,6 +345,7 @@ python discover.py --dry-run         # which games are due, what it would spend
 python discover.py --max-searches 1  # one search now
 python trends.py account             # searches left on the SerpApi plan
 python trends.py queries "tropico 6" # one manual check (uses a search)
+python trends.py compare "snowrunner" "snowrunner mods"   # two searches on one scale (uses a search)
 ```
 
 ## A note on averaging
@@ -332,6 +370,7 @@ clicks separately, then divide. Retention is weighted by views the same way.
 | `redirect_uri_mismatch` | Web client without `http://localhost:8765/` registered |
 | Discover says *SERPAPI_KEY is not set* | Add the secret (setup step 3); the last results stay up meanwhile |
 | Discover says *too little Google data* for a game | Give it a better `term` (or `cat`) under `settings → games` in `data/discover.json`, with `"manual": true` |
+| Discover shows shares, not searches a month | Enter Keyword Planner numbers under `settings → searches_per_month` in `data/discover.json`; the next runs compare every game with them |
 
 ## Data retention
 

@@ -29,6 +29,13 @@ card. Early signals that are not confirmed yet are listed apart: videos up
 three days running, games whose videos spiked together on one day, and
 same-day jumps in the public view counter.
 
+A change must also be big enough to act on. Telling a real change from
+chance is not enough: 4 -> 11 views a week can be real and not worth an hour.
+A card needs a change worth at least 0.3% of the channel's weekly views (in
+views, or ten times that in impressions, or in clicks won or lost to CTR).
+Smaller ones are listed apart as small changes, so nothing vanishes. The
+same floor applies to rising searches and sites, and to videos building up.
+
 Each card carries concrete next steps; actions.py records what was done and
 measures whether it helped, and those results are shown next to the steps.
 patches.py names the Steam update behind a change, where there is one, and
@@ -77,6 +84,12 @@ SHIFT_LOOKBACK = 182  # days searched for shifts
 SETTLING_DAYS = 91    # within this long of a rise, easing back is the wave settling, not lost reach
 STALE_DAYS = 60       # a game's newest video older than this is worth saying
 COVERED_MIN = 20      # views over four weeks before a game's Steam updates are followed
+# What a change must be worth to get a card: this share of the channel's
+# weekly views (about 20 a week at 6,700), never under FLOOR_MIN. Impressions
+# count at IMPRESSIONS_PER_VIEW to one, so the floor for reach is ten times it.
+FLOOR_SHARE = 0.003
+FLOOR_MIN = 10
+IMPRESSIONS_PER_VIEW = 10
 
 SEARCH, BROWSE, SUGGESTED, EXTERNAL = "5", "3", "7", "9"
 PLAYLIST_SOURCES = ("14", "18")   # Playlists, Playlist page
@@ -259,9 +272,10 @@ def evaluate(days, end, covered, settled=None):
             moved = None
         if moved:
             moved["days"] = (end - date.fromisoformat(moved["date"])).days
+        pace = sum(values[-3:]) * 7 / 3
         sig[m] = {"weeks": weeks, "dir": direction, "how": how, "z": round(z, 1), "base": base,
-                  "building": building_up(values[7:], SWING[m]) and sum(values[-3:]) * 7 / 3 >= RISE_TO[m],
-                  "shift": moved}
+                  "building": building_up(values[7:], SWING[m]) and pace >= RISE_TO[m],
+                  "pace": round(pace), "shift": moved}
     clicks, imps = series("clicks"), series("impressions")
     direction, z = ctr_change(sum(clicks[14:]), sum(imps[14:]), sum(clicks[7:14]), sum(imps[7:14]))
     if min(sum(imps[14:]), sum(imps[7:14])) < CTR_FROM:
@@ -270,7 +284,8 @@ def evaluate(days, end, covered, settled=None):
     # The last three days must agree, as for the counts.
     if direction and (recent is None or last is None or (recent - last) * direction < 0):
         direction = 0
-    sig["ctr"] = {"last": last, "this": this, "dir": direction, "z": round(z, 1)}
+    sig["ctr"] = {"last": last, "this": this, "dir": direction, "z": round(z, 1),
+                  "impressions": round(sum(imps[14:]))}
     for m, minimum in (("comments", 5), ("dislikes", 3)):
         values = series(m)
         w1, w0 = sum(values[7:14]), sum(values[14:])
@@ -339,6 +354,48 @@ def windows(sig, lead, basis, end):
                              iso(start - timedelta(days=1))))
     back = 14 if sig[lead]["how"] in ("climb", "slide") else 7
     return span(end, 7), span(end - timedelta(days=back), 7)
+
+
+def in_views(metric, n):
+    """A count of `metric` as views: impressions at IMPRESSIONS_PER_VIEW to one."""
+    return n / IMPRESSIONS_PER_VIEW if metric == "impressions" else n
+
+
+def stake(sig):
+    """
+    What a video's change is worth a week, in views: the biggest of its
+    flagged changes (this week's against the week it is compared with, or the
+    level now against before a shift), impressions counted as views, and the
+    clicks a CTR change wins or loses at this week's impressions.
+    """
+    best = 0.0
+    for m in METRICS:
+        s = sig[m]
+        if s["dir"]:
+            best = max(best, in_views(m, abs(s["weeks"][2] - s["base"])))
+        if s["shift"]:
+            best = max(best, in_views(m, abs(s["shift"]["now"] - s["shift"]["before"])))
+    c = sig["ctr"]
+    if c["dir"] and c["last"] is not None and c["this"] is not None:
+        best = max(best, c.get("impressions", 0) * abs(c["this"] - c["last"]) / 100)
+    return best
+
+
+def change_of(sig, lead, basis):
+    """The lead metric's weekly level before and now, for the small-changes list."""
+    s = sig[lead]
+    if basis == "shift" and s["shift"]:
+        return {"metric": lead, "from": s["shift"]["before"], "to": s["shift"]["now"]}
+    return {"metric": lead, "from": s["base"], "to": s["weeks"][2]}
+
+
+def channel_floor(daily, end):
+    """The floor in views a week: FLOOR_SHARE of the channel's average week over the last four."""
+    month = span(end, 28)
+    weekly = sum(days.get(d, {}).get("views", 0.0) for days in daily.values() for d in month) / 4
+    views = max(FLOOR_MIN, round(weekly * FLOOR_SHARE))
+    return {"views": views, "impressions": views * IMPRESSIONS_PER_VIEW, "share": FLOOR_SHARE,
+            "channel_weekly_views": round(weekly)}
 
 
 def drivers(vids, direction, now_days, before_days, by_source, by_detail, covered):
@@ -625,8 +682,11 @@ def snapshot_movers(daily, ages, through):
     return out, {"from": days[keys[-2]]["taken_at"], "to": days[keys[-1]]["taken_at"]}, len(keys)
 
 
-def rising_topics(topic_daily, topic_videos, meta, end):
-    """Search terms, outside sites and other channels' videos clearly rising week on week."""
+def rising_topics(topic_daily, topic_videos, meta, end, floor):
+    """
+    Search terms, outside sites and other channels' videos clearly rising week
+    on week, by at least `floor` views a week.
+    """
     out = {name: [] for name in TOPIC_SOURCES.values()}
     dates = span(end, 21)
     for (src, detail), per_day in topic_daily.items():
@@ -637,6 +697,9 @@ def rising_topics(topic_daily, topic_videos, meta, end):
             continue   # the channel's own videos suggesting each other is not a topic
         direction, how, _ = weekly_change(values, SWING["views"])
         if direction <= 0:
+            continue
+        base = sum(values[:7]) if how == "climb" else sum(values[7:14])
+        if sum(values[14:]) - base < floor:
             continue
         top = sorted(topic_videos.get((src, detail), {}).items(), key=lambda kv: -kv[1])[:3]
         out[TOPIC_SOURCES[src]].append({
@@ -755,6 +818,9 @@ def main():
             newest[g] = vid
 
     daily, covered = load_daily(through)
+    floor = channel_floor(daily, end)
+    print(f"  floor: a change must be worth {floor['views']} views a week "
+          f"({floor['share']:.1%} of {floor['channel_weekly_views']:,} a week) or {floor['impressions']} impressions")
 
     def classify(vid, as_of):
         """The situation a video was in on a given day (for actions.py)."""
@@ -770,7 +836,9 @@ def main():
         if not sit:
             if sig["impressions"]["building"] or sig["views"]["building"]:
                 metric = "impressions" if sig["impressions"]["building"] else "views"
-                building.append({"video_id": vid, "metric": metric, "weeks": sig[metric]["weeks"]})
+                gain = in_views(metric, sig[metric]["pace"] - sig[metric]["weeks"][1])
+                if gain >= floor["views"]:
+                    building.append({"video_id": vid, "metric": metric, "weeks": sig[metric]["weeks"]})
             continue
         lead, basis = lead_of(sig, sit)
         g = games.get(vid)
@@ -889,8 +957,11 @@ def main():
         update = (patches.near(steam.get(g), move["shift"]["date"]) if move
                   else patches.within(steam.get(g), recent, iso(calendar)))
         covering = patches.covered_by(update, names[g], videos_of[g]) if update else []
+        worth = sum(stake(c["signals"]) for c in members)
+        if move:
+            worth = max(worth, stake(move["signals"]))
         game_cards.append({
-            "game": g, "label": names[g], "direction": direction, "totals": totals,
+            "game": g, "label": names[g], "direction": direction, "totals": totals, "stake": round(worth),
             "shift": {"lead": lead, "of": move["of"], "weeks": {m: move["signals"][m]["weeks"] for m in METRICS},
                       "dirs": {m: move["signals"][m]["dir"] for m in METRICS},
                       **{m: move["signals"][m]["shift"] for m in METRICS}} if move else None,
@@ -911,13 +982,28 @@ def main():
     rank = lambda c: abs(c["signals"][c["lead"]]["shift"]["z"] if c["basis"] == "shift" else c["signals"][c["lead"]]["z"])
     cards = sorted((c for v, c in flagged.items() if v not in in_game), key=lambda c: -rank(c))
 
+    # Big enough to act on, or a small change: listed apart, without a card.
+    # Comments and dislikes have their own minimum, so conversation cards stay.
+    small = []
+    for c in cards:
+        c["stake"] = round(stake(c["signals"]))
+    for c in [c for c in cards if c["situation"] != "conversation" and c["stake"] < floor["views"]]:
+        cards.remove(c)
+        small.append({"video_id": c["video_id"], "situation": c["situation"], "game": c["game"],
+                      "basis": c["basis"], "stake": c["stake"], **change_of(c["signals"], c["lead"], c["basis"])})
+    for g in [g for g in game_cards if g["stake"] < floor["views"]]:
+        game_cards.remove(g)
+        small.append({"game": g["game"], "label": g["label"], "direction": g["direction"], "stake": g["stake"],
+                      "videos": len(g["members"])})
+    small.sort(key=lambda e: -e["stake"])
+
     for f in flares:
         f["label"] = names[f["game"]]
         f["update"] = patches.near(steam.get(f["game"]), f["date"], before=3, after=1)
     updates = patches.touching(steam, names, videos_of,
                                {v: iso(p) for v, p in published.items()}, calendar)
     today, snapshot_span, snapshot_days = snapshot_movers(daily, ages, through)
-    topics = rising_topics(topic_daily, topic_videos, meta, end)
+    topics = rising_topics(topic_daily, topic_videos, meta, end, floor["views"])
 
     # The learning loop: record, measure, remember; then say what worked before.
     logged, playbook = actions.update(meta, daily, through, classify)
@@ -933,7 +1019,7 @@ def main():
     shown = {c["video_id"] for c in cards}
     shown |= {m["video_id"] for g in game_cards for m in g["members"]}
     shown |= {b["video_id"] for b in building} | {t["video_id"] for t in today}
-    referenced = set(shown)
+    referenced = set(shown) | {e["video_id"] for e in small if e.get("video_id")}
     referenced |= {v["video_id"] for es in topics.values() for e in es for v in e["videos"]}
     referenced |= {a["video_id"] for a in logged}
     referenced |= {newest[g] for g in newest}
@@ -966,8 +1052,10 @@ def main():
         "this_week": {"from": this_from, "to": through},
         "last_week": {"from": last_from, "to": iso(end - timedelta(days=7))},
         "health": health_checks(through, snapshot_days),
+        "floor": floor,
         "cards": cards,
         "games": game_cards,
+        "small": small,
         "early": {"building": building, "flares": flares, "today": today, "snapshot": snapshot_span},
         "topics": topics,
         "updates": updates,
@@ -984,7 +1072,8 @@ def main():
     print(f"  · cards: {dict(counts)} ({shifted} from shifts) | games: {len(game_cards)} "
           f"({sum(len(g['members']) for g in game_cards)} videos, {sum(1 for g in game_cards if g['shift'])} from shifts)"
           f" | building: {len(building)} | flares: {len(flares)} | today: {len(today)}"
-          f" | topics: {sum(len(e) for e in topics.values())} | updates: {len(updates)} | actions: {len(logged)}")
+          f" | small: {len(small)} | topics: {sum(len(e) for e in topics.values())} | updates: {len(updates)}"
+          f" | actions: {len(logged)}")
     return 0
 
 
