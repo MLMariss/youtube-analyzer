@@ -41,6 +41,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          # The branch as it is now, not as it was when the run was queued: a
+          # run waiting behind another in the "collect" queue must start from
+          # what that one committed, or the two commits clash.
+          ref: ${{ github.ref_name }}
 
       - name: Set up Python
         uses: actions/setup-python@v6

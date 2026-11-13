@@ -34,20 +34,25 @@ What is dropped
 
 How big it is
     A rise says nothing about size: +250% can be three people. So right after
-    a game's related searches are pulled, one more search puts the game and up
-    to four of its rising questions on one scale (interest over time, same 90
-    days). Each question gets its share of the game's searches, at the busier
-    of its three-month average and its last week (a problem that started
-    five days ago counts at today's pace), and a check that it is not a
-    one-day spike that already faded.
+    a game's related searches are pulled, one more search puts up to four of
+    its questions beside the baseline on one scale (interest over time, same
+    90 days). The baseline is a search term whose monthly Google searches are
+    pinned down (data/baselines.json, "how to fish" ~350K a month): a
+    question's count is the baseline's times the question's level against it.
+    Its level is the busier of its three-month average and its last week (a
+    problem that started five days ago counts at today's pace), and a check
+    flags a one-day spike that already faded. A question too small for Trends
+    to read beside the baseline is under a few thousand searches a month: too
+    small to be worth a video, and said so.
 
-    Google never gives counts, so counts come from a baseline: Keyword
-    Planner's monthly searches for one or more of your games, entered by hand
-    under "settings" -> "searches_per_month" (a number, or a range such as
-    "10K-100K"). One game in the middle is the anchor; every CALIBRATE_EVERY
-    days the other games are compared with it, four to a search. A question's
-    count is then its game's count times its share. Keyword Planner gives
-    ranges without ad spend, so counts are order of magnitude.
+    The baseline is calibrated by hand once a month (README -> Baselines):
+    several terms compared in Trends and in Keyword Planner for the same
+    month; their Keyword Planner ranges, ten times wide, overlap in a narrow
+    band. Every CALIBRATE_EVERY days each game is compared with the baseline
+    too, four to a search, for its own count. Keyword Planner numbers set for
+    a game (the dashboard's Set button) are then a cross-check. Without a
+    baseline, the older way still works: questions against their game, and
+    counts from those Keyword Planner numbers.
 
 What is shown
     A question needs MIN_MONTHLY searches a month when there are counts, or
@@ -66,7 +71,8 @@ What is shown
 data/discover.json holds the result and three things to edit by hand: under
 "settings" -> "games", a game's search "term", its "cat" (8 is Google's Games
 category) or "skip": true, with "manual": true so the run leaves the entry
-alone; and "settings" -> "searches_per_month". Raw pulls are archived in
+alone; and "settings" -> "searches_per_month". The baselines are in
+data/baselines.json, which no run writes. Raw pulls are archived in
 data/discover_archive/<date>/, since related searches cannot be pulled again later.
 
 Without SERPAPI_KEY, or with the budget spent, the saved pulls are filtered
@@ -96,6 +102,7 @@ from patches import stem, topic_words
 from summarize import DATA_DIR, data_through, write_json
 
 DISCOVER_PATH = os.path.join(DATA_DIR, "discover.json")
+BASELINES_PATH = os.path.join(DATA_DIR, "baselines.json")   # edited by hand, never by a run
 ARCHIVE_DIR = os.path.join(DATA_DIR, "discover_archive")
 
 TOP_GAMES = 12          # searched every TOP_EVERY days
@@ -126,6 +133,7 @@ SPIKE_SHARE = 0.5       # ...half of its three months,
 SPIKE_FADED = 0.25      # ...and its last three days are under a quarter of its peak
 CALIBRATE_EVERY = 30    # days before the games are compared with the anchor again
 CALIBRATE_RUN = 2       # calibration searches per run, first: counts for every game within days
+FITS = 1.25             # a game's count "fits" its Keyword Planner range within this factor either side
 
 # The bar a question must clear. Provisional: tune once a cycle of sizes is in.
 MIN_MONTHLY = 100       # with counts: estimated searches a month, worldwide
@@ -280,7 +288,17 @@ def is_volume_issue(issue):
     return (issue.get("title") or "").lower().startswith(VOLUME_TITLE) or "discover-volume" in labels
 
 
+# With DISCOVER_CLOSE_LATER set (the intake workflow does), issues are closed
+# only after the commit is pushed (--close-issues): a run whose push fails
+# leaves them open, and the next run applies them again.
+CLOSE_LATER = os.environ.get("DISCOVER_CLOSE_LATER")
+_closures = []
+
+
 def close_issue(issue, note, reason="completed"):
+    if CLOSE_LATER:
+        _closures.append({"number": issue["number"], "note": note, "reason": reason})
+        return
     try:
         actions.github("POST", f"/issues/{issue['number']}/comments", {"body": note})
         actions.github("PATCH", f"/issues/{issue['number']}", {"state": "closed", "state_reason": reason})
@@ -405,13 +423,15 @@ def mean(values):
     return sum(values) / len(values) if values else 0.0
 
 
-def size_of(values, game_avg, dates):
+def size_of(values, ref_avg, dates):
     """
-    A question's size on the scale it shares with its game. Its level is the
-    busier of its three-month average and its last week, so a problem that
-    started five days ago counts at today's pace; its share is that level
-    against the game's three-month average. A one-off is most of its three
-    months in a few days and faded since.
+    A question's size on the scale it shares with the reference term (the
+    baseline, or its game without one). Its level is the busier of its
+    three-month average and its last week, so a problem that started five days
+    ago counts at today's pace; its ratio is that level against the reference's
+    three-month average, and `floor` the smallest ratio Trends can still read
+    (MIN_POINTS). A one-off is most of its three months in a few days and
+    faded since.
     """
     avg, recent, total = mean(values), mean(values[-RECENT_DAYS:]), sum(values)
     level = max(avg, recent)
@@ -420,45 +440,50 @@ def size_of(values, game_avg, dates):
     spike = bool(total) and sum(values[i] for i in busiest) / total >= SPIKE_SHARE \
         and mean(values[-3:]) < SPIKE_FADED * peak
     return {"avg": round(avg, 2), "recent": round(recent, 2), "level": round(level, 2),
-            "share": round(level / game_avg, 4) if game_avg > 0 else None,
+            "ratio": round(level / ref_avg, 6) if ref_avg > 0 else None,
+            "floor": round(MIN_POINTS / ref_avg, 6) if ref_avg > 0 else None,
             "spike": spike, "peak": dates[busiest[0]] if busiest and total and dates else None}
 
 
-def measure(key, s, entry, items, budget, today, limit):
+def measure(key, entry, items, ref, budget, today, limit):
     """
-    Put the game and its questions on one scale, at most `limit` searches:
-    the rising English questions, and the game's top search as the reference
-    for the top ones (a top score is a share of that search). Writes "sizes",
-    "ref" and "measured" into the pull. Returns the searches spent.
+    Put the reference term (`ref`: the baseline, or the game without one) and
+    the game's questions on one scale, at most `limit` searches: the rising
+    English questions, and the game's top search for the top ones (a top
+    score is a share of that search). Writes "sizes", "ref", "vs" and
+    "measured" into the pull. Returns the searches spent.
     """
     rising = [e["query"] for e in sorted(items, key=lambda e: (not e["breakout"], -(e["rise"] or 0)))
               if e["kind"] == "rising" and not e["foreign"]]
     has_top = any(e["kind"] == "top" or e["foreign"] for e in items)
-    ref = ((entry.get("top") or [{}])[0].get("query") if has_top else None) or None
-    queue = [q for q in rising if not ref or q.lower() != ref.lower()]
-    sizes, ref_size, spent, runs = {}, None, 0, []
-    while (ref and ref_size is None and not runs or queue) and spent < min(limit, SIZE_SEARCHES):
-        lead = [ref] if ref and not runs else []
+    top = ((entry.get("top") or [{}])[0].get("query") if has_top else None) or None
+    queue = [q for q in rising if not top or q.lower() != top.lower()]
+    sizes, top_size, spent, runs = {}, None, 0, []
+    while (top and top_size is None and not runs or queue) and spent < min(limit, SIZE_SEARCHES):
+        lead = [top] if top and not runs else []
         batch = lead + queue[:SIZE_SLOTS - len(lead)]
         queue = queue[len(batch) - len(lead):]
-        got = trends.interest_over_time([s["term"]] + batch, DATE_RANGE, cat=s.get("cat"), budget=budget)
+        got = trends.interest_over_time([ref["term"]] + batch, DATE_RANGE, cat=ref.get("cat"), budget=budget)
         spent += 1
         series = list(got["series"].values())
-        game_avg = mean(series[0]) if series else 0.0
+        ref_avg = mean(series[0]) if series else 0.0
+        if ref_avg <= 0:
+            print(f"  ! “{ref['term']}” has no data in this comparison; {key} stays unmeasured")
         for i, q in enumerate(batch):
-            size = size_of(series[i + 1] if i + 1 < len(series) else [], game_avg, got["dates"])
+            size = size_of(series[i + 1] if i + 1 < len(series) else [], ref_avg, got["dates"])
             if lead and i == 0:
-                ref_size = size
+                top_size = size
                 if q.lower() in {r.lower() for r in rising}:
                     sizes[q.lower()] = size
             else:
                 sizes[q.lower()] = size
-        runs.append({"terms": [s["term"]] + batch, **got})
-    if spent or not (rising or ref):
-        entry["sizes"], entry["measured"] = sizes, iso(today)
-        entry["ref"] = {"query": ref, "share": ref_size["share"]} if ref and ref_size else None
+        runs.append({"terms": [ref["term"]] + batch, **got})
+    if spent or not (rising or top):
+        entry["sizes"], entry["measured"], entry["vs"] = sizes, iso(today), ref["term"]
+        entry["ref"] = {"query": top, "ratio": top_size["ratio"]} if top and top_size else None
     if runs:
-        archive(f"{key}-sizes", {"game": key, "cat": s.get("cat"), "range": DATE_RANGE, "runs": runs}, today)
+        archive(f"{key}-sizes", {"game": key, "vs": ref["term"], "cat": ref.get("cat"), "range": DATE_RANGE,
+                                 "runs": runs}, today)
     return spent
 
 
@@ -477,6 +502,42 @@ def parse_monthly(value):
     if not found:
         return None
     return math.sqrt(found[0] * found[1]) if len(found) > 1 else found[0]
+
+
+def range_of(value):
+    """(low, high) from a Keyword Planner number or range: "10K-100K" -> (10000, 100000)."""
+    if isinstance(value, (int, float)):
+        return (float(value), float(value)) if value > 0 else None
+    text = re.sub(r"(?<=\d)[,\s](?=\d{3}(?!\d))", "", str(value or ""))
+    found = [float(n) * {"k": 1e3, "m": 1e6}.get(u.lower(), 1) for n, u in re.findall(r"(\d+(?:\.\d+)?)\s*([kKmM]?)", text)]
+    found = [n for n in found if n > 0]
+    return (min(found[:2]), max(found[:2])) if found else None
+
+
+def load_baselines():
+    """
+    The calibrated baselines from data/baselines.json, the first one primary:
+    [{"term", "monthly", "low", "high", "month", "note"}]. A baseline is any
+    search term whose monthly searches were pinned down by comparing several
+    terms in Trends against Keyword Planner for the same month (README).
+    """
+    out = []
+    for b in load_json(BASELINES_PATH, {}).get("baselines") or []:
+        term = re.sub(r"\s+", " ", str(b.get("term") or "")).strip().lower()
+        n = parse_monthly(b.get("monthly"))
+        if not term or not n:
+            print(f"  ! baselines.json: skipped {b!r} (needs a term and a monthly number)")
+            continue
+        out.append({"term": term, "monthly": n, "low": parse_monthly(b.get("low")),
+                    "high": parse_monthly(b.get("high")), "month": str(b.get("month") or ""),
+                    "note": str(b.get("note") or "")})
+    return out
+
+
+def months_since(month, today):
+    """Whole months from a "YYYY-MM" month to today's month, or None."""
+    m = re.match(r"^(\d{4})-(\d{2})", month or "")
+    return (today.year - int(m.group(1))) * 12 + today.month - int(m.group(2)) if m else None
 
 
 def known_monthly(state, names):
@@ -501,61 +562,65 @@ def pick_anchor(known):
     return ranked[len(ranked) // 2]
 
 
-def calibration_due(cal, known, ranked, settings, today):
+def calibration_due(cal, base, known, ranked, settings, today):
     """
-    (anchor, games to compare with it this cycle): every game when the anchor
-    changed, else those never compared, compared over CALIBRATE_EVERY days
-    ago, or whose search term changed since. Top games first.
+    (anchor term, games to compare with it this cycle). The anchor is the
+    primary baseline, or without one the game in the middle of those with a
+    Keyword Planner number. Every game is due when the anchor changed, else
+    those never compared, compared over CALIBRATE_EVERY days ago, or whose
+    search term changed since. Against a baseline, games whose name is an
+    everyday word are left out: compared on all of web search they would bring
+    the make-up with them. Top games first.
     """
-    anchor = pick_anchor(known)
-    if not anchor:
-        return anchor, []
-    fresh = cal.get("anchor") == anchor and cal.get("term") == settings[anchor]["term"]
-    have = (cal.get("games") or {}) if fresh else {}
+    if base:
+        anchor, skip = base["term"], {g for g in ranked if settings[g].get("cat")}
+    else:
+        key = pick_anchor(known)
+        if not key:
+            return None, []
+        anchor, skip = settings[key]["term"], set(known)
+    have = (cal.get("games") or {}) if cal.get("term") == anchor else {}
 
     def due(g):
         e = have.get(g)
-        return (not e or e.get("term") != settings[g]["term"] or e.get("cat") != settings[g].get("cat")
+        return (not e or e.get("term") != settings[g]["term"] or e.get("cat") != (None if base else settings[g].get("cat"))
                 or (today - date.fromisoformat(e["date"])).days >= CALIBRATE_EVERY)
-    return anchor, [g for g in ranked if g not in known and due(g)]
+    return anchor, [g for g in ranked if g not in skip and settings[g]["term"] != anchor and due(g)]
 
 
-def calibrate(cal, anchor, games, settings, budget, today, limit):
+def calibrate(cal, anchor, games, settings, budget, today, limit, by_category=True):
     """
-    Each game against the anchor on one scale, four to a search (a game behind
-    a category is compared inside it). Its ratio to the anchor turns shares
-    into counts; a game too small to chart beside the anchor gets an upper
-    bound. Returns the searches spent.
+    Each game against the anchor term on one scale, four to a search (with
+    `by_category`, a game behind a category is compared inside it). Its ratio
+    to the anchor turns shares into counts; a game too small to chart beside
+    the anchor gets an upper bound. Returns the searches spent.
     """
-    s_anchor = settings[anchor]
-    if cal.get("anchor") != anchor or cal.get("term") != s_anchor["term"]:
+    if cal.get("term") != anchor:
         cal.clear()
-    cal.update({"anchor": anchor, "term": s_anchor["term"]})
+    cal.update({"term": anchor})
     cal.setdefault("games", {})
     spent, runs = 0, []
     groups = {}
     for g in games:
-        groups.setdefault(settings[g].get("cat"), []).append(g)
+        groups.setdefault(settings[g].get("cat") if by_category else None, []).append(g)
     for cat, members in groups.items():
         for i in range(0, len(members), SIZE_SLOTS):
             if spent >= limit or budget.left() <= 0:
                 break
-            batch = [g for g in members[i:i + SIZE_SLOTS] if settings[g]["term"] != s_anchor["term"]]
-            if not batch:
-                continue
-            got =trends.interest_over_time([s_anchor["term"]] + [settings[g]["term"] for g in batch],
+            batch = members[i:i + SIZE_SLOTS]
+            got = trends.interest_over_time([anchor] + [settings[g]["term"] for g in batch],
                                             DATE_RANGE, cat=cat, budget=budget)
             spent += 1
-            runs.append({"cat": cat, "games": [anchor] + batch, **got})
+            runs.append({"cat": cat, "terms": [anchor] + [settings[g]["term"] for g in batch], **got})
             series = list(got["series"].values())
             base = mean(series[0]) if series else 0.0
             if base <= 0:
-                print(f"  ! {s_anchor['term']} has too little data to anchor {', '.join(batch)}")
+                print(f"  ! “{anchor}” has too little data to compare {', '.join(batch)} with")
                 continue
             for j, g in enumerate(batch):
                 avg = mean(series[j + 1]) if j + 1 < len(series) else 0.0
                 below = avg < MIN_POINTS
-                cal["games"][g] = {"ratio": round((MIN_POINTS if below else avg) / base, 5), "below": below,
+                cal["games"][g] = {"ratio": round((MIN_POINTS if below else avg) / base, 6), "below": below,
                                    "term": settings[g]["term"], "cat": cat, "date": iso(today)}
     if spent:
         cal["date"] = iso(today)
@@ -563,12 +628,21 @@ def calibrate(cal, anchor, games, settings, budget, today, limit):
     return spent
 
 
-def game_monthly(key, known, cal):
-    """(searches a month, upper bound?) for a game, or (None, False) without a baseline."""
+def game_monthly(key, known, cal, base, settings):
+    """
+    (searches a month, upper bound?) for a game, or (None, False). With a
+    baseline, from comparing the game with it; without, its Keyword Planner
+    number, or the anchor game's number times its ratio to it.
+    """
+    entry = (cal.get("games") or {}).get(key)
+    if base:
+        if entry and cal.get("term") == base["term"]:
+            return base["monthly"] * entry["ratio"], entry["below"]
+        return None, False
     if key in known:
         return known[key], False
-    anchor, entry = cal.get("anchor"), (cal.get("games") or {}).get(key)
-    if entry and anchor in known:
+    anchor = next((k for k in known if settings[k]["term"] == cal.get("term")), None)
+    if entry and anchor:
         return known[anchor] * entry["ratio"], entry["below"]
     return None, False
 
@@ -632,27 +706,32 @@ def questions_for(key, label, pull_entry, titles, own_terms, news, names, dismis
     return out, also
 
 
-def judge(items, entry, monthly, upper):
+def judge(items, entry, vs_monthly, game_count):
     """
     Split a game's questions into (shown, small, other languages), each with
-    its size: its share of the game's searches and, with a baseline, its
-    searches a month (`upper`: the game's count is only an upper bound).
+    its size. `vs_monthly` is the monthly searches of the term the pull was
+    measured against (the baseline; or the game, possibly unknown); a question
+    gets that times its ratio. `game_count` is the game's own monthly searches,
+    for its share of them. A question Trends cannot read beside the reference
+    is too small to be worth a video: "under ~N searches a month".
     """
     sizes, ref = entry.get("sizes") or {}, entry.get("ref") or {}
+    vs_game = entry.get("vs", entry.get("term")) == entry.get("term")
     top_score = {t["query"].lower(): t.get("score") for t in entry.get("top") or []}
     measured = bool(entry.get("measured"))
+    ratio_of = lambda d: d.get("ratio", d.get("share")) if d else None   # "share": pulls measured before baselines
     shown, small, foreign = [], [], []
     for e in items:
         low = e["query"].lower()
         score = e["score"] if e["kind"] == "top" else top_score.get(low)
         sz = sizes.get(low)
-        share = sz["share"] if sz else None
-        if share is None and score is not None and ref.get("share") is not None:
-            share = ref["share"] * score / 100   # a top score is a share of the game's top search
-        count = monthly * share if monthly and share is not None else None
+        ratio = ratio_of(sz)
+        if ratio is None and score is not None and ratio_of(ref) is not None:
+            ratio = ratio_of(ref) * score / 100   # a top score is a share of the game's top search
+        count = vs_monthly * ratio if vs_monthly and ratio is not None else None
+        share = ratio if vs_game else (count / game_count if count is not None and game_count else None)
         e.update({"share": round(share, 4) if share is not None else None,
-                  "monthly": round(count) if count is not None else None,
-                  "upper": bool(upper and count is not None)})
+                  "monthly": round(count) if count is not None else None, "upper": False})
         factor = FOREIGN_FACTOR if e["foreign"] else 1
         why = None
         if e["foreign"] and (score is None or score < FOREIGN_TOP):
@@ -661,12 +740,14 @@ def judge(items, entry, monthly, upper):
             if sz is None:
                 why = "not measured" if measured else None
             elif sz.get("level", sz["avg"]) < MIN_POINTS:
-                why = "too small to chart"
+                floor = sz.get("floor")
+                why = (f"under ~{fmt_count(vs_monthly * floor)} searches a month" if vs_monthly and floor
+                       else "too small to chart")
             elif sz["spike"]:
                 why = f"one-off spike{', ' + sz['peak'] if sz.get('peak') else ''}"
         if why is None and count is not None and count < MIN_MONTHLY * factor:
-            why = f"{'under' if upper else 'about'} {round(count):,} searches a month"
-        elif why is None and (count is None or upper) and share is not None and share < MIN_SHARE * factor:
+            why = f"about {fmt_count(count)} searches a month"
+        elif why is None and count is None and share is not None and share < MIN_SHARE * factor:
             why = f"under {MIN_SHARE * factor:.0%} of the game's searches"
         if why is None:
             shown.append(e)
@@ -675,9 +756,19 @@ def judge(items, entry, monthly, upper):
                     "breakout": e["breakout"], "score": score, "share": e["share"], "monthly": e["monthly"]}
             (foreign if e["foreign"] else small).append(side)
     # The biggest first, then breakouts and the biggest rises, then the top searches nobody answers.
-    shown.sort(key=lambda e: (e["kind"] != "rising", -(e["share"] if e["share"] is not None else -1),
-                              not e["breakout"], -(e["rise"] or 0), -(e["score"] or 0)))
+    size = lambda e: e["monthly"] if e["monthly"] is not None else e["share"] if e["share"] is not None else -1
+    shown.sort(key=lambda e: (e["kind"] != "rising", -size(e), not e["breakout"], -(e["rise"] or 0), -(e["score"] or 0)))
     return shown[:PER_GAME], small[:SIDE_MAX], foreign[:SIDE_MAX]
+
+
+def fmt_count(n):
+    """1234 -> "1,234"; 12345 -> "12K"; 1234567 -> "1.2M"."""
+    n = float(n)
+    if n >= 1e6:
+        return f"{n / 1e6:.1f}M".replace(".0M", "M")
+    if n >= 1e4:
+        return f"{n / 1e3:.0f}K"
+    return f"{round(n):,}"
 
 
 def carry_first_seen(prev, questions, today):
@@ -705,7 +796,16 @@ def main(argv=None):
     ap.add_argument("--dry-run", action="store_true", help="show what would be searched; change nothing")
     ap.add_argument("--offline", action="store_true", help="no searches; rebuild from saved pulls")
     ap.add_argument("--max-searches", type=int, default=RUN_MAX, help=f"searches this run (default {RUN_MAX})")
+    ap.add_argument("--close-issues", metavar="FILE", help="close the issues a DISCOVER_CLOSE_LATER run listed, then stop")
     args = ap.parse_args(argv)
+
+    if args.close_issues:
+        for c in load_json(args.close_issues, []):
+            print(f"  closing issue #{c['number']}")
+            os.environ.pop("DISCOVER_CLOSE_LATER", None)
+            globals()["CLOSE_LATER"] = None
+            close_issue({"number": c["number"]}, c["note"], c["reason"])
+        return 0
 
     meta = load_json(os.path.join(DATA_DIR, "videos.json"), {}).get("videos") or {}
     if not meta:
@@ -732,6 +832,9 @@ def main(argv=None):
         dismissed_from_issues(state, issues)
         volumes_from_issues(state, names, issues)
     known = known_monthly(state, names)
+    baselines = load_baselines()
+    base = baselines[0] if baselines else None
+    by_term = {b["term"]: b for b in baselines}
     watched = sorted((g for g, n in views.items() if n >= MIN_VIEWS and not settings[g].get("skip")),
                      key=lambda g: -views[g])
     ranked = watched[:TOP_GAMES + NEXT_GAMES]
@@ -751,17 +854,25 @@ def main(argv=None):
         return questions_for(key, names[key], p, titles_of.get(key, []), own.get(key, []),
                              news.get(key, []), names, state["dismissed"])
 
+    def ref_for(key):
+        """What a game's questions are measured against: the baseline (all of web search), or the game itself."""
+        if base:
+            return {"term": base["term"], "cat": None}
+        return {"term": settings[key]["term"], "cat": settings[key].get("cat")}
+
     budget = trends.Budget(state["budget"], today)
     due = schedule(ranked, settings, state["pulls"], today)
     due_keys = {k for k, _, _ in due}
+    # Not measured yet, or measured against something else than today's reference (a new baseline).
     unmeasured = [k for k in ranked if k in state["pulls"] and k not in due_keys
-                  and not state["pulls"][k].get("measured")]
+                  and (not state["pulls"][k].get("measured")
+                       or state["pulls"][k].get("vs", state["pulls"][k]["term"]) != ref_for(k)["term"])]
     # Measuring a saved pull is as urgent as a first search: both by rank, then the overdue ones.
     rank_of = {k: i for i, k in enumerate(ranked)}
     work = sorted([(k, why) for k, why, urgent in due if urgent] + [(k, None) for k in unmeasured],
                   key=lambda kv: rank_of[kv[0]]) + [(k, why) for k, why, urgent in due if not urgent]
     cal = state["calibration"]
-    anchor, to_calibrate = calibration_due(cal, known, ranked, settings, today)
+    anchor, to_calibrate = calibration_due(cal, base, known, ranked, settings, today)
     have_key = bool(trends.api_key())
 
     if args.dry_run:
@@ -772,12 +883,13 @@ def main(argv=None):
             print(f"  · {names[key]:32s} “{s['term']}”{' cat ' + str(s['cat']) if s.get('cat') else ''} "
                   + (f"({why}): 1 pull + up to {SIZE_SEARCHES} sizing" if why
                      else f"(sizes not measured yet): up to {SIZE_SEARCHES} sizing"))
-        if anchor:
-            print(f"  anchor: {names[anchor]} (~{known[anchor]:,.0f} searches a month); "
-                  f"{len(to_calibrate)} game(s) to compare with it, {SIZE_SLOTS} per search, "
-                  f"{CALIBRATE_RUN} searches a run, first")
+        if base:
+            print(f"  baseline: “{base['term']}” ~{fmt_count(base['monthly'])} searches a month ({base['month']}); "
+                  f"questions and {len(to_calibrate)} game(s) are measured against it")
+        elif anchor:
+            print(f"  anchor: “{anchor}”; {len(to_calibrate)} game(s) to compare with it, {SIZE_SLOTS} per search")
         else:
-            print("  no Keyword Planner numbers under settings → searches_per_month: sizes stay shares")
+            print("  no baseline (data/baselines.json) and no Keyword Planner numbers: sizes stay shares")
         print(f"  {len(due)} pull(s) and {len(unmeasured)} sizing(s) due; the run stops at {args.max_searches} searches")
         return 0
 
@@ -803,12 +915,13 @@ def main(argv=None):
         # every share into a count), then each game in turn: its related
         # searches if due, then their sizes.
         if anchor and to_calibrate:
-            print(f"  comparing {len(to_calibrate)} game(s) with {names[anchor]}")
+            print(f"  comparing {len(to_calibrate)} game(s) with “{anchor}”")
             try:
-                spent += calibrate(cal, anchor, to_calibrate, settings, budget, today, min(CALIBRATE_RUN, room()))
+                spent += calibrate(cal, anchor, to_calibrate, settings, budget, today, min(CALIBRATE_RUN, room()),
+                                   by_category=not base)
             except trends.TrendsError as e:
                 spent += 1
-                stop = failed(f"{names[anchor]} as the anchor", e)
+                stop = failed(f"“{anchor}” as the anchor", e)
         for key, why in ([] if stop else work):
             if room() <= 0:
                 break
@@ -820,7 +933,7 @@ def main(argv=None):
                     if room() <= 0:
                         break
                 items, _ = candidates(key)
-                spent += measure(key, settings[key], state["pulls"][key], items, budget, today, room())
+                spent += measure(key, state["pulls"][key], items, ref_for(key), budget, today, room())
             except trends.TrendsError as e:
                 spent += 1
                 if failed(names[key], e):
@@ -840,8 +953,11 @@ def main(argv=None):
             too_small.append(names[key])
             continue
         items, also = candidates(key)
-        monthly, upper = game_monthly(key, known, cal)
-        shown, small, foreign = judge(items, p, monthly, upper)
+        monthly, upper = game_monthly(key, known, cal, base, settings)
+        vs = p.get("vs", p["term"])
+        # The monthly searches of what the pull was measured against: a baseline, or the game (if known exactly).
+        vs_monthly = by_term[vs]["monthly"] if vs in by_term else (None if upper else monthly) if vs == p["term"] else None
+        shown, small, foreign = judge(items, p, vs_monthly, None if upper else monthly)
         if shown or also or small or foreign:
             questions.append({"game": key, "label": names[key], "term": p["term"], "cat": p.get("cat"),
                               "searched": p["date"], "measured": p.get("measured"),
@@ -854,19 +970,29 @@ def main(argv=None):
     if too_small:
         health.append({"level": "info", "message": "Too little Google data to read for " + ", ".join(too_small) +
                        ". A better search term can help: set it under settings → games in data/discover.json."})
-    if not known:
+    age = months_since(base["month"], today) if base else None
+    if base and (age is None or age >= 2):
+        health.append({"level": "info", "message": f"The baseline “{base['term']}” was calibrated for "
+                       f"{base['month'] or 'an unknown month'}; last month's numbers are out, so it is time to "
+                       "recalibrate it (README → Baselines)."})
+    elif not base and not known:
         health.append({"level": "info", "message": "Sizes are shares of each game's own searches. To see searches "
-                       "a month, set Keyword Planner numbers for two or three games under Search volumes below."})
+                       "a month, add a calibrated baseline in data/baselines.json (README → Baselines)."})
 
     # Every searched game's size, for the dashboard's Search volumes panel (where the Set button is).
+    # With a baseline, Keyword Planner numbers you set are a cross-check: does the count fit the range?
     entered = {str(k).strip().lower(): v for k, v in state["settings"]["searches_per_month"].items()}
     volumes = []
     for key in ranked + [k for k in known if k not in ranked]:
-        monthly, upper = game_monthly(key, known, cal)
+        monthly, upper = game_monthly(key, known, cal, base, settings)
+        span = range_of(entered.get(key)) if key in known else None
+        fits = (span[0] / FITS <= monthly <= span[1] * FITS) if base and span and monthly and not upper else None
         volumes.append({"game": key, "label": names[key], "views_28d": round(views.get(key, 0)),
                         "entered": entered.get(key) if key in known else None,
-                        "monthly": round(monthly) if monthly else None, "upper": upper,
-                        "from": "planner" if key in known else "anchor" if monthly else None})
+                        "monthly": round(monthly) if monthly else None, "upper": upper, "fits": fits,
+                        "everyday_word": bool(base and settings[key].get("cat")),
+                        "from": ("baseline" if base and monthly else "planner" if key in known
+                                 else "anchor" if monthly else None)})
 
     ledger, acct = budget.ledger, budget.account
     write_json("discover.json", {
@@ -880,8 +1006,10 @@ def main(argv=None):
                    "plan_checked": iso(today) if acct else prev_budget.get("plan_checked")},
         "settings": state["settings"], "pulls": state["pulls"], "dismissed": state["dismissed"],
         "calibration": cal,
-        "sizes": {"anchor": cal.get("anchor") if cal.get("anchor") in known else None,
-                  "anchor_label": names.get(cal.get("anchor")) if cal.get("anchor") in known else None,
+        "sizes": {"baseline": base, "backups": baselines[1:], "baseline_age_months": age,
+                  "anchor": cal.get("term") if cal.get("games") else None,
+                  "anchor_label": next((names[k] for k in names if settings[k]["term"] == cal.get("term")),
+                                       cal.get("term")) if cal.get("games") else None,
                   "known": {names[k]: round(n) for k, n in known.items()}, "calibrated": cal.get("date"),
                   "games": volumes, "min_monthly": MIN_MONTHLY, "min_share": MIN_SHARE,
                   "foreign_top": FOREIGN_TOP, "foreign_factor": FOREIGN_FACTOR},
@@ -889,6 +1017,9 @@ def main(argv=None):
         "schedule": {"ranked": ranked,
                      "due": [k for k, _, _ in due if (state["pulls"].get(k) or {}).get("date") != iso(today)]},
     })
+    if CLOSE_LATER:
+        with open(CLOSE_LATER, "w", encoding="utf-8") as f:
+            json.dump(_closures, f, ensure_ascii=False)
     print(f"  {spent} search(es) this run; {budget.ledger.get('used', 0)} of {budget.cap} this cycle; "
           f"{sum(len(c['items']) for c in questions)} questions across {len(questions)} games, "
           f"{sum(len(c['small']) for c in questions)} small, "
