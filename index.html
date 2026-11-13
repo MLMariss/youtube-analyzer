@@ -389,6 +389,11 @@
   .rise.top { color: var(--muted); font-weight: 600; }
   .size { color: var(--text-2); font-weight: 600; font-size: 14px; font-variant-numeric: tabular-nums; }
   .side-why { color: var(--muted); }
+  .vol-how { color: var(--text-2); font-size: 14.5px; line-height: 1.55; margin: 0 0 12px; }
+  .vol-how a { color: var(--link); }
+  .vol-table { width: 100%; }
+  .vol-sub { color: var(--muted); font-size: 13px; font-weight: 400; margin-top: 2px; }
+  .vol-act { margin-top: 6px; font-size: 13.5px; }
   .dq-sub { font-size: 14px; color: var(--text-2); margin-top: 4px; line-height: 1.45; }
   .dq-sub a, .dq-links a, .disc-foot a { color: var(--link); }
   .dq-links { font-size: 13.5px; margin-top: 4px; color: var(--muted); }
@@ -1466,6 +1471,41 @@ function questionCard(c) {
   </div>`;
 }
 
+// Keyword Planner numbers: the Set button opens a pre-filled issue, which the
+// Discover intake workflow stores in data/discover.json within a few minutes.
+const KEYWORD_PLANNER = 'https://ads.google.com/aw/keywordplanner/home';
+function volumeUrl(label, value) {
+  const p = new URLSearchParams({ template: 'discover-volume.yml', title: `Searches a month: ${label}`, game: label });
+  if (value) p.set('searches', value);
+  return `https://github.com/${REPO}/issues/new?${p}`;
+}
+function volumesHtml(Z) {
+  const known = Object.keys(Z.known || {}).length;
+  const rows = (Z.games || []).map(g => {
+    const size = has(g.monthly) ? `${g.upper ? 'under ' : '~'}${fmt(g.monthly)}` : '—';
+    const from = g.from === 'planner' ? `Keyword Planner: ${esc(g.entered)}`
+      : g.from === 'anchor' ? `estimated against ${esc(Z.anchor_label)}${g.upper ? ' (too small beside it to read well)' : ''}`
+      : known ? 'estimated on the next daily run' : '';
+    const act = g.from === 'planner'
+      ? `<a href="${volumeUrl(g.label)}" target="_blank" rel="noopener">Change</a> ·
+         <a href="${volumeUrl(g.label, 'clear')}" target="_blank" rel="noopener">Remove</a>`
+      : `<a class="btn small" href="${volumeUrl(g.label)}" target="_blank" rel="noopener">Set</a>`;
+    return `<tr><td style="text-align:left;white-space:normal"><b>${esc(g.label)}</b>
+        <div class="vol-sub">your views: ${fmt(g.views_28d)} in 28 days</div></td>
+      <td style="white-space:normal"><b>${size}</b>${from ? `<div class="vol-sub">${from}</div>` : ''}
+        <div class="vol-act">${act}</div></td></tr>`;
+  }).join('');
+  return `<p class="vol-how">
+      <b>1.</b> Open <a href="${KEYWORD_PLANNER}" target="_blank" rel="noopener">Keyword Planner</a> →
+      <i>Get search volume and forecasts</i>, type a game's name, set the location to <i>All locations</i>.
+      <b>2.</b> Press <b>Set</b> next to the game here and paste <i>Avg. monthly searches</i> (a range like 10K – 100K is fine).
+      <b>3.</b> Submit: the dashboard updates within a few minutes. Two or three games are enough, a big one, a middle one and a
+      niche one; every other game is then estimated by comparing it with them on Google Trends.</p>
+    ${rows ? `<table class="att-table vol-table"><thead><tr><th style="text-align:left">Game</th>
+      <th>Google searches a month</th></tr></thead><tbody>${rows}</tbody></table>`
+      : '<p class="empty-state">Your games appear here after their first Discover search.</p>'}`;
+}
+
 function renderDiscover() {
   const el = document.getElementById('discover');
   const D = DISCOVER;
@@ -1497,7 +1537,7 @@ function renderDiscover() {
     ? `Counts are estimates from your Keyword Planner numbers (${known.map(([k, v]) => `${esc(k)} ~${fmt(v)}`).join(', ')})${
         Z.anchor_label ? `, with ${esc(Z.anchor_label)} as the anchor${Z.calibrated ? ` (compared ${shortDate(Z.calibrated)})` : ''}` : ''}:
         order of magnitude, not exact.`
-    : `Sizes are shares of each game's own searches until you enter Keyword Planner numbers under <code>settings → searches_per_month</code>.`;
+    : `Sizes are shares of each game's own searches until you set Keyword Planner numbers under <b>Search volumes</b> below.`;
   const plan = B.plan_left !== null && B.plan_left !== undefined
     ? ` · ${fmt(B.plan_left)} left on the SerpApi plan${B.plan_checked ? ` as of ${shortDate(B.plan_checked)}` : ''}` : '';
   el.innerHTML = health + `<details class="group" data-key="disc-questions" ${open ? 'open' : ''}>
@@ -1505,6 +1545,11 @@ function renderDiscover() {
         <span class="group-what">Google searches about games you cover that none of your videos answers yet, big enough to act on.
           Searches people already find you with, and anything you dismissed, are left out.</span></summary>
       <div class="group-body">${body}</div></details>
+    <details class="group" data-key="disc-volumes" ${(saved['disc-volumes'] !== undefined ? saved['disc-volumes'] : !known.length) ? 'open' : ''}>
+      <summary><span class="fold">▶</span><h3>Search volumes</h3>${known.length ? `<span class="count">${known.length}</span>` : ''}
+        <span class="group-what">How many Google searches a month each game gets. Set two or three from Keyword Planner and
+          Discover turns every share into searches a month.</span></summary>
+      <div class="group-body">${volumesHtml(Z)}</div></details>
     <p class="disc-foot">Google Trends through SerpApi: <b>${fmt(B.used || 0)} of ${fmt(B.cap || 200)}</b> searches used this cycle${
       B.next_cycle ? ` (renews ${shortDate(B.next_cycle)})` : ''}${plan}. Your top 12 games are searched every 14 days, the next 12 every 30.
       ${pending ? `${pending} still wait for a first search. ` : ''}${sizes}${bar} Search terms per game, and games to skip, are under

@@ -120,9 +120,10 @@ it at all):
   the reference that sizes the top list). About 40 searches a month.
 - A question's level is the busier of its 90-day average and its last week,
   so a problem that started days ago counts at today's pace.
-- **Counts:** Keyword Planner's monthly searches for one or more games, by
-  hand, under `settings → searches_per_month` (a number or a range like
-  "10K-100K"). The game in the middle is the anchor; every 30 days the other
+- **Counts:** Keyword Planner's monthly searches for one or more games, set
+  from the dashboard (*Search volumes* → **Set**, a pre-filled issue that the
+  *Discover intake* workflow applies within minutes) or by hand under
+  `settings → searches_per_month` (a number or a range like "10K-100K"). The game in the middle is the anchor; every 30 days the other
   games are compared with it, 4 to a search, 2 searches a run, first. About 8
   searches a month. A count is the game's count times the question's share.
 
@@ -163,6 +164,8 @@ Each card links to the Google results and the Trends page for the query
 - [x] The workflow step and secret are in, and the README section is written.
 - [x] Sizes, the bar, web-wide scope and other languages (13 Nov 2026), tested
   against mocked SerpApi responses
+- [x] *Search volumes* panel with a **Set** form per game, applied within
+  minutes by `.github/workflows/discover-intake.yml` (Dismiss too)
 - [ ] Keyword Planner numbers entered for 2-3 games (a big, a middle and a
   small one), worldwide
 - [ ] The bar tuned after the first cycle of sizes

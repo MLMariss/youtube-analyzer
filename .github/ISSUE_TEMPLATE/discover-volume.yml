@@ -1,0 +1,31 @@
+name: Searches a month (Keyword Planner)
+description: Give Discover a game's monthly Google searches, so it can show counts. The dashboard fills in the game.
+title: "Searches a month: "
+labels: ["discover-volume"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Where the number comes from:** Google Ads → Tools → Planning → **Keyword Planner** →
+        *Get search volume and forecasts*. Type the game's name as people search it (e.g. `snowrunner`),
+        set the location to **All locations** and the language to **All languages**, then copy
+        **Avg. monthly searches**. A range such as `10K – 100K` is fine; that is what it shows without ad spend.
+        Keyword Planner needs a free Google Ads account; you never have to run an ad. If Google Ads asks you
+        to create a campaign, choose *Switch to Expert Mode*, then *Create an account without a campaign*.
+
+        Submitting this updates the dashboard within a few minutes and closes the issue.
+  - type: input
+    id: game
+    attributes:
+      label: Game
+      description: As the dashboard names it (it fills this in).
+    validations:
+      required: true
+  - type: input
+    id: searches
+    attributes:
+      label: Searches a month
+      description: Keyword Planner's "Avg. monthly searches", e.g. 10K – 100K or 40000. Type "clear" to remove the game's number.
+      placeholder: 10K – 100K
+    validations:
+      required: true

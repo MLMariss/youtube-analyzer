@@ -6,8 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        The next collector run hides it from Discover, records it under `dismissed` in
-        `data/discover.json`, and closes this issue. To show it again, remove it there.
+        Within a few minutes it is hidden from Discover, recorded under `dismissed` in
+        `data/discover.json`, and this issue is closed. To show it again, remove it there.
   - type: input
     id: item
     attributes:
