@@ -6,6 +6,10 @@ SerpApi's Google Trends engine returns what trends.google.com shows: related
 queries (top and rising) and interest over time, for Google web search,
 worldwide unless a country is given. Each call is one search.
 
+Interest over time compares up to five terms on one scale: 100 is the
+busiest day of the busiest term, every other value is a share of it. That
+shared scale is what discover.py sizes questions with.
+
 The free plan gives 250 searches a cycle, renewing on the 12th, at up to 250 an
 hour. Automation spends at most CAP of them per cycle and leaves the rest for
 manual checks. Before spending, the searches left are read from SerpApi's
@@ -18,11 +22,12 @@ stored except the lists asked for (its account endpoint also returns the key
 and the account email).
 
 Later the official Google Trends API (alpha) can replace SerpApi here:
-discover.py only calls related_queries() and Budget.
+discover.py only calls related_queries(), interest_over_time() and Budget.
 
 Usage (manual checks, from the 50 searches automation leaves alone):
     SERPAPI_KEY=... python trends.py account
     SERPAPI_KEY=... python trends.py queries "tropico 6"
+    SERPAPI_KEY=... python trends.py compare "snowrunner" "snowrunner mods"
 """
 
 import json
@@ -44,6 +49,8 @@ GAMES_CAT = 8        # Google Trends category "Games": keeps "Foundation" the ga
 TIMEOUT = 60         # SerpApi waits for Google; a Trends search can take a while
 USER_AGENT = "mlmariss-youtube-analyzer"
 NO_RESULTS = re.compile(r"hasn'?t returned any results|no results", re.I)
+MAX_TERMS = 5        # Google Trends compares at most five terms at once
+LESS_THAN_ONE = 0.5  # how a "<1" day is counted: some searches, under one point
 
 
 class TrendsError(RuntimeError):
@@ -204,9 +211,65 @@ def related_queries(term, date_range="today 3-m", cat=None, geo=None, budget=Non
     return {"rising": rising, "top": top}
 
 
+def point(item):
+    """One day's value: 45 for "45", LESS_THAN_ONE for "<1", 0 for nothing."""
+    ev = item.get("extracted_value")
+    raw = str(item.get("value") or "").strip()
+    if raw.startswith("<"):
+        return LESS_THAN_ONE
+    if isinstance(ev, (int, float)):
+        return float(ev)
+    digits = re.sub(r"[^\d.]", "", str(ev if ev is not None else raw))
+    try:
+        return float(digits) if digits else 0.0
+    except ValueError:
+        return 0.0
+
+
+def interest_over_time(terms, date_range="today 3-m", cat=None, geo=None, budget=None):
+    """
+    Up to five terms on one shared scale over `date_range`:
+    {"dates": [...], "series": {term: [values]}}, values 0-100 where 100 is
+    the busiest day of the busiest term. A term Google has too little data on
+    is all zeros. Commas are taken out of terms (they separate them).
+    """
+    if not api_key():
+        raise TrendsError("SERPAPI_KEY is not set")
+    if budget is not None and budget.left() <= 0:
+        raise TrendsError("the search budget for this cycle is spent")
+    terms = [re.sub(r"\s+", " ", t.replace(",", " ")).strip() for t in terms][:MAX_TERMS]
+    params = {"engine": "google_trends", "data_type": "TIMESERIES", "q": ",".join(terms), "date": date_range}
+    if cat:
+        params["cat"] = str(cat)
+    if geo:
+        params["geo"] = geo
+    started = time.monotonic()
+    try:
+        data = get(SEARCH_URL, params)
+    finally:
+        if budget is not None:
+            budget.spend(f"interest over time: {', '.join(terms)}")
+    err = data.get("error")
+    if err and not NO_RESULTS.search(err):
+        raise TrendsError(redact(err))
+    timeline = (data.get("interest_over_time") or {}).get("timeline_data") or []
+    dates, series = [], {t: [] for t in terms}
+    for row in timeline:
+        values = row.get("values") or []
+        by_name = {str(v.get("query") or "").strip().lower(): v for v in values}
+        dates.append(str(row.get("date") or row.get("timestamp") or ""))
+        for i, t in enumerate(terms):
+            # Google echoes each term back; fall back to its position.
+            v = by_name.get(t.lower()) or (values[i] if i < len(values) else {})
+            series[t].append(point(v))
+    print(f"  · compared {len(terms)} terms over {len(dates)} days ({time.monotonic() - started:.1f}s)")
+    return {"dates": dates, "series": series}
+
+
 def main(argv):
-    if len(argv) < 2 or argv[1] not in ("account", "queries"):
-        print('Usage:\n  python trends.py account\n  python trends.py queries "tropico 6"')
+    if len(argv) < 2 or argv[1] not in ("account", "queries", "compare"):
+        print('Usage:\n  python trends.py account\n  python trends.py queries "tropico 6"\n'
+              '  python trends.py compare "snowrunner" "snowrunner mods"')
         return 2
     if not api_key():
         print("Set SERPAPI_KEY first.")
@@ -214,6 +277,15 @@ def main(argv):
     try:
         if argv[1] == "account":
             print(json.dumps(account(), indent=2))
+        elif argv[1] == "compare":
+            terms = [t for t in argv[2:] if t.strip()]
+            if not terms:
+                print('Usage: python trends.py compare "snowrunner" "snowrunner mods"')
+                return 2
+            got = interest_over_time(terms)
+            for t, vals in got["series"].items():
+                avg = sum(vals) / len(vals) if vals else 0
+                print(f"  {t:40s} average {avg:5.1f}  peak {max(vals or [0]):5.1f}")
         else:
             term = " ".join(argv[2:]).strip()
             if not term:

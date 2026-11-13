@@ -18,7 +18,7 @@ on:
         type: boolean
         default: false
       discover_searches:
-        description: 'Google Trends searches Discover may spend this run (empty = the usual 3)'
+        description: 'Google Trends searches Discover may spend this run (empty = the usual 6)'
         type: string
         default: ''
 

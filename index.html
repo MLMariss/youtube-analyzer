@@ -387,6 +387,8 @@
     font-size: 12px; text-transform: uppercase; letter-spacing: .05em;
   }
   .rise.top { color: var(--muted); font-weight: 600; }
+  .size { color: var(--text-2); font-weight: 600; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .side-why { color: var(--muted); }
   .dq-sub { font-size: 14px; color: var(--text-2); margin-top: 4px; line-height: 1.45; }
   .dq-sub a, .dq-links a, .disc-foot a { color: var(--link); }
   .dq-links { font-size: 13.5px; margin-top: 4px; color: var(--muted); }
@@ -1273,6 +1275,21 @@ function topicsHtml(T) {
   return boxes ? `<div class="topics">${boxes}</div>` : '';
 }
 
+// Real changes under the floor: listed so nothing vanishes, without a card.
+const METRIC_UNIT = { views: 'views', impressions: 'impressions' };
+function smallHtml(A) {
+  const rows = (A.small || []).map(e => {
+    const what = e.video_id
+      ? `<a href="${studio(e.video_id, 'analytics')}" target="_blank" rel="noopener">${esc(attTitle(e.video_id))}</a>`
+      : `<b>${esc(e.label)}</b> (${e.videos} videos together)`;
+    const sit = e.video_id ? SITUATION_LABEL[e.situation] || e.situation : (e.direction > 0 ? 'rising' : 'losing reach');
+    const change = e.video_id ? `${fmt(e.from)} → ${fmt(e.to)} ${METRIC_UNIT[e.metric] || e.metric}${e.basis === 'shift' ? ' (level)' : ''}` : '';
+    return `<tr><td style="text-align:left;white-space:normal">${what}</td><td>${esc(sit)}</td><td>${change}</td><td>~${fmt(e.stake)}</td></tr>`;
+  }).join('');
+  return rows ? `<div class="scroll-x"><table class="att-table"><thead><tr><th style="text-align:left">Video</th><th>What</th>
+    <th>A week, before → now</th><th>Worth, views a week</th></tr></thead><tbody>${rows}</tbody></table></div>` : '';
+}
+
 function learnedHtml(A) {
   // Per situation; the "any situation" summary only where an action was tried in several.
   const acts = A.actions || [], all = A.playbook || [];
@@ -1326,6 +1343,13 @@ const GROUPS = [
     what: 'Search terms, outside sites and other channels\' videos sending clearly more views than last week.',
     raw: A => topicsHtml(A.topics || {}),
     count: A => Object.values(A.topics || {}).reduce((n, es) => n + es.length, 0) },
+  { key: 'small', title: 'Small changes', closed: true, noQuiet: true,
+    what: A => {
+      const F = A.floor || {};
+      return `Real changes, but worth under ${fmt(F.views || 0)} views a week: ${((F.share || 0) * 100).toFixed(1)}% of your channel's
+        ${fmt(F.channel_weekly_views || 0)} a week, counting ten impressions as one view. Too small to act on yet; listed so nothing vanishes.`;
+    },
+    raw: A => smallHtml(A), count: A => (A.small || []).length },
   { key: 'learned', title: 'Actions and what worked', always: true, closed: true,
     what: 'What you did, and how each video did 7, 14 and 28 days later.',
     raw: A => learnedHtml(A), count: A => (A.actions || []).length },
@@ -1345,7 +1369,8 @@ function renderAttention() {
     return;
   }
   document.getElementById('att-range').textContent =
-    `${shortDate(A.this_week.from)}–${shortDate(A.this_week.to)} vs ${shortDate(A.last_week.from)}–${shortDate(A.last_week.to)} · every video against its own last week, and against where it was before any lasting rise or fall`;
+    `${shortDate(A.this_week.from)}–${shortDate(A.this_week.to)} vs ${shortDate(A.last_week.from)}–${shortDate(A.last_week.to)} · every video against its own last week, and against where it was before any lasting rise or fall${
+      A.floor ? ` · cards need a change worth ${fmt(A.floor.views)}+ views a week` : ''}`;
   const HEALTH = { error: 'error', warn: 'warn', info: '' };
   const health = (A.health || []).length
     ? `<div class="att-health">${A.health.map(h => `<div class="att-h ${HEALTH[h.level] || ''}">${esc(h.message)}</div>`).join('')}</div>` : '';
@@ -1355,7 +1380,7 @@ function renderAttention() {
     const cards = g.body ? g.body(A) : null;
     const raw = g.raw ? g.raw(A) : '';
     const n = cards ? cards.length : g.count(A);
-    if (!n && !g.always) { quiet.push(g.title.toLowerCase()); continue; }
+    if (!n && !g.always) { if (!g.noQuiet) quiet.push(g.title.toLowerCase()); continue; }
     const open = saved[g.key] !== undefined ? saved[g.key] : !g.closed;
     const all = showAll.has(g.key);
     const content = cards
@@ -1364,7 +1389,7 @@ function renderAttention() {
       : `<div class="${g.key === 'early' || g.key === 'updates' ? 'early' : ''}">${raw}</div>`;
     html += `<details class="group" data-key="${g.key}" ${open ? 'open' : ''}>
       <summary><span class="fold">▶</span><h3>${g.title}</h3>${n ? `<span class="count">${n}</span>` : ''}
-        <span class="group-what">${g.what}</span></summary>
+        <span class="group-what">${typeof g.what === 'function' ? g.what(A) : g.what}</span></summary>
       <div class="group-body">${content}</div></details>`;
   }
   const list = quiet.length > 1 ? quiet.slice(0, -1).join(', ') + ' or ' + quiet[quiet.length - 1] : quiet[0];
@@ -1375,7 +1400,15 @@ function renderAttention() {
 // What is not on the dashboard yet (discover.py, docs/search-demand-plan.md).
 const INTENT_LABEL = { problem: 'Problem', howto: 'How-to', news: 'News', topic: 'Topic' };
 const enc = encodeURIComponent;
-const trendsUrl = (q, cat) => `https://trends.google.com/trends/explore?date=today%203-m&q=${enc(q)}${cat ? `&cat=${enc(cat)}` : ''}`;
+// Google Trends, same 90 days and category as the pull. A question opens beside its game:
+// one too small for Google to chart alone still shows, as a line near zero.
+const trendsUrl = (terms, cat) => `https://trends.google.com/trends/explore?date=today%203-m&q=${
+  [].concat(terms).map(t => enc(String(t).replace(/,/g, ' '))).join(',')}${cat ? `&cat=${enc(cat)}` : ''}`;
+const shareTxt = s => s >= 0.1 ? Math.round(s * 100) + '%' : s >= 0.01 ? (s * 100).toFixed(1).replace(/\.0$/, '') + '%' : 'under 1%';
+const has = x => x !== null && x !== undefined;
+const sizeHtml = (e, label) => has(e.monthly)
+  ? `<span class="size" title="Estimated Google searches a month, worldwide, at the current pace${e.upper ? ' (at most)' : ''}">${e.upper ? 'under ' : '~'}${fmt(e.monthly)}/mo</span>`
+  : has(e.share) ? `<span class="size" title="Its share of all ${esc(label)} searches on Google, at the current pace">${shareTxt(e.share)} of ${esc(label)} searches</span>` : '';
 const riseHtml = e => e.breakout ? '<span class="rise breakout">Breakout</span>'
   : e.rise ? `<span class="rise">+${fmt(e.rise)}%</span>`
   : e.score !== null && e.score !== undefined ? `<span class="rise top" title="Share of the game's searches, 0–100">top · ${e.score}</span>` : '';
@@ -1401,11 +1434,11 @@ function questionCard(c) {
     return `<li>
       <div class="dq-main">${isNew(e) ? '<span class="att-new">New</span>' : ''}
         <span class="tag i-${esc(e.intent)}">${INTENT_LABEL[e.intent] || 'Topic'}</span>
-        <span class="dq-q">${esc(e.query)}</span>${riseHtml(e)}</div>
+        <span class="dq-q">${esc(e.query)}</span>${riseHtml(e)}${sizeHtml(e, c.label)}</div>
       <div class="dq-sub">${closest}${steam}</div>
       <div class="dq-links"><a href="https://www.google.com/search?q=${enc(e.query)}" target="_blank" rel="noopener">Google</a> ·
         <a href="https://www.youtube.com/results?search_query=${enc(e.query)}" target="_blank" rel="noopener">YouTube</a> ·
-        <a href="${trendsUrl(e.query)}" target="_blank" rel="noopener">Trends</a> ·
+        <a href="${trendsUrl([c.term, e.query], c.cat)}" target="_blank" rel="noopener" title="This search beside ${esc(c.label)} on Google Trends">Trends</a> ·
         <a href="${dismissUrl(e.query, c)}" target="_blank" rel="noopener" title="Hide it from Discover (opens a GitHub issue)">Dismiss</a></div>
     </li>`;
   }).join('');
@@ -1413,12 +1446,23 @@ function questionCard(c) {
     ? `<div class="vc-why"><span class="inl">Searched alongside</span>${c.also.map(a =>
         `<a href="https://www.google.com/search?q=${enc(a.query)}" target="_blank" rel="noopener">${esc(a.query)}</a>${
           a.breakout ? ' (Breakout)' : a.rise ? ` (+${fmt(a.rise)}%)` : ''}`).join(', ')}</div>` : '';
+  // Real searches under the bar, and other languages: listed, not cards, so nothing vanishes.
+  const side = (title, list, why) => (list || []).length
+    ? `<div class="vc-why"><span class="inl">${title}</span>${list.map(x =>
+        `<a href="${trendsUrl([c.term, x.query], c.cat)}" target="_blank" rel="noopener" title="Beside ${esc(c.label)} on Google Trends">${esc(x.query)}</a>
+         <span class="side-why">(${esc(why(x))})</span>`).join(', ')}</div>` : '';
+  const small = side('Small or one-off', c.small, x => x.why);
+  const langs = side('Other languages', c.other_languages,
+    x => x.breakout ? 'Breakout' : x.rise ? `+${fmt(x.rise)}%` : has(x.score) ? `top · ${x.score}` : x.why);
+  const pending = !c.measured && c.items.length ? ' · sizes not measured yet' : '';
   return `<div class="vcard">
     <div class="vc-meta"><span class="tag">${c.videos} videos</span>
-      <span>${fmt(c.views_28d)} views in 28 days · searched ${shortDate(c.searched)}</span></div>
+      <span>${fmt(c.views_28d)} views in 28 days${has(c.monthly) ? ` · ${c.upper ? 'under ' : '~'}${fmt(c.monthly)} Google searches/mo` : ''}
+        · searched ${shortDate(c.searched)}${pending}</span></div>
     <h3 class="vc-title"><a href="${trendsUrl(c.term, c.cat)}" target="_blank" rel="noopener" title="Open the same search on Google Trends">${esc(c.label)}</a></h3>
-    ${rows ? `<ul class="dq">${rows}</ul>` : '<p class="quiet" style="margin:0">Every rising search on it is one you already cover.</p>'}
-    ${also}
+    ${rows ? `<ul class="dq">${rows}</ul>` : `<p class="quiet" style="margin:0">${(c.small || []).length || (c.other_languages || []).length
+      ? 'Nothing big enough to act on yet.' : 'Every rising search on it is one you already cover.'}</p>`}
+    ${small}${langs}${also}
   </div>`;
 }
 
@@ -1444,24 +1488,42 @@ function renderDiscover() {
     ? `<div class="cards">${(all ? cards : cards.slice(0, CARDS_SHOWN)).join('')}</div>` +
       (cards.length > CARDS_SHOWN ? `<p style="margin:12px 0 0"><button type="button" class="btn" data-more="disc-questions">${all ? 'Show fewer' : `Show all ${cards.length} games`}</button></p>` : '')
     : `<p class="empty-state">Nothing unanswered yet.${pending ? ` ${pending} of your games still wait for their first search; a few are searched each day.` : ''}</p>`;
-  const B = D.budget || {};
+  const B = D.budget || {}, Z = D.sizes || {};
+  const known = Object.entries(Z.known || {});
+  const bar = has(Z.min_monthly)
+    ? ` A question needs ~${fmt(Z.min_monthly)}+ searches a month (${shareTxt(Z.min_share)} of its game's searches until there are counts);
+        one in another language needs ${Z.foreign_factor}× that and a top score of ${Z.foreign_top}+.` : '';
+  const sizes = known.length
+    ? `Counts are estimates from your Keyword Planner numbers (${known.map(([k, v]) => `${esc(k)} ~${fmt(v)}`).join(', ')})${
+        Z.anchor_label ? `, with ${esc(Z.anchor_label)} as the anchor${Z.calibrated ? ` (compared ${shortDate(Z.calibrated)})` : ''}` : ''}:
+        order of magnitude, not exact.`
+    : `Sizes are shares of each game's own searches until you enter Keyword Planner numbers under <code>settings → searches_per_month</code>.`;
   const plan = B.plan_left !== null && B.plan_left !== undefined
     ? ` · ${fmt(B.plan_left)} left on the SerpApi plan${B.plan_checked ? ` as of ${shortDate(B.plan_checked)}` : ''}` : '';
   el.innerHTML = health + `<details class="group" data-key="disc-questions" ${open ? 'open' : ''}>
       <summary><span class="fold">▶</span><h3>Unanswered questions in your games</h3>${n ? `<span class="count">${n}</span>` : ''}
-        <span class="group-what">Rising Google searches about games you cover that none of your videos answers yet.
+        <span class="group-what">Google searches about games you cover that none of your videos answers yet, big enough to act on.
           Searches people already find you with, and anything you dismissed, are left out.</span></summary>
       <div class="group-body">${body}</div></details>
     <p class="disc-foot">Google Trends through SerpApi: <b>${fmt(B.used || 0)} of ${fmt(B.cap || 200)}</b> searches used this cycle${
       B.next_cycle ? ` (renews ${shortDate(B.next_cycle)})` : ''}${plan}. Your top 12 games are searched every 14 days, the next 12 every 30.
-      ${pending ? `${pending} still wait for a first search. ` : ''}Search terms per game, and games to skip, are under
+      ${pending ? `${pending} still wait for a first search. ` : ''}${sizes}${bar} Search terms per game, and games to skip, are under
       <code>settings → games</code> in <code>data/discover.json</code>. The roadmap is in
       <a href="https://github.com/${REPO}/blob/main/docs/search-demand-plan.md" target="_blank" rel="noopener">docs/search-demand-plan.md</a>.</p>
     <details class="glossary" data-key="disc-help"><summary>How to read this</summary><dl class="gloss-body">
       <div><dt>+250% · Breakout</dt><dd>How much a search grew over the last three months against the three before, worldwide.
-        Breakout means more than +5000%, usually something new. A big rise on a small search can still be a handful of people:
-        Google Trends shows shares, never counts.</dd></div>
-      <div><dt>top · 45</dt><dd>One of the game's most searched queries, as a share of its searches (0–100). Listed when none of your videos covers it.</dd></div>
+        Breakout means more than +5000%, usually something new. A rise says nothing about size: +250% can be three people.</dd></div>
+      <div><dt>~1.1K/mo · 4% of Snowrunner searches</dt><dd>How big the search is, at the busier of its three-month average and its
+        last week, so a problem that started days ago counts at today's pace. Google never gives counts: a share of the game's
+        searches comes from comparing the two on one scale, and searches a month from Keyword Planner numbers you enter for a
+        game or two. Order of magnitude, not exact.</dd></div>
+      <div><dt>top · 45</dt><dd>One of the game's most searched queries, as a share of its busiest one (0–100). Listed when none of your videos covers it.</dd></div>
+      <div><dt>Small or one-off</dt><dd>Real searches under the bar: too small for Google to chart, a one-day spike that already
+        faded, or fewer searches than the bar. Listed so nothing vanishes; worth a look only if it keeps coming back.</dd></div>
+      <div><dt>Other languages</dt><dd>A second class with a higher bar: shown as a question only when it is one of the game's
+        top searches and several times the English bar. Gaming is international, so a strong one is worth knowing.</dd></div>
+      <div><dt>Trends</dt><dd>Opens the search beside its game on Google Trends, same 90 days, all of web search (a game whose
+        name is an everyday word stays in the Games category). A search too small to chart alone shows as a line near zero.</dd></div>
       <div><dt>Problem · How-to · News · Topic</dt><dd>What the search asks for. Problems and how-tos are the quickest videos to make;
         news is tied to the Steam announcement it is about, where there is one.</dd></div>
       <div><dt>Closest of yours</dt><dd>Your video on the game that shares the most topic words. Adding the answer there

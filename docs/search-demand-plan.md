@@ -1,6 +1,8 @@
 # Discovery from Google search demand — project plan
 
-Status: **Phase 1 built** (12 Nov 2026), waiting for its first live searches.
+Status: **Phase 1 built** (12 Nov 2026) and reworked after the first live check
+(13 Nov 2026): sizes, a noise bar, web-wide scope and other languages as a
+second class. Waiting for its first live sizing searches.
 Phases 2–6 planned. Each phase below
 has a checklist; tick items as they ship so this file stays the source of truth.
 
@@ -29,6 +31,10 @@ topics surfaces first.
 | Budget | Automation capped at **200 searches/month**. **50 a month stay free** for your manual checks. |
 | Geography | Worldwide now. Americas / Europe / Asia / All later, with the official API. |
 | "Market or me" | **Second grade**, built only after discovery works |
+| Noise | **A rise is not a size.** Every item must be big enough to act on, not just real. Below the bar it is listed apart (*small or one-off*), never dropped silently. The same rule runs the whole dashboard: a *Needs attention* card needs a change worth 0.3% of the channel's weekly views. |
+| Sizes | Each question is measured against its game on one Trends scale. **Counts** come from a baseline: Keyword Planner's monthly searches for a few of your games, entered by hand; one is the anchor every other game is compared with. Order of magnitude, not exact. |
+| Scope | **All of web search**, not the Games category: a game reaching news, social media or business pages is a trend too. Only names that are everyday words (Foundation, Grounded, Icarus, Odyssey, Humankind, Windrose) stay in the Games category. |
+| Other languages | **A second class with a higher bar:** among the game's top searches at a score of 20+, and 4× the English count. The rest are listed apart. |
 | Where it shows | A new foldable **Discover** section on `index.html`, below *Needs attention* |
 
 **Changed from the first draft:**
@@ -92,7 +98,8 @@ rebels"*. Your audience already finds you for these games, so these are the
 cheapest wins.
 
 **Pull:**
-- `RELATED_QUERIES`, web, worldwide, `today 3-m`, one game per search.
+- `RELATED_QUERIES`, web (all categories), worldwide, `today 3-m`, one game
+  per search. Games whose name is an everyday word stay in the Games category.
 - Your **top 12 games by views** every 2 weeks (about 26 searches) and the
   **next 12** monthly (about 12). The game list is `monitor.py`'s watched set,
   minus `skip` entries.
@@ -100,10 +107,32 @@ cheapest wins.
   "Foundation" needs the games category).
 
 **Keep:**
-- rising queries (Breakout first), and top queries none of your titles cover
+- rising queries, and top queries none of your titles cover
 - minus filler (download, free, price, system requirements, release date,
-  crack)
+  crack), in other languages too (скачать, купить, descargar, kaufen)
 - minus what's already yours (see the filter above)
+
+**Size** (added 13 Nov 2026, after the first live check: *snowrunner mod
+installer* showed as Breakout, and Google Trends had too little data to chart
+it at all):
+- Right after a pull, one `TIMESERIES` search puts the game and up to 4 rising
+  questions on one scale (a second search for more; the game's top search is
+  the reference that sizes the top list). About 40 searches a month.
+- A question's level is the busier of its 90-day average and its last week,
+  so a problem that started days ago counts at today's pace.
+- **Counts:** Keyword Planner's monthly searches for one or more games, by
+  hand, under `settings → searches_per_month` (a number or a range like
+  "10K-100K"). The game in the middle is the anchor; every 30 days the other
+  games are compared with it, 4 to a search, 2 searches a run, first. About 8
+  searches a month. A count is the game's count times the question's share.
+
+**The bar** (provisional, tune after a cycle of sizes):
+- big enough to chart (level 0.5+ on the shared scale), and not a one-day
+  spike that already faded
+- ~100+ searches a month with counts, or 1%+ of the game's searches without
+- other languages: a top score of 20+, and 4× that count or share
+- everything under the bar is listed per game as *small or one-off* or
+  *other languages*
 
 **Sorted by intent:**
 - **Problem** (crash, fix, error, not working, stuck, can't)
@@ -116,8 +145,9 @@ cheapest wins.
 > Breakout. None of your 70 Tropico 6 videos covers these. Closest: "How to …"
 > (add it to the description or pin an answer), or make a new video.*
 
-Each card links to the Google results and the Trends page for the query, and
-has *Dismiss*.
+Each card links to the Google results and the Trends page for the query
+(beside its game, so a search too small to chart alone still shows), and has
+*Dismiss*.
 
 **Done when:**
 - [x] `trends.py` exists: the SerpApi provider, budget ledger (by SerpApi's
@@ -131,6 +161,11 @@ has *Dismiss*.
 - [x] The Discover section is on the dashboard, with Dismiss through
   `.github/ISSUE_TEMPLATE/discover-dismiss.yml`.
 - [x] The workflow step and secret are in, and the README section is written.
+- [x] Sizes, the bar, web-wide scope and other languages (13 Nov 2026), tested
+  against mocked SerpApi responses
+- [ ] Keyword Planner numbers entered for 2-3 games (a big, a middle and a
+  small one), worldwide
+- [ ] The bar tuned after the first cycle of sizes
 - [ ] Verified:
   - [x] `--dry-run` (games, searches it would spend)
   - [ ] `--max-searches 2` live, with queries checked against trends.google.com
@@ -242,11 +277,11 @@ seed, with a button. You approve it, so the radar widens with you.
 
 | Stream | Searches/month |
 |---|---|
-| 1 Unanswered questions | ~40 |
+| 1 Unanswered questions (pulls ~38, sizing ~40, anchor ~8) | ~86 |
 | 2 New games radar (topics ~20, sizing ~20) | ~40 |
 | 3 Areas heating up | ~20 |
 | 5 Market or me (later) | ~25 |
-| Headroom: retries, growth | ~75 |
+| Headroom: retries, growth | ~29 |
 | **Automation cap** | **200** |
 | Your manual checks | 50 |
 
@@ -294,13 +329,21 @@ Reused:
 
 - **Relative, not volume.** Trends gives a 0–100 index or a % rise, never
   counts. A +300% on a tiny query can be a handful of searches; *Breakout*
-  means more than +5000%.
-- **Worldwide mixes languages.** Rising lists can include German or Polish
-  phrasing. It's still signal, but it needs reading.
+  means more than +5000%. Sizes come from comparing a question with its game,
+  and counts from Keyword Planner numbers entered by hand: order of magnitude.
+  Without ad spend Keyword Planner gives ranges (10K–100K); its numbers are
+  12-month averages, Trends' are the last 90 days.
+- **Resolution.** Trends rounds to whole points of the busiest term, so a
+  question under about 1% of its game's searches reads as zero: *too small to
+  chart*.
+- **Worldwide mixes languages.** Rising lists include Hungarian, Russian or
+  Polish phrasing. They are a second class with a higher bar; the word list
+  that spots plain-letter ones (`FOREIGN_WORDS`) grows as they turn up.
 - **Rising lists are noisy:** piracy, prices, "release date", mainstream
   games. Filler lists and the genre filter help; you still pick.
 - **Ambiguous names** (Foundation, Grounded, Icarus) need the games category
-  filter or a better term.
+  filter or a better term. Their counts are approximate: they are compared
+  with the anchor inside the Games category.
 - **Free tier is shared:** SerpApi used for anything else eats the same
   allowance.
 - **Unofficial endpoints** (Steam store lists, Google suggest) can change.
