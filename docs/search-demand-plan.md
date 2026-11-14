@@ -2,8 +2,9 @@
 
 Status (14 Nov 2026): **Discover is about games you have not touched.**
 - Phase 2 (new games radar), Phase 3 (areas heating up) and the Steam
-  momentum and YouTube competition parts of Phase 4 are built. They wait for
-  their first live run.
+  momentum and YouTube competition parts of Phase 4 are built and ran live on
+  14 Nov. The first sizes against the baseline came in that evening; games
+  are now measured in the run that finds them.
 - Phase 1 (questions about games you already cover) is built but **paused**:
   your own video data tracks those games.
 - Phase 5 is **on demand only**.
@@ -98,8 +99,10 @@ so the section shows *new this run* separately from *still rising*.
   tested against mocked responses.)
 - [ ] My first calls check five things:
   - [x] the games category id for `cat` (8)
-  - [ ] the topic "type" field in `RELATED_TOPICS` (the radar keeps types
-    with "game" in them, not genre, series or company: check on the first run)
+  - [x] the topic "type" field in `RELATED_TOPICS` (the radar keeps types
+    with "game" in them, not genre, series or company). 14 Nov 2026: games come
+    as "Video game", "Survival game" or "Mobile game"; the rest are "Topic",
+    "Series", "Video game series", "Game genre" and the like
   - [x] that SerpApi's account endpoint is free
   - [x] which Steam endpoint lists games by tag:
     `store.steampowered.com/search/results/?tags=<id>&filter=popularnew|topsellers|popularcomingsoon&category1=998&infinite=1`.
@@ -248,7 +251,8 @@ shared with your best-performing games).
     days. Topics typed as a game are kept (not genres, series or companies).
 - **Not yours:**
   - Left out: games in your titles, games any title names (even once), your
-    Steam apps, and anything dismissed.
+    Steam apps, anything dismissed, and games carrying a tag in
+    `settings → radar → exclude_tags` (Sports, Shooter…).
   - Kept: sequels to your games, marked.
 - **Fit:** the share of your views on games with the same Steam tags (top 24
   games by views), not a fixed yardstick game.
@@ -256,8 +260,13 @@ shared with your best-performing games).
   - The shortlist is 12 new and 4 established games by a first guess, from
     reviews and why each surfaced.
   - Each game is measured as its **Google topic** against the baseline, not a
-    yardstick game, 4 to a search, every 14 days. A topic is found once with
-    Trends autocomplete (1 search) and kept.
+    yardstick game, 4 to a search, in the run that finds it and every 14
+    days after. Measuring has its own allowance (24 searches a run), apart
+    from the 6 for pulls. A topic comes with Google's related topics, or is
+    found once with Trends autocomplete (1 search) and kept.
+  - The baseline's level in each chart is its average over the calibrated
+    month: *how to fish* is seasonal, and its 90-day average read every size
+    about a third low (found in the first live chart, 14 Nov).
 - **Momentum:**
   - Google: the last 4 weeks against the first 4 of the 90 days.
   - Steam: players at the daily check against a week ago, and reviews in the

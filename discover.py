@@ -89,7 +89,8 @@ again (against your newest titles) and nothing fails.
 Usage:
     python discover.py                    # normal run (searches what is due)
     python discover.py --dry-run          # show what would be searched, change nothing
-    python discover.py --max-searches 2   # spend at most 2 searches this run
+    python discover.py --max-searches 2   # spend at most 2 searches on pulls this run
+    python discover.py --measure-searches 0   # measure nothing new this run
     python discover.py --offline          # no searches; rebuild from saved pulls
 """
 
@@ -118,7 +119,8 @@ NEXT_GAMES = 12         # the next ones, every NEXT_EVERY days
 TOP_EVERY = 14
 NEXT_EVERY = 30
 MIN_VIEWS = 20          # views over 28 days before a game is searched (monitor's COVERED_MIN)
-RUN_MAX = 6             # searches per daily run: a game takes its pull and one or two sizing searches
+RUN_MAX = 6             # searches per daily run for pulls (your games, genre seeds); measuring new games
+                        # against the baseline has its own allowance, radar.MEASURE_RUN
 PER_GAME = 8            # questions shown per game
 SIDE_MAX = 8            # small or other-language searches listed per game
 ALSO_MAX = 6            # other games searched alongside, per game
@@ -468,6 +470,34 @@ def mean(values):
     return sum(values) / len(values) if values else 0.0
 
 
+MONTHS = {m: i for i, m in enumerate(("jan", "feb", "mar", "apr", "may", "jun",
+                                      "jul", "aug", "sep", "oct", "nov", "dec"), 1)}
+
+
+def chart_month(d):
+    """A Trends chart date ("Oct 3, 2026") as "2026-10"; None when it cannot be read."""
+    m = re.search(r"([A-Za-z]{3})[a-z]*\.? (\d{1,2}),? (\d{4})", str(d))
+    if not m or m.group(1).lower() not in MONTHS:
+        return None
+    return f"{m.group(3)}-{MONTHS[m.group(1).lower()]:02d}"
+
+
+def ref_level(values, dates, month=None):
+    """
+    The reference term's level on a chart, in that chart's points. For the
+    baseline, `month` is the month it was calibrated for ("2026-10"): its
+    searches a month are known for that month, so its level is its average
+    over that month. Its own season (more fishing in summer) would otherwise
+    skew every size against a three-month average. The whole chart's average
+    for any other reference, or when the chart holds under a week of that month.
+    """
+    if month:
+        inside = [v for v, d in zip(values, dates) if chart_month(d) == month]
+        if len(inside) >= 7:
+            return mean(inside)
+    return mean(values)
+
+
 def size_of(values, ref_avg, dates):
     """
     A question's size on the scale it shares with the reference term (the
@@ -511,7 +541,7 @@ def measure(key, entry, items, ref, budget, today, limit):
         got = trends.interest_over_time([ref["term"]] + batch, DATE_RANGE, cat=ref.get("cat"), budget=budget)
         spent += 1
         series = list(got["series"].values())
-        ref_avg = mean(series[0]) if series else 0.0
+        ref_avg = ref_level(series[0], got["dates"], ref.get("month")) if series else 0.0
         if ref_avg <= 0:
             print(f"  ! “{ref['term']}” has no data in this comparison; {key} stays unmeasured")
         for i, q in enumerate(batch):
@@ -633,7 +663,7 @@ def calibration_due(cal, base, known, ranked, settings, today):
     return anchor, [g for g in ranked if g not in skip and settings[g]["term"] != anchor and due(g)]
 
 
-def calibrate(cal, anchor, games, settings, budget, today, limit, by_category=True):
+def calibrate(cal, anchor, games, settings, budget, today, limit, by_category=True, month=None):
     """
     Each game against the anchor term on one scale, four to a search (with
     `by_category`, a game behind a category is compared inside it). Its ratio
@@ -658,7 +688,7 @@ def calibrate(cal, anchor, games, settings, budget, today, limit, by_category=Tr
             spent += 1
             runs.append({"cat": cat, "terms": [anchor] + [settings[g]["term"] for g in batch], **got})
             series = list(got["series"].values())
-            base = mean(series[0]) if series else 0.0
+            base = ref_level(series[0], got["dates"], month) if series else 0.0
             if base <= 0:
                 print(f"  ! “{anchor}” has too little data to compare {', '.join(batch)} with")
                 continue
@@ -840,7 +870,11 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--dry-run", action="store_true", help="show what would be searched; change nothing")
     ap.add_argument("--offline", action="store_true", help="no searches; rebuild from saved pulls")
-    ap.add_argument("--max-searches", type=int, default=RUN_MAX, help=f"searches this run (default {RUN_MAX})")
+    ap.add_argument("--max-searches", type=int, default=RUN_MAX,
+                    help=f"searches this run for pulls: your games, genre seeds (default {RUN_MAX})")
+    ap.add_argument("--measure-searches", type=int, default=None,
+                    help="searches this run for measuring new games and genres against the baseline "
+                         "(default radar.MEASURE_RUN)")
     ap.add_argument("--close-issues", metavar="FILE", help="close the issues a DISCOVER_CLOSE_LATER run listed, then stop")
     args = ap.parse_args(argv)
 
@@ -910,7 +944,7 @@ def main(argv=None):
     def ref_for(key):
         """What a game's questions are measured against: the baseline (all of web search), or the game itself."""
         if base:
-            return {"term": base["term"], "cat": None}
+            return {"term": base["term"], "cat": None, "month": base.get("month")}
         return {"term": settings[key]["term"], "cat": settings[key].get("cat")}
 
     budget = trends.Budget(state["budget"], today)
@@ -936,7 +970,9 @@ def main(argv=None):
         due_seeds = r.seeds_due()
         print(f"  new games radar: {len(r.seeds)} seeds, {len(due_seeds)} pull(s) due "
               f"({', '.join(f'{s} ({k})' for s, k in due_seeds[:6])}{'...' if len(due_seeds) > 6 else ''}); "
-              f"Steam lists for {len(r.steam_tags)} tags (free)")
+              f"Steam lists for {len(r.steam_tags)} tags (free); up to "
+              f"{radar.MEASURE_RUN if args.measure_searches is None else args.measure_searches} more searches "
+              f"to measure new games and genres against the baseline")
         if paused:
             print("  your games: paused (settings → your_games → search); nothing is searched for them")
             return 0
@@ -983,7 +1019,7 @@ def main(argv=None):
             print(f"  comparing {len(to_calibrate)} game(s) with “{anchor}”")
             try:
                 spent += calibrate(cal, anchor, to_calibrate, settings, budget, today, min(CALIBRATE_RUN, room()),
-                                   by_category=not base)
+                                   by_category=not base, month=(base or {}).get("month"))
             except trends.TrendsError as e:
                 spent += 1
                 stop = failed(f"“{anchor}” as the anchor", e)
@@ -1021,6 +1057,7 @@ def main(argv=None):
                 print(f"  YouTube competition counts skipped: {str(e).splitlines()[0][:100]}")
         ctx = {"names": names, "labels": names, "ranked": watched[:TOP_GAMES + NEXT_GAMES], "views": views,
                "base": base, "budget": budget, "max": max(0, args.max_searches - spent),
+               "measure_max": radar.MEASURE_RUN if args.measure_searches is None else args.measure_searches,
                "dismissed": state["dismissed"], "your_appid": your_appid,
                "your_appids": {a for a in your_appid.values() if a} | {a.get("appid") for a in steam_apps.values()
                                                                         if a.get("appid")},
