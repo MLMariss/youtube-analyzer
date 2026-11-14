@@ -22,11 +22,13 @@ stored except the lists asked for (its account endpoint also returns the key
 and the account email).
 
 Later the official Google Trends API (alpha) can replace SerpApi here:
-discover.py only calls related_queries(), interest_over_time() and Budget.
+discover.py and radar.py only call related_queries(), related_topics(),
+autocomplete(), interest_over_time() and Budget.
 
 Usage (manual checks, from the 50 searches automation leaves alone):
     SERPAPI_KEY=... python trends.py account
     SERPAPI_KEY=... python trends.py queries "tropico 6"
+    SERPAPI_KEY=... python trends.py topics "colony sim"
     SERPAPI_KEY=... python trends.py compare "snowrunner" "snowrunner mods"
 """
 
@@ -211,6 +213,80 @@ def related_queries(term, date_range="today 3-m", cat=None, geo=None, budget=Non
     return {"rising": rising, "top": top}
 
 
+def related_topics(term, date_range="today 1-m", cat=None, geo=None, budget=None):
+    """
+    Google's related topics for `term`: entities (a game, a company, a genre)
+    rather than typed queries, so one game is one entry whatever people type.
+    {"rising": [{"title", "mid", "type", "rise", "breakout"}],
+     "top": [{"title", "mid", "type", "score"}]}; "type" is Google's label
+    ("2021 video game", "Video game genre"...).
+    """
+    if not api_key():
+        raise TrendsError("SERPAPI_KEY is not set")
+    if budget is not None and budget.left() <= 0:
+        raise TrendsError("the search budget for this cycle is spent")
+    params = {"engine": "google_trends", "data_type": "RELATED_TOPICS", "q": term, "date": date_range}
+    if cat:
+        params["cat"] = str(cat)
+    if geo:
+        params["geo"] = geo
+    started = time.monotonic()
+    try:
+        data = get(SEARCH_URL, params)
+    finally:
+        if budget is not None:
+            budget.spend(f"related topics: {term}")
+    err = data.get("error")
+    if err and not NO_RESULTS.search(err):
+        raise TrendsError(redact(err))
+    rt = data.get("related_topics") or {}
+
+    def topic(item):
+        t = item.get("topic") or {}
+        return {"title": str(t.get("title") or "").strip(), "mid": str(t.get("value") or "").strip(),
+                "type": str(t.get("type") or "").strip()}
+
+    rising, top = [], []
+    for item in rt.get("rising") or []:
+        t = topic(item)
+        if t["title"]:
+            rise, breakout = parse_rise(item)
+            rising.append({**t, "rise": rise, "breakout": breakout})
+    for item in rt.get("top") or []:
+        t = topic(item)
+        ev = item.get("extracted_value")
+        if t["title"]:
+            top.append({**t, "score": int(ev) if isinstance(ev, (int, float)) else None})
+    print(f"  · {term} (topics): {len(rising)} rising, {len(top)} top ({time.monotonic() - started:.1f}s)")
+    return {"rising": rising, "top": top}
+
+
+def autocomplete(term, budget=None):
+    """
+    The topics Google Trends suggests for `term`: [{"mid", "title", "type"}].
+    A topic's mid ("/g/11...") measures the game itself in interest_over_time,
+    every spelling and language, not one typed phrase.
+    """
+    if not api_key():
+        raise TrendsError("SERPAPI_KEY is not set")
+    if budget is not None and budget.left() <= 0:
+        raise TrendsError("the search budget for this cycle is spent")
+    try:
+        data = get(SEARCH_URL, {"engine": "google_trends_autocomplete", "q": term})
+    finally:
+        if budget is not None:
+            budget.spend(f"autocomplete: {term}")
+    err = data.get("error")
+    if err and not NO_RESULTS.search(err):
+        raise TrendsError(redact(err))
+    out = []
+    for s in data.get("suggestions") or []:
+        mid, title = str(s.get("mid") or "").strip(), str(s.get("title") or "").strip()
+        if mid and title:
+            out.append({"mid": mid, "title": title, "type": str(s.get("type") or "").strip()})
+    return out
+
+
 def point(item):
     """One day's value: 45 for "45", LESS_THAN_ONE for "<1", 0 for nothing."""
     ev = item.get("extracted_value")
@@ -267,9 +343,9 @@ def interest_over_time(terms, date_range="today 3-m", cat=None, geo=None, budget
 
 
 def main(argv):
-    if len(argv) < 2 or argv[1] not in ("account", "queries", "compare"):
+    if len(argv) < 2 or argv[1] not in ("account", "queries", "topics", "compare"):
         print('Usage:\n  python trends.py account\n  python trends.py queries "tropico 6"\n'
-              '  python trends.py compare "snowrunner" "snowrunner mods"')
+              '  python trends.py topics "colony sim"\n  python trends.py compare "snowrunner" "snowrunner mods"')
         return 2
     if not api_key():
         print("Set SERPAPI_KEY first.")
@@ -289,9 +365,10 @@ def main(argv):
         else:
             term = " ".join(argv[2:]).strip()
             if not term:
-                print('Usage: python trends.py queries "tropico 6"')
+                print(f'Usage: python trends.py {argv[1]} "tropico 6"')
                 return 2
-            print(json.dumps(related_queries(term), indent=2, ensure_ascii=False))
+            got = related_queries(term) if argv[1] == "queries" else related_topics(term, cat=GAMES_CAT)
+            print(json.dumps(got, indent=2, ensure_ascii=False))
     except TrendsError as e:
         print(f"Failed: {e}")
         return 1

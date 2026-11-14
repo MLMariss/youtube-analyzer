@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 """
 Discover: what is not on the dashboard yet. The roadmap is in
-docs/search-demand-plan.md; this is Phase 1.
+docs/search-demand-plan.md.
 
-Unanswered questions in your games
-----------------------------------
+Discover is about games you have not touched: radar.py finds new games in
+your genres and the areas heating up around them, and runs from here. The
+part below, questions about games you already cover, is paused unless
+settings -> your_games -> search is true in data/discover.json: your own
+video data tracks those games, so no Google search is spent on them. Its
+last results are rebuilt from the saved pulls and shown, folded.
+
+Unanswered questions in your games (paused by default)
+------------------------------------------------------
 For the games you cover that still bring views, Google's related searches
 (web search, worldwide, the last three months) are pulled from Google Trends,
 and every query one of your videos already answers is dropped. What is left
@@ -68,10 +75,11 @@ What is shown
     about, if any. Queries that name another game ("tropico 5", "frostpunk")
     are kept apart as games searched alongside.
 
-data/discover.json holds the result and three things to edit by hand: under
+data/discover.json holds the result and what to edit by hand: under
 "settings" -> "games", a game's search "term", its "cat" (8 is Google's Games
 category) or "skip": true, with "manual": true so the run leaves the entry
-alone; and "settings" -> "searches_per_month". The baselines are in
+alone; "settings" -> "searches_per_month"; "settings" -> "your_games" ->
+"search"; and the radar's "settings" -> "radar" -> "seeds" and "steam_tags". The baselines are in
 data/baselines.json, which no run writes. Raw pulls are archived in
 data/discover_archive/<date>/, since related searches cannot be pulled again later.
 
@@ -167,6 +175,8 @@ FOREIGN_WORDS = {
     "jeu", "astuces", "soluce", "jogo", "dicas", "gra", "poradnik", "porady", "spolszczenie", "oyun",
     "hile", "nasil", "nasıl", "yama", "traduzione", "traduccion", "traducao", "deutsch", "espanol", "francais",
     "polski", "magyar", "magyaritas", "cesky", "cestina", "ceske", "russkiy", "rusifikator", "como", "wie",
+    "jogos", "juegos", "spiele", "jeux", "gry", "oyunlar", "oyunu", "igry", "de", "para", "mejores", "melhores",
+    "sobrevivencia", "estrategia", "supervivencia", "simulador", "aufbauspiel", "gestion",
 }
 
 INTENTS = [
@@ -315,7 +325,8 @@ def dismissed_from_issues(state, issues):
     for issue in issues:
         title = issue.get("title") or ""
         labels = {label.get("name") for label in issue.get("labels", [])}
-        if is_volume_issue(issue) or (not title.lower().startswith("dismiss:") and "discover" not in labels):
+        if is_volume_issue(issue) or is_seed_issue(issue) or \
+                (not title.lower().startswith("dismiss:") and "discover" not in labels):
             continue
         fields = actions.form_fields(issue.get("body"))
         item = (fields.get("what to hide") or title.split(":", 1)[-1].split("—")[0]).strip().strip('"“”').lower()
@@ -328,6 +339,40 @@ def dismissed_from_issues(state, issues):
             have.add((game, item))
             print(f"  hid “{item}” ({game or 'any game'}), issue #{issue.get('number')}")
         close_issue(issue, "Hidden from Discover. To show it again, remove it from `dismissed` in `data/discover.json`.")
+
+
+def is_seed_issue(issue):
+    labels = {label.get("name") for label in issue.get("labels", [])}
+    return (issue.get("title") or "").lower().startswith("seed:") or "discover-seed" in labels
+
+
+def seeds_from_issues(state, issues):
+    """
+    "Seed: ..." issues (the dashboard's Add as seed button opens them) into
+    settings -> radar -> seeds, then close them: the radar searches the new
+    seed on its next run.
+    """
+    for issue in issues:
+        if not is_seed_issue(issue):
+            continue
+        fields = actions.form_fields(issue.get("body"))
+        seed = re.sub(r"\s+", " ", (fields.get("seed") or (issue.get("title") or "").split(":", 1)[-1])).strip().lower()
+        if not seed or len(seed) > 60:
+            close_issue(issue, "There was no search to add, so nothing was changed.", "not_planned")
+            continue
+        cfg = state["settings"].setdefault("radar", {})
+        seeds = cfg.setdefault("seeds", None)
+        if seeds is None:
+            import radar
+            seeds = cfg["seeds"] = list(radar.SEEDS)
+        if seed in seeds:
+            close_issue(issue, f"“{seed}” is already a seed.", "not_planned")
+            continue
+        seeds.append(seed)
+        print(f"  seed added: “{seed}”, issue #{issue.get('number')}")
+        close_issue(issue, f"Added **{seed}** to the radar's seeds. Its related games and searches come with "
+                           "the next daily run (two Google Trends searches every two weeks). To remove it, edit "
+                           "`settings → radar → seeds` in `data/discover.json`.")
 
 
 def volumes_from_issues(state, names, issues):
@@ -826,11 +871,19 @@ def main(argv=None):
     games = {vid: game_of(m.get("title"), names) for vid, m in meta.items()}
     views = views_by_game(games)
     settings = game_settings(state, names, names.keys())
+    # Searches on games you already cover are off unless you turn them on:
+    # Discover is about what you have not touched (docs/search-demand-plan.md).
+    yg = state["settings"].setdefault("your_games", {})
+    yg.setdefault("search", False)
+    yg["_how"] = ("true: search your own games' related Google searches again (Unanswered questions, ~86 searches "
+                  "a cycle); false: spend nothing on games you cover and keep the last results")
+    paused = not yg.get("search")
     if not args.dry_run:
         # What you asked for on the dashboard: dismissals and Keyword Planner numbers.
         issues = open_issues()
         dismissed_from_issues(state, issues)
         volumes_from_issues(state, names, issues)
+        seeds_from_issues(state, issues)
     known = known_monthly(state, names)
     baselines = load_baselines()
     base = baselines[0] if baselines else None
@@ -878,6 +931,15 @@ def main(argv=None):
     if args.dry_run:
         print(f"  key: {'set' if have_key else 'missing'}; this cycle (from {budget.ledger['cycle']}): "
               f"{budget.ledger.get('used', 0)} of {budget.cap} used; up to {args.max_searches} this run")
+        import radar
+        r = radar.Radar({"max": args.max_searches, "budget": budget}, state["settings"], today, now, False, have_key)
+        due_seeds = r.seeds_due()
+        print(f"  new games radar: {len(r.seeds)} seeds, {len(due_seeds)} pull(s) due "
+              f"({', '.join(f'{s} ({k})' for s, k in due_seeds[:6])}{'...' if len(due_seeds) > 6 else ''}); "
+              f"Steam lists for {len(r.steam_tags)} tags (free)")
+        if paused:
+            print("  your games: paused (settings → your_games → search); nothing is searched for them")
+            return 0
         for key, why in work:
             s = settings[key]
             print(f"  · {names[key]:32s} “{s['term']}”{' cat ' + str(s['cat']) if s.get('cat') else ''} "
@@ -908,8 +970,11 @@ def main(argv=None):
     elif not have_key:
         health.append({"level": "warn", "message": "SERPAPI_KEY is not set, so nothing new was searched. "
                        "These are the last saved results."})
-    elif (due or unmeasured or to_calibrate) and args.max_searches > 0:
+    elif args.max_searches > 0:
         budget.check_account()
+    if args.offline or not have_key or paused:
+        pass
+    elif (due or unmeasured or to_calibrate) and args.max_searches > 0:
         stop = False
         # The games against the anchor first (a few searches a month turn
         # every share into a count), then each game in turn: its related
@@ -939,9 +1004,39 @@ def main(argv=None):
                 if failed(names[key], e):
                     stop = True
                     break
-        if budget.left() <= 0:
-            health.append({"level": "warn", "message": f"This cycle's {budget.cap} searches are used. "
-                           "The next cycle starts on the 12th; until then these are the last saved results."})
+
+    # New games in your genres, and the areas heating up (radar.py). It must
+    # never stop the rest from being written.
+    radar_out, areas_out = prev.get("radar"), prev.get("areas")
+    try:
+        import radar
+        steam_apps = load_json(os.path.join(DATA_DIR, "steam.json"), {}).get("apps") or {}
+        your_appid = {k: (steam_apps.get(k) or {}).get("appid") for k in names}
+        creds = None
+        if not args.offline:
+            try:
+                import auth
+                creds = auth.Credentials.from_env()
+            except Exception as e:
+                print(f"  YouTube competition counts skipped: {str(e).splitlines()[0][:100]}")
+        ctx = {"names": names, "labels": names, "ranked": watched[:TOP_GAMES + NEXT_GAMES], "views": views,
+               "base": base, "budget": budget, "max": max(0, args.max_searches - spent),
+               "dismissed": state["dismissed"], "your_appid": your_appid,
+               "your_appids": {a for a in your_appid.values() if a} | {a.get("appid") for a in steam_apps.values()
+                                                                        if a.get("appid")},
+               "titles": [(m.get("title") or "").lower() for m in meta.values()], "youtube": creds}
+        radar_out, areas_out, more_health, used = radar.run(ctx, state["settings"], today, now,
+                                                            not args.offline, have_key and not args.offline)
+        spent += used
+        health += more_health
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        health.append({"level": "error", "message": f"The new games radar failed ({type(e).__name__}: "
+                       f"{str(e)[:120]}); the last results are shown."})
+    if have_key and not args.offline and budget.left() <= 0:
+        health.append({"level": "warn", "message": f"This cycle's {budget.cap} searches are used. "
+                       "The next cycle starts on the 12th; until then these are the last saved results."})
 
     # Filter every saved pull again: a video you uploaded since answers its questions now.
     questions, too_small = [], []
@@ -1014,6 +1109,7 @@ def main(argv=None):
                   "games": volumes, "min_monthly": MIN_MONTHLY, "min_share": MIN_SHARE,
                   "foreign_top": FOREIGN_TOP, "foreign_factor": FOREIGN_FACTOR},
         "questions": questions, "health": health, "range": DATE_RANGE,
+        "your_games": {"paused": paused}, "radar": radar_out, "areas": areas_out,
         "schedule": {"ranked": ranked,
                      "due": [k for k, _, _ in due if (state["pulls"].get(k) or {}).get("date") != iso(today)]},
     })

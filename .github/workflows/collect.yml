@@ -80,13 +80,19 @@ jobs:
 
       - name: Discover what is not on the dashboard yet
         if: ${{ inputs.dry_run != true }}
-        # Google Trends through SerpApi's free tier (docs/search-demand-plan.md).
+        # New games in your genres (Steam lists, free; Google Trends through
+        # SerpApi's free tier) and the areas heating up (docs/search-demand-plan.md).
         # Like the panel above, a failure here must never stop the commit below.
         continue-on-error: true
         env:
           SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SEARCHES: ${{ inputs.discover_searches }}
+          # The radar counts other channels' recent videos on a candidate
+          # (YouTube search, your read-only token; counts only are kept).
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
         run: |
           ARGS=""
           if [[ "$SEARCHES" =~ ^[0-9]+$ ]]; then ARGS="--max-searches $SEARCHES"; fi

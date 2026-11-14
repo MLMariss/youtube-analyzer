@@ -1,8 +1,8 @@
 name: Discover intake
 
 # What you ask for on the dashboard, applied within minutes instead of at the
-# next daily run: a Dismiss, or a game's Keyword Planner number (Set under
-# Search volumes). discover.py --offline reads the issue, stores it in
+# next daily run: a Dismiss, a game's Keyword Planner number (Set under
+# Search volumes), or a new radar seed (Add as seed under Areas heating up). discover.py --offline reads the issue, stores it in
 # data/discover.json, closes the issue and rebuilds Discover from the saved
 # pulls. It spends no Google Trends searches and touches no YouTube data.
 on:
@@ -22,7 +22,10 @@ permissions:
 
 jobs:
   intake:
-    if: startsWith(github.event.issue.title, 'Dismiss:') || startsWith(github.event.issue.title, 'Searches a month:')
+    if: >-
+      startsWith(github.event.issue.title, 'Dismiss:') ||
+      startsWith(github.event.issue.title, 'Searches a month:') ||
+      startsWith(github.event.issue.title, 'Seed:')
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
