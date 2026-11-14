@@ -1,0 +1,236 @@
+{
+ "cat": 8,
+ "date": "2026-11-14",
+ "kind": "queries",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "query": "kanto tactics",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "fallout tactics",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "tank tactics game",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "tank tactics",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "tales and tactics",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "tank turn tactics",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "triangle strategy",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "unicorn overlord",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "tiny tactics",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "final fantasy 12",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "fallout a post nuclear role playing game",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "final fantasy tactics gba",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "metal slug",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "alliance game",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "worms galactic tactics",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "auto chess",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "league of legends",
+   "rise": null
+  },
+  {
+   "breakout": false,
+   "query": "future tactics",
+   "rise": 300
+  },
+  {
+   "breakout": false,
+   "query": "final fantasy resonance",
+   "rise": 200
+  },
+  {
+   "breakout": false,
+   "query": "star wars tactics game",
+   "rise": 70
+  },
+  {
+   "breakout": false,
+   "query": "teamfight tactics",
+   "rise": 70
+  },
+  {
+   "breakout": false,
+   "query": "pokemon tactics",
+   "rise": 70
+  },
+  {
+   "breakout": false,
+   "query": "final fantasy tactics the war of the lions",
+   "rise": 60
+  },
+  {
+   "breakout": false,
+   "query": "chess tactics",
+   "rise": 50
+  },
+  {
+   "breakout": false,
+   "query": "game boy advance",
+   "rise": 50
+  }
+ ],
+ "seed": "tactics game",
+ "top": [
+  {
+   "query": "tactics games",
+   "score": 100
+  },
+  {
+   "query": "final fantasy tactics",
+   "score": 99
+  },
+  {
+   "query": "tactics ogre",
+   "score": 43
+  },
+  {
+   "query": "war game",
+   "score": 37
+  },
+  {
+   "query": "ff tactics",
+   "score": 34
+  },
+  {
+   "query": "pokemon tactics",
+   "score": 28
+  },
+  {
+   "query": "chess tactics",
+   "score": 27
+  },
+  {
+   "query": "final fantasy tactics advance",
+   "score": 22
+  },
+  {
+   "query": "kanto tactics",
+   "score": 18
+  },
+  {
+   "query": "the ivalice chronicles",
+   "score": 17
+  },
+  {
+   "query": "star wars tactics game",
+   "score": 17
+  },
+  {
+   "query": "final fantasy tactics ivalice chronicles",
+   "score": 17
+  },
+  {
+   "query": "teamfight tactics",
+   "score": 14
+  },
+  {
+   "query": "final fantasy tactics the ivalice chronicles",
+   "score": 14
+  },
+  {
+   "query": "gears tactics",
+   "score": 14
+  },
+  {
+   "query": "tactics reborn",
+   "score": 13
+  },
+  {
+   "query": "future tactics",
+   "score": 13
+  },
+  {
+   "query": "final fantasy tactics the war of the lions",
+   "score": 13
+  },
+  {
+   "query": "team tactics game",
+   "score": 12
+  },
+  {
+   "query": "fallout tactics",
+   "score": 10
+  },
+  {
+   "query": "game boy advance",
+   "score": 10
+  },
+  {
+   "query": "final fantasy resonance",
+   "score": 10
+  },
+  {
+   "query": "shadow tactics game",
+   "score": 10
+  },
+  {
+   "query": "tank tactics game",
+   "score": 9
+  },
+  {
+   "query": "tank tactics",
+   "score": 9
+  }
+ ]
+}

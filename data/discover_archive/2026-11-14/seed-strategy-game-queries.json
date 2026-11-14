@@ -1,0 +1,211 @@
+{
+ "cat": 8,
+ "date": "2026-11-14",
+ "kind": "queries",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "query": "mottle game",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "mottle board game",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "krillion",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "othello meaning",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "stratego meaning",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "rare strategy board game",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "is trib a strategy game",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "connections",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "french food",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "foremost",
+   "rise": null
+  },
+  {
+   "breakout": false,
+   "query": "stratego",
+   "rise": 2600
+  },
+  {
+   "breakout": false,
+   "query": "go board game",
+   "rise": 350
+  },
+  {
+   "breakout": false,
+   "query": "go game",
+   "rise": 190
+  },
+  {
+   "breakout": false,
+   "query": "go strategy game",
+   "rise": 160
+  },
+  {
+   "breakout": false,
+   "query": "board games",
+   "rise": 110
+  },
+  {
+   "breakout": false,
+   "query": "strategy board games",
+   "rise": 100
+  },
+  {
+   "breakout": false,
+   "query": "strategy meaning",
+   "rise": 100
+  },
+  {
+   "breakout": false,
+   "query": "strategy board game",
+   "rise": 50
+  },
+  {
+   "breakout": false,
+   "query": "battle",
+   "rise": 40
+  },
+  {
+   "breakout": false,
+   "query": "battle game",
+   "rise": 40
+  }
+ ],
+ "seed": "strategy game",
+ "top": [
+  {
+   "query": "strategy games",
+   "score": 100
+  },
+  {
+   "query": "strategy board game",
+   "score": 70
+  },
+  {
+   "query": "war strategy game",
+   "score": 36
+  },
+  {
+   "query": "battle",
+   "score": 28
+  },
+  {
+   "query": "battle game",
+   "score": 28
+  },
+  {
+   "query": "strategy board games",
+   "score": 26
+  },
+  {
+   "query": "board games",
+   "score": 25
+  },
+  {
+   "query": "best strategy games",
+   "score": 22
+  },
+  {
+   "query": "strategy game online",
+   "score": 20
+  },
+  {
+   "query": "strategy game pc",
+   "score": 16
+  },
+  {
+   "query": "strategy video game",
+   "score": 14
+  },
+  {
+   "query": "go game",
+   "score": 13
+  },
+  {
+   "query": "go strategy game",
+   "score": 12
+  },
+  {
+   "query": "grand strategy game",
+   "score": 11
+  },
+  {
+   "query": "stratego",
+   "score": 10
+  },
+  {
+   "query": "mottle game",
+   "score": 10
+  },
+  {
+   "query": "middle earth strategy battle game",
+   "score": 9
+  },
+  {
+   "query": "strategy meaning",
+   "score": 9
+  },
+  {
+   "query": "go board game",
+   "score": 8
+  },
+  {
+   "query": "mottle board game",
+   "score": 6
+  },
+  {
+   "query": "krillion",
+   "score": 5
+  },
+  {
+   "query": "othello meaning",
+   "score": 3
+  },
+  {
+   "query": "stratego meaning",
+   "score": 3
+  },
+  {
+   "query": "rare strategy board game",
+   "score": 3
+  },
+  {
+   "query": "is trib a strategy game",
+   "score": 3
+  }
+ ]
+}

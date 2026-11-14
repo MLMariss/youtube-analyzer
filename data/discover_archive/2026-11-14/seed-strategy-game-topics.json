@@ -1,0 +1,322 @@
+{
+ "cat": 8,
+ "date": "2026-11-14",
+ "kind": "topics",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "mid": "/m/075ly",
+   "rise": null,
+   "title": "Stratego",
+   "type": "Game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/03hp77s",
+   "rise": null,
+   "title": "Mottle",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11c3wt7tl8",
+   "rise": null,
+   "title": "Trib Total Media",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/02z3r",
+   "rise": null,
+   "title": "French cuisine",
+   "type": "Cuisine"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/121n4093",
+   "rise": null,
+   "title": "Military strategy",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11b7cg7tb0",
+   "rise": null,
+   "title": "Foremost",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11x257sl5z",
+   "rise": null,
+   "title": "Stratego - Game",
+   "type": "Board game"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11bc5s38jq",
+   "rise": null,
+   "title": "Sandbox",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/01h6w7",
+   "rise": null,
+   "title": "Heroes of Might and Magic",
+   "type": "Series"
+  },
+  {
+   "breakout": false,
+   "mid": "/g/11g9jtm339",
+   "rise": 1500,
+   "title": "Othello - Official Board Game",
+   "type": "Online game"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/06gwk",
+   "rise": 800,
+   "title": "Reversi",
+   "type": "Game"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/05mdd",
+   "rise": 550,
+   "title": "Othello",
+   "type": "Play by William Shakespeare"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/0h989",
+   "rise": 250,
+   "title": "Go",
+   "type": "Game"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/0k7r2",
+   "rise": 250,
+   "title": "British Cuisine",
+   "type": "Cuisine"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/0kvfqjw",
+   "rise": 190,
+   "title": "Europa Universalis IV",
+   "type": "Video game"
+  },
+  {
+   "breakout": false,
+   "mid": "/g/11gclwh6f_",
+   "rise": 180,
+   "title": "Total Battle",
+   "type": "Online game"
+  },
+  {
+   "breakout": false,
+   "mid": "/g/11j3jjf7gm",
+   "rise": 170,
+   "title": "Crusader Kings",
+   "type": "Video game series"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/047lzp",
+   "rise": 130,
+   "title": "The Lord of the Rings: The Battle for Middle-earth",
+   "type": "Video game"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/03hftgt",
+   "rise": 120,
+   "title": "Two-player game",
+   "type": "Topic"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/0cr13",
+   "rise": 120,
+   "title": "Chess strategy",
+   "type": "Topic"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/015ll",
+   "rise": 60,
+   "title": "Board game",
+   "type": "Game type"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/0k80c",
+   "rise": 60,
+   "title": "Real-time strategy game",
+   "type": "Topic"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/04tr8s",
+   "rise": 40,
+   "title": "PC game",
+   "type": "Topic"
+  }
+ ],
+ "seed": "strategy game",
+ "top": [
+  {
+   "mid": "/m/07b7r",
+   "score": 100,
+   "title": "Strategy",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0f1tg",
+   "score": 46,
+   "title": "Strategy game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/015ll",
+   "score": 18,
+   "title": "Board game",
+   "type": "Game type"
+  },
+  {
+   "mid": "/m/03hf_rm",
+   "score": 18,
+   "title": "Strategy video game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0k80c",
+   "score": 6,
+   "title": "Real-time strategy game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/082cb",
+   "score": 6,
+   "title": "War",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0x27b",
+   "score": 5,
+   "title": "Turn-based strategy",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/07c_l",
+   "score": 5,
+   "title": "Time",
+   "type": "Dimension"
+  },
+  {
+   "mid": "/m/02p7pxx",
+   "score": 5,
+   "title": "Turn-based tactics",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/01mtt",
+   "score": 4,
+   "title": "Playing card game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0434zw",
+   "score": 4,
+   "title": "Strategy guide",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/075ly",
+   "score": 3,
+   "title": "Stratego",
+   "type": "Game"
+  },
+  {
+   "mid": "/m/05s94c",
+   "score": 3,
+   "title": "Middle-earth Strategy Battle Game",
+   "type": "Game"
+  },
+  {
+   "mid": "/m/04tr8s",
+   "score": 2,
+   "title": "PC game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/03hp77s",
+   "score": 2,
+   "title": "Mottle",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0h989",
+   "score": 2,
+   "title": "Go",
+   "type": "Game"
+  },
+  {
+   "mid": "/g/11g9jtm339",
+   "score": 1,
+   "title": "Othello - Official Board Game",
+   "type": "Online game"
+  },
+  {
+   "mid": "/g/11c3wt7tl8",
+   "score": 1,
+   "title": "Trib Total Media",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/03hftgt",
+   "score": 1,
+   "title": "Two-player game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/05mdd",
+   "score": 1,
+   "title": "Othello",
+   "type": "Play by William Shakespeare"
+  },
+  {
+   "mid": "/m/06gwk",
+   "score": 1,
+   "title": "Reversi",
+   "type": "Game"
+  },
+  {
+   "mid": "/m/02z3r",
+   "score": 1,
+   "title": "French cuisine",
+   "type": "Cuisine"
+  },
+  {
+   "mid": "/g/121n4093",
+   "score": 1,
+   "title": "Military strategy",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11gclwh6f_",
+   "score": 1,
+   "title": "Total Battle",
+   "type": "Online game"
+  },
+  {
+   "mid": "/m/0cr13",
+   "score": 1,
+   "title": "Chess strategy",
+   "type": "Topic"
+  }
+ ]
+}

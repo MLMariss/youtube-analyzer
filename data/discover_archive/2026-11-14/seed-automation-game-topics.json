@@ -1,0 +1,263 @@
+{
+ "cat": 8,
+ "date": "2026-11-14",
+ "kind": "topics",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "mid": "/m/04j7cyf",
+   "rise": null,
+   "title": "Google Chrome",
+   "type": "Web browser"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/02vqfm",
+   "rise": null,
+   "title": "Coffee",
+   "type": "Beverage"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/010gng9z",
+   "rise": null,
+   "title": "BeamNG.drive",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/02y_93f",
+   "rise": null,
+   "title": "Surgeon",
+   "type": "Profession"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0113w81w",
+   "rise": null,
+   "title": "BeamNG",
+   "type": "Video game publisher"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/010xcr87",
+   "rise": null,
+   "title": "Incremental game",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11bc5s38jq",
+   "rise": null,
+   "title": "Sandbox",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0f1tg",
+   "rise": null,
+   "title": "Strategy game",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/010ls0q7",
+   "rise": null,
+   "title": "Factorio",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/01987_",
+   "rise": null,
+   "title": "Home automation",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/05x50",
+   "rise": null,
+   "title": "Pixel",
+   "type": "Unit of graphics"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/083kb",
+   "rise": null,
+   "title": "Weapon",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/06q74",
+   "rise": null,
+   "title": "Ship",
+   "type": "Mode of transport"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/02mk9",
+   "rise": null,
+   "title": "Engine",
+   "type": "Topic"
+  },
+  {
+   "breakout": false,
+   "mid": "/g/121p6d90",
+   "rise": 600,
+   "title": "Education",
+   "type": "Professional field"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/0kynfl1",
+   "rise": 130,
+   "title": "Automation",
+   "type": "Video game"
+  },
+  {
+   "breakout": false,
+   "mid": "/g/11fklqqs46",
+   "rise": 60,
+   "title": "Satisfactory",
+   "type": "Video game"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/085n4",
+   "rise": 40,
+   "title": "Website",
+   "type": "Topic"
+  }
+ ],
+ "seed": "automation game",
+ "top": [
+  {
+   "mid": "/m/017cmr",
+   "score": 100,
+   "title": "Automation",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0kynfl1",
+   "score": 76,
+   "title": "Automation",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/0k4j",
+   "score": 23,
+   "title": "Car",
+   "type": "Mode of transport"
+  },
+  {
+   "mid": "/g/121p6d90",
+   "score": 14,
+   "title": "Education",
+   "type": "Professional field"
+  },
+  {
+   "mid": "/m/085n4",
+   "score": 13,
+   "title": "Website",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/04j7cyf",
+   "score": 9,
+   "title": "Google Chrome",
+   "type": "Web browser"
+  },
+  {
+   "mid": "/m/02vqfm",
+   "score": 8,
+   "title": "Coffee",
+   "type": "Beverage"
+  },
+  {
+   "mid": "/g/11fklqqs46",
+   "score": 8,
+   "title": "Satisfactory",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/010gng9z",
+   "score": 8,
+   "title": "BeamNG.drive",
+   "type": "Video game"
+  },
+  {
+   "mid": "/g/11qg_c03j7",
+   "score": 8,
+   "title": "create",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/02y_93f",
+   "score": 8,
+   "title": "Surgeon",
+   "type": "Profession"
+  },
+  {
+   "mid": "/m/0113w81w",
+   "score": 7,
+   "title": "BeamNG",
+   "type": "Video game publisher"
+  },
+  {
+   "mid": "/m/010xcr87",
+   "score": 7,
+   "title": "Incremental game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11bc5s38jq",
+   "score": 6,
+   "title": "Sandbox",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0f1tg",
+   "score": 6,
+   "title": "Strategy game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/010ls0q7",
+   "score": 5,
+   "title": "Factorio",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/01987_",
+   "score": 5,
+   "title": "Home automation",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/05x50",
+   "score": 5,
+   "title": "Pixel",
+   "type": "Unit of graphics"
+  },
+  {
+   "mid": "/m/083kb",
+   "score": 4,
+   "title": "Weapon",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/06q74",
+   "score": 4,
+   "title": "Ship",
+   "type": "Mode of transport"
+  },
+  {
+   "mid": "/m/02mk9",
+   "score": 2,
+   "title": "Engine",
+   "type": "Topic"
+  }
+ ]
+}

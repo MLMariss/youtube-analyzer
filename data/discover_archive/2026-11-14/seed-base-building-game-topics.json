@@ -1,0 +1,246 @@
+{
+ "cat": 8,
+ "date": "2026-11-14",
+ "kind": "topics",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "mid": "/g/11rttmk1cq",
+   "rise": null,
+   "title": "Local co-op",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/04tr8s",
+   "rise": null,
+   "title": "PC game",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/08b73",
+   "rise": null,
+   "title": "2000s",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/03hf_rm",
+   "rise": null,
+   "title": "Strategy video game",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/065krz",
+   "rise": null,
+   "title": "Indie game",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/053rd",
+   "rise": null,
+   "title": "Mining",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11mmk_fsh3",
+   "rise": null,
+   "title": "large",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/02x9hs",
+   "rise": null,
+   "title": "Shooter game",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0wxtk35",
+   "rise": null,
+   "title": "7 Days to Die",
+   "type": "Survival game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/03bx46v",
+   "rise": null,
+   "title": "Player versus environment",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11tfnnnx1z",
+   "rise": null,
+   "title": "Once Human",
+   "type": "Video game"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/0t_fv9h",
+   "rise": 50,
+   "title": "Xbox",
+   "type": "Video game"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/033th",
+   "rise": 40,
+   "title": "First-person shooter",
+   "type": "Game genre"
+  }
+ ],
+ "seed": "base building game",
+ "top": [
+  {
+   "mid": "/g/11szc75bst",
+   "score": 100,
+   "title": "Base building",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/01mw1",
+   "score": 62,
+   "title": "Video game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0cgh4",
+   "score": 51,
+   "title": "Building",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11rttmk1cq",
+   "score": 25,
+   "title": "Local co-op",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/02psyd2",
+   "score": 23,
+   "title": "Zombie",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11my1t41tp",
+   "score": 23,
+   "title": "good",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11bvsrjh30",
+   "score": 17,
+   "title": "Survival game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/04tr8s",
+   "score": 15,
+   "title": "PC game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0t_fv9h",
+   "score": 15,
+   "title": "Xbox",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/08b73",
+   "score": 13,
+   "title": "2000s",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/050k8",
+   "score": 12,
+   "title": "Mobile phone",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11dxbqv_2s",
+   "score": 12,
+   "title": "Xbox Game Pass",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/01z747",
+   "score": 12,
+   "title": "Multiplayer video game",
+   "type": "Gameplay"
+  },
+  {
+   "mid": "/g/11stf4glbj",
+   "score": 9,
+   "title": "Enshrouded",
+   "type": "Survival game"
+  },
+  {
+   "mid": "/m/09nm_",
+   "score": 9,
+   "title": "World",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/03hf_rm",
+   "score": 9,
+   "title": "Strategy video game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/033th",
+   "score": 8,
+   "title": "First-person shooter",
+   "type": "Game genre"
+  },
+  {
+   "mid": "/m/065krz",
+   "score": 8,
+   "title": "Indie game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/053rd",
+   "score": 7,
+   "title": "Mining",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11mmk_fsh3",
+   "score": 7,
+   "title": "large",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/02x9hs",
+   "score": 6,
+   "title": "Shooter game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0wxtk35",
+   "score": 6,
+   "title": "7 Days to Die",
+   "type": "Survival game"
+  },
+  {
+   "mid": "/m/03bx46v",
+   "score": 5,
+   "title": "Player versus environment",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11tfnnnx1z",
+   "score": 5,
+   "title": "Once Human",
+   "type": "Video game"
+  }
+ ]
+}

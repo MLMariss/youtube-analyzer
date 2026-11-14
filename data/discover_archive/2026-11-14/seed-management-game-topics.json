@@ -1,0 +1,322 @@
+{
+ "cat": 8,
+ "date": "2026-11-14",
+ "kind": "topics",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "mid": "/m/09h5qd",
+   "rise": null,
+   "title": "Game server",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/05l9r9",
+   "rise": null,
+   "title": "Cooperative video game",
+   "type": "Gameplay"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/01mtb",
+   "rise": null,
+   "title": "Cooking",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0138mtk_",
+   "rise": null,
+   "title": "Five Nights at Freddy's",
+   "type": "Video game series"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0403l3g",
+   "rise": null,
+   "title": "Role-playing video game",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0d76r",
+   "rise": null,
+   "title": "Arcade game",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/033th",
+   "rise": null,
+   "title": "First-person shooter",
+   "type": "Game genre"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0hkf",
+   "rise": null,
+   "title": "Agriculture",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/038_hy",
+   "rise": null,
+   "title": "City-building game",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0dnkv",
+   "rise": null,
+   "title": "Supermarket",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/012sdh12",
+   "rise": null,
+   "title": "RimWorld",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/02y_9m3",
+   "rise": null,
+   "title": "Cloud computing",
+   "type": "Organization type"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/07yqn",
+   "rise": null,
+   "title": "Platform game",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0btp2",
+   "rise": null,
+   "title": "Traffic",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0fcc31",
+   "rise": null,
+   "title": "Diner Dash",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/04y7b",
+   "rise": null,
+   "title": "Mechanics",
+   "type": "Topic"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/0bwzm",
+   "rise": 160,
+   "title": "Simulation",
+   "type": "Topic"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/05h2ppk",
+   "rise": 140,
+   "title": "Business game",
+   "type": "Topic"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/085n4",
+   "rise": 130,
+   "title": "Website",
+   "type": "Topic"
+  },
+  {
+   "breakout": false,
+   "mid": "/g/120zjhcx",
+   "rise": 120,
+   "title": "Simulation video game",
+   "type": "Game type"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/02q9lq2",
+   "rise": 80,
+   "title": "Resource",
+   "type": "Topic"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/02cwm",
+   "rise": 70,
+   "title": "Design",
+   "type": "Topic"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/01mtt",
+   "rise": 50,
+   "title": "Playing card game",
+   "type": "Topic"
+  }
+ ],
+ "seed": "management game",
+ "top": [
+  {
+   "mid": "/m/04_tv",
+   "score": 100,
+   "title": "Management",
+   "type": "Field of study"
+  },
+  {
+   "mid": "/m/085n4",
+   "score": 22,
+   "title": "Website",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/05h2ppk",
+   "score": 11,
+   "title": "Business game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/120zjhcx",
+   "score": 8,
+   "title": "Simulation video game",
+   "type": "Game type"
+  },
+  {
+   "mid": "/m/0bwzm",
+   "score": 7,
+   "title": "Simulation",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/07c_l",
+   "score": 6,
+   "title": "Time",
+   "type": "Dimension"
+  },
+  {
+   "mid": "/m/015ll",
+   "score": 5,
+   "title": "Board game",
+   "type": "Game type"
+  },
+  {
+   "mid": "/m/01mtt",
+   "score": 5,
+   "title": "Playing card game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/02q9lq2",
+   "score": 5,
+   "title": "Resource",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/07b7r",
+   "score": 5,
+   "title": "Strategy",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/02cwm",
+   "score": 4,
+   "title": "Design",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/01mf0",
+   "score": 4,
+   "title": "Software",
+   "type": "Software type"
+  },
+  {
+   "mid": "/m/07n4p",
+   "score": 4,
+   "title": "Time management",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/05_p2",
+   "score": 4,
+   "title": "Project Management",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/09h5qd",
+   "score": 3,
+   "title": "Game server",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/05l9r9",
+   "score": 2,
+   "title": "Cooperative video game",
+   "type": "Gameplay"
+  },
+  {
+   "mid": "/m/01mtb",
+   "score": 2,
+   "title": "Cooking",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0138mtk_",
+   "score": 1,
+   "title": "Five Nights at Freddy's",
+   "type": "Video game series"
+  },
+  {
+   "mid": "/m/0403l3g",
+   "score": 1,
+   "title": "Role-playing video game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0d76r",
+   "score": 1,
+   "title": "Arcade game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/033th",
+   "score": 0,
+   "title": "First-person shooter",
+   "type": "Game genre"
+  },
+  {
+   "mid": "/m/0hkf",
+   "score": 0,
+   "title": "Agriculture",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/038_hy",
+   "score": 0,
+   "title": "City-building game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0dnkv",
+   "score": 0,
+   "title": "Supermarket",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/012sdh12",
+   "score": 0,
+   "title": "RimWorld",
+   "type": "Video game"
+  }
+ ]
+}

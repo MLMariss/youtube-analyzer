@@ -1,0 +1,228 @@
+{
+ "cat": 8,
+ "date": "2026-11-14",
+ "kind": "topics",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "mid": "/m/05qtj",
+   "rise": null,
+   "title": "Paris",
+   "type": "Capital of France"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11y0558vqd",
+   "rise": null,
+   "title": "Factory Of Games",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/05l9t3",
+   "rise": null,
+   "title": "Mugen",
+   "type": "Game engine"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0bm_gz",
+   "rise": null,
+   "title": "Business simulation game",
+   "type": "Game genre"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/06b192",
+   "rise": null,
+   "title": "BoardGameGeek",
+   "type": "Site"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/03qcgj7",
+   "rise": null,
+   "title": "Tower defense",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/03vtj",
+   "rise": null,
+   "title": "Ice",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/01kdlb",
+   "rise": null,
+   "title": "Game & Watch",
+   "type": "Electronic game device"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11qh5bk72c",
+   "rise": null,
+   "title": "other",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11nk94sghh",
+   "rise": null,
+   "title": "Encrypted: UK Edition",
+   "type": "Tabletop game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/020vl",
+   "rise": null,
+   "title": "Chocolate",
+   "type": "Food"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/04n2g7",
+   "rise": 180,
+   "title": "The Cheesecake Factory",
+   "type": "Restaurant chain"
+  },
+  {
+   "breakout": false,
+   "mid": "/g/11rst89hs",
+   "rise": 120,
+   "title": "The Cheesecake Factory",
+   "type": "Topic"
+  }
+ ],
+ "seed": "factory game",
+ "top": [
+  {
+   "mid": "/m/06ztw50",
+   "score": 100,
+   "title": "Rune Factory",
+   "type": "Game series"
+  },
+  {
+   "mid": "/m/0168g6",
+   "score": 92,
+   "title": "Factory",
+   "type": "Building use"
+  },
+  {
+   "mid": "/m/015ll",
+   "score": 39,
+   "title": "Board game",
+   "type": "Game type"
+  },
+  {
+   "mid": "/g/11rst89hs",
+   "score": 34,
+   "title": "The Cheesecake Factory",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0gx_l9y",
+   "score": 29,
+   "title": "Rune Factory 4",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/04n2g7",
+   "score": 28,
+   "title": "The Cheesecake Factory",
+   "type": "Restaurant chain"
+  },
+  {
+   "mid": "/m/026d4ft",
+   "score": 23,
+   "title": "Factory reset",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/028jm0",
+   "score": 22,
+   "title": "Nintendo DS",
+   "type": "Video game console"
+  },
+  {
+   "mid": "/g/11h04pl3tj",
+   "score": 21,
+   "title": "Rune Factory 5",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/05qtj",
+   "score": 20,
+   "title": "Paris",
+   "type": "Capital of France"
+  },
+  {
+   "mid": "/m/010ls0q7",
+   "score": 20,
+   "title": "Factorio",
+   "type": "Video game"
+  },
+  {
+   "mid": "/g/11y0558vqd",
+   "score": 13,
+   "title": "Factory Of Games",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/05l9t3",
+   "score": 10,
+   "title": "Mugen",
+   "type": "Game engine"
+  },
+  {
+   "mid": "/m/0bm_gz",
+   "score": 7,
+   "title": "Business simulation game",
+   "type": "Game genre"
+  },
+  {
+   "mid": "/m/06b192",
+   "score": 6,
+   "title": "BoardGameGeek",
+   "type": "Site"
+  },
+  {
+   "mid": "/m/03qcgj7",
+   "score": 6,
+   "title": "Tower defense",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/03vtj",
+   "score": 6,
+   "title": "Ice",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/01kdlb",
+   "score": 5,
+   "title": "Game & Watch",
+   "type": "Electronic game device"
+  },
+  {
+   "mid": "/g/11qh5bk72c",
+   "score": 5,
+   "title": "other",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11nk94sghh",
+   "score": 4,
+   "title": "Encrypted: UK Edition",
+   "type": "Tabletop game"
+  },
+  {
+   "mid": "/m/020vl",
+   "score": 4,
+   "title": "Chocolate",
+   "type": "Food"
+  }
+ ]
+}

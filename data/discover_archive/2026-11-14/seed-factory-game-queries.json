@@ -1,0 +1,74 @@
+{
+ "cat": 8,
+ "date": "2026-11-14",
+ "kind": "queries",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "query": "lovedoll toy factory game",
+   "rise": null
+  },
+  {
+   "breakout": false,
+   "query": "cheesecake factory",
+   "rise": 150
+  },
+  {
+   "breakout": false,
+   "query": "cake factory game",
+   "rise": 150
+  }
+ ],
+ "seed": "factory game",
+ "top": [
+  {
+   "query": "the game factory",
+   "score": 100
+  },
+  {
+   "query": "factory games",
+   "score": 73
+  },
+  {
+   "query": "rune factory",
+   "score": 42
+  },
+  {
+   "query": "cheesecake factory",
+   "score": 12
+  },
+  {
+   "query": "word factory game",
+   "score": 12
+  },
+  {
+   "query": "chocolate factory game",
+   "score": 12
+  },
+  {
+   "query": "best rune factory game",
+   "score": 12
+  },
+  {
+   "query": "cake factory game",
+   "score": 10
+  },
+  {
+   "query": "match factory",
+   "score": 7
+  },
+  {
+   "query": "ball factory game",
+   "score": 7
+  },
+  {
+   "query": "factory town game",
+   "score": 6
+  },
+  {
+   "query": "lovedoll toy factory game",
+   "score": 3
+  }
+ ]
+}

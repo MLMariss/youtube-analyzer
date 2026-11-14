@@ -1,0 +1,151 @@
+{
+ "cat": 8,
+ "date": "2026-11-14",
+ "kind": "queries",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "query": "time management games online",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "rimworld",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "game dev tycoon",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "playstation account management",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "fnaf management wanted",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "mind management board game",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "software inc",
+   "rise": null
+  },
+  {
+   "breakout": false,
+   "query": "resource management games",
+   "rise": 110
+  },
+  {
+   "breakout": false,
+   "query": "riot account management",
+   "rise": 110
+  },
+  {
+   "breakout": false,
+   "query": "time management games",
+   "rise": 90
+  },
+  {
+   "breakout": false,
+   "query": "miss management game",
+   "rise": 90
+  },
+  {
+   "breakout": false,
+   "query": "best management games",
+   "rise": 50
+  }
+ ],
+ "seed": "management game",
+ "top": [
+  {
+   "query": "management games",
+   "score": 100
+  },
+  {
+   "query": "time management game",
+   "score": 36
+  },
+  {
+   "query": "time management",
+   "score": 33
+  },
+  {
+   "query": "best management games",
+   "score": 27
+  },
+  {
+   "query": "time management games",
+   "score": 18
+  },
+  {
+   "query": "hotel management game",
+   "score": 12
+  },
+  {
+   "query": "waste management",
+   "score": 8
+  },
+  {
+   "query": "time management games online",
+   "score": 5
+  },
+  {
+   "query": "miss management game",
+   "score": 5
+  },
+  {
+   "query": "riot account management",
+   "score": 4
+  },
+  {
+   "query": "resource management games",
+   "score": 4
+  },
+  {
+   "query": "hotel management games",
+   "score": 2
+  },
+  {
+   "query": "diner dash",
+   "score": 1
+  },
+  {
+   "query": "rimworld",
+   "score": 1
+  },
+  {
+   "query": "game dev tycoon",
+   "score": 1
+  },
+  {
+   "query": "playstation account management",
+   "score": 1
+  },
+  {
+   "query": "steam game server account management",
+   "score": 1
+  },
+  {
+   "query": "fnaf management wanted",
+   "score": 1
+  },
+  {
+   "query": "mind management board game",
+   "score": 0
+  },
+  {
+   "query": "software inc",
+   "score": 0
+  }
+ ]
+}

@@ -1,0 +1,280 @@
+{
+ "cat": 8,
+ "date": "2026-11-14",
+ "kind": "topics",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "mid": "/m/0k80c",
+   "rise": null,
+   "title": "Real-time strategy game",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11ry6zt8bx",
+   "rise": null,
+   "title": "Triangle Strategy",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0279gky",
+   "rise": null,
+   "title": "Final Fantasy Tactics: The War of the Lions",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0bcz_h",
+   "rise": null,
+   "title": "The Lord of the Rings: Tactics",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/07cmd",
+   "rise": null,
+   "title": "Tank",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/010vvkbz",
+   "rise": null,
+   "title": "Tom Clancy's Rainbow Six Siege",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0c65ft",
+   "rise": null,
+   "title": "Fallout",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/04lhyjr",
+   "rise": null,
+   "title": "Disgaea",
+   "type": "Video game series"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/082hp",
+   "rise": null,
+   "title": "Web browser",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11fqd8q40l",
+   "rise": null,
+   "title": "Turn",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0f2f9",
+   "rise": null,
+   "title": "Television show",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11l2lxfqnc",
+   "rise": null,
+   "title": "Unicorn Overlord",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/06p8m",
+   "rise": null,
+   "title": "Sega",
+   "type": "Video game company"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11l2d6jh20",
+   "rise": null,
+   "title": "Football Manager 2024",
+   "type": "Video game"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/081yd",
+   "rise": 160,
+   "title": "Wargame",
+   "type": "Topic"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/012dv9_z",
+   "rise": 60,
+   "title": "Final Fantasy Tactics",
+   "type": "Video game series"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/03877",
+   "rise": 40,
+   "title": "Game Boy Advance",
+   "type": "Video game console"
+  }
+ ],
+ "seed": "tactics game",
+ "top": [
+  {
+   "mid": "/m/07rxr",
+   "score": 100,
+   "title": "Tactic",
+   "type": "Method"
+  },
+  {
+   "mid": "/m/02ywx",
+   "score": 60,
+   "title": "Final Fantasy",
+   "type": "Series"
+  },
+  {
+   "mid": "/m/0dvp7",
+   "score": 53,
+   "title": "Final Fantasy Tactics",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/029k91",
+   "score": 26,
+   "title": "Tactics Ogre",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/015ll",
+   "score": 19,
+   "title": "Board game",
+   "type": "Game type"
+  },
+  {
+   "mid": "/m/07b7r",
+   "score": 15,
+   "title": "Strategy",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/02p7pxx",
+   "score": 14,
+   "title": "Turn-based tactics",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/012dv9_z",
+   "score": 13,
+   "title": "Final Fantasy Tactics",
+   "type": "Video game series"
+  },
+  {
+   "mid": "/m/027mpg",
+   "score": 12,
+   "title": "Final Fantasy Tactics Advance",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/03877",
+   "score": 12,
+   "title": "Game Boy Advance",
+   "type": "Video game console"
+  },
+  {
+   "mid": "/m/081yd",
+   "score": 11,
+   "title": "Wargame",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/06c9r",
+   "score": 10,
+   "title": "Role-playing game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0gk6n",
+   "score": 10,
+   "title": "Military tactics",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11t79mnn27",
+   "score": 9,
+   "title": "Playstation Ps4 Tactics Ogre Reborn",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/05zxk",
+   "score": 9,
+   "title": "PlayStation",
+   "type": "Console"
+  },
+  {
+   "mid": "/m/0dv3zf",
+   "score": 9,
+   "title": "Game Boy",
+   "type": "Game console"
+  },
+  {
+   "mid": "/g/11h7z7j2x0",
+   "score": 8,
+   "title": "Teamfight Tactics",
+   "type": "Online game"
+  },
+  {
+   "mid": "/m/0k80c",
+   "score": 8,
+   "title": "Real-time strategy game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/02x8rd",
+   "score": 8,
+   "title": "PlayStation Portable",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/082cb",
+   "score": 8,
+   "title": "War",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11ry6zt8bx",
+   "score": 7,
+   "title": "Triangle Strategy",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/0279gky",
+   "score": 6,
+   "title": "Final Fantasy Tactics: The War of the Lions",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/0bcz_h",
+   "score": 6,
+   "title": "The Lord of the Rings: Tactics",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/07cmd",
+   "score": 5,
+   "title": "Tank",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/010vvkbz",
+   "score": 4,
+   "title": "Tom Clancy's Rainbow Six Siege",
+   "type": "Video game"
+  }
+ ]
+}

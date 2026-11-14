@@ -1,0 +1,212 @@
+{
+ "seeds": {
+  "automation game": {
+   "fresh": false,
+   "monthly": 19920,
+   "spike": false,
+   "trend": -0.6,
+   "upper": false,
+   "weekly": [
+    13723,
+    11762,
+    19604,
+    23524,
+    27445,
+    96058,
+    21564,
+    13723,
+    7841,
+    6861,
+    6861,
+    6861,
+    6861,
+    6861
+   ]
+  },
+  "base building game": {
+   "fresh": false,
+   "monthly": 6861,
+   "spike": false,
+   "trend": -0.2,
+   "upper": false,
+   "weekly": [
+    6861,
+    4901,
+    5881,
+    6861,
+    5881,
+    6861,
+    5881,
+    2941,
+    980,
+    1960,
+    2941,
+    5881,
+    6861,
+    6861
+   ]
+  },
+  "city builder": {
+   "fresh": false,
+   "monthly": 26707,
+   "spike": false,
+   "trend": -0.433,
+   "upper": false,
+   "weekly": [
+    15683,
+    19604,
+    25485,
+    27445,
+    39207,
+    113702,
+    31366,
+    15683,
+    13723,
+    12742,
+    13723,
+    12742,
+    11762,
+    6861
+   ]
+  },
+  "colony sim": {
+   "fresh": false,
+   "monthly": 6861,
+   "spike": false,
+   "trend": 3.25,
+   "upper": false,
+   "weekly": [
+    1960,
+    0,
+    0,
+    1960,
+    0,
+    3921,
+    1960,
+    0,
+    0,
+    980,
+    0,
+    6861,
+    6861,
+    6861
+   ]
+  },
+  "factory game": {
+   "fresh": false,
+   "monthly": 22428,
+   "spike": false,
+   "trend": -0.451,
+   "upper": false,
+   "weekly": [
+    25485,
+    19604,
+    27445,
+    27445,
+    23524,
+    54890,
+    27445,
+    17643,
+    15683,
+    13723,
+    13723,
+    13723,
+    13723,
+    13723
+   ]
+  },
+  "management game": {
+   "fresh": false,
+   "monthly": 67769,
+   "spike": false,
+   "trend": -0.804,
+   "upper": false,
+   "weekly": [
+    75030,
+    51240,
+    80519,
+    91499,
+    91499,
+    296458,
+    89669,
+    34770,
+    25620,
+    20130,
+    14640,
+    12810,
+    12810,
+    12810
+   ]
+  },
+  "strategy game": {
+   "fresh": false,
+   "monthly": 50169,
+   "spike": false,
+   "trend": -0.655,
+   "upper": false,
+   "weekly": [
+    52930,
+    43128,
+    66653,
+    70573,
+    76454,
+    162711,
+    50970,
+    27445,
+    27445,
+    21564,
+    27445,
+    15683,
+    15683,
+    27445
+   ]
+  },
+  "survival game": {
+   "fresh": false,
+   "monthly": 38954,
+   "spike": false,
+   "trend": -0.287,
+   "upper": false,
+   "weekly": [
+    47049,
+    37247,
+    41168,
+    45089,
+    41168,
+    68613,
+    41168,
+    33326,
+    29406,
+    33326,
+    35287,
+    29406,
+    27445,
+    27445
+   ]
+  },
+  "tactics game": {
+   "fresh": false,
+   "monthly": 7525,
+   "spike": false,
+   "trend": -0.152,
+   "upper": false,
+   "weekly": [
+    8822,
+    7841,
+    7841,
+    7841,
+    6861,
+    9802,
+    7841,
+    6861,
+    6861,
+    6861,
+    6861,
+    6861,
+    6861,
+    6861
+   ]
+  }
+ },
+ "vs": "how to fish"
+}

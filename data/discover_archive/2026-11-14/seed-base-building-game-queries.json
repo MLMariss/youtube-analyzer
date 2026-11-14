@@ -1,0 +1,32 @@
+{
+ "cat": 8,
+ "date": "2026-11-14",
+ "kind": "queries",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "query": "enshrouded",
+   "rise": null
+  }
+ ],
+ "seed": "base building game",
+ "top": [
+  {
+   "query": "base building games",
+   "score": 100
+  },
+  {
+   "query": "zombie base building games",
+   "score": 17
+  },
+  {
+   "query": "rimworld",
+   "score": 7
+  },
+  {
+   "query": "enshrouded",
+   "score": 2
+  }
+ ]
+}
