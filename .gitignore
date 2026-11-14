@@ -2,7 +2,11 @@ __pycache__/
 *.py[cod]
 
 # Local Claude Code settings and dev-server config
-.claude/
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
+.claude/hooks/*
+!.claude/hooks/branch_guard.py
 
 # Credentials are env vars / Actions secrets -- never commit them
 .env
