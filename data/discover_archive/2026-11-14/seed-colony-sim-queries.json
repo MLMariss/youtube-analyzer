@@ -1,0 +1,41 @@
+{
+ "cat": 8,
+ "date": "2026-11-14",
+ "kind": "queries",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "query": "sim ant",
+   "rise": null
+  },
+  {
+   "breakout": false,
+   "query": "rimworld",
+   "rise": 90
+  }
+ ],
+ "seed": "colony sim",
+ "top": [
+  {
+   "query": "colony sim games",
+   "score": 100
+  },
+  {
+   "query": "best colony sim games",
+   "score": 41
+  },
+  {
+   "query": "rimworld",
+   "score": 23
+  },
+  {
+   "query": "sim ant",
+   "score": 21
+  },
+  {
+   "query": "dwarf fortress",
+   "score": 2
+  }
+ ]
+}

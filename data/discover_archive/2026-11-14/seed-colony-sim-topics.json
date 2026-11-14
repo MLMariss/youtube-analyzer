@@ -1,0 +1,235 @@
+{
+ "cat": 8,
+ "date": "2026-11-14",
+ "kind": "topics",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "mid": "/m/025wz28",
+   "rise": null,
+   "title": "Dwarf Fortress",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11qg_c03j7",
+   "rise": null,
+   "title": "create",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/04_tv",
+   "rise": null,
+   "title": "Management",
+   "type": "Field of study"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11h5r71741",
+   "rise": null,
+   "title": "Going Medieval",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/03mh0vs",
+   "rise": null,
+   "title": "The Sims",
+   "type": "Series"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/02q69n_",
+   "rise": null,
+   "title": "SimCity",
+   "type": "Video game series"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0cvr2",
+   "rise": null,
+   "title": "Roguelike",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/011h7q",
+   "rise": null,
+   "title": "Space Colony",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11szc75bst",
+   "rise": null,
+   "title": "Base building",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11cs0slxj7",
+   "rise": null,
+   "title": "Oxygen Not Included",
+   "type": "Survival game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/01c1r0",
+   "rise": null,
+   "title": "SIM card",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11mx326qjf",
+   "rise": null,
+   "title": "Timberborn",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/06c9r",
+   "rise": null,
+   "title": "Role-playing game",
+   "type": "Topic"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/0cgh4",
+   "rise": 250,
+   "title": "Building",
+   "type": "Topic"
+  }
+ ],
+ "seed": "colony sim",
+ "top": [
+  {
+   "mid": "/g/120zjhcx",
+   "score": 100,
+   "title": "Simulation video game",
+   "type": "Game type"
+  },
+  {
+   "mid": "/m/01_lc",
+   "score": 46,
+   "title": "Colony",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0cgh4",
+   "score": 35,
+   "title": "Building",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/025wz28",
+   "score": 30,
+   "title": "Dwarf Fortress",
+   "type": "Video game"
+  },
+  {
+   "mid": "/g/11qg_c03j7",
+   "score": 28,
+   "title": "create",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/012sdh12",
+   "score": 27,
+   "title": "RimWorld",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/04_tv",
+   "score": 22,
+   "title": "Management",
+   "type": "Field of study"
+  },
+  {
+   "mid": "/g/11h5r71741",
+   "score": 19,
+   "title": "Going Medieval",
+   "type": "Video game"
+  },
+  {
+   "mid": "/g/11bvsrjh30",
+   "score": 13,
+   "title": "Survival game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/03mh0vs",
+   "score": 10,
+   "title": "The Sims",
+   "type": "Series"
+  },
+  {
+   "mid": "/m/03myz4",
+   "score": 8,
+   "title": "Steam",
+   "type": "Service"
+  },
+  {
+   "mid": "/m/02q69n_",
+   "score": 3,
+   "title": "SimCity",
+   "type": "Video game series"
+  },
+  {
+   "mid": "/m/0425yl",
+   "score": 3,
+   "title": "Ant colony",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0cvr2",
+   "score": 3,
+   "title": "Roguelike",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/011h7q",
+   "score": 2,
+   "title": "Space Colony",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/01bm80",
+   "score": 2,
+   "title": "SimAnt",
+   "type": "Video game"
+  },
+  {
+   "mid": "/g/11szc75bst",
+   "score": 2,
+   "title": "Base building",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11cs0slxj7",
+   "score": 2,
+   "title": "Oxygen Not Included",
+   "type": "Survival game"
+  },
+  {
+   "mid": "/m/01c1r0",
+   "score": 1,
+   "title": "SIM card",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11mx326qjf",
+   "score": 1,
+   "title": "Timberborn",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/06c9r",
+   "score": 0,
+   "title": "Role-playing game",
+   "type": "Topic"
+  }
+ ]
+}

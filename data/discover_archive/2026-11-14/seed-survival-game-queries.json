@@ -1,0 +1,201 @@
+{
+ "cat": 8,
+ "date": "2026-11-14",
+ "kind": "queries",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "query": "azeroth survival",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "survival game chosen by three handsome shifters",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "azeroth survivors game",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "vein survival game",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "unturned",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "dead by daylight",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "abiotic factor",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "ark survival evolved game size",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "outward",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "loaded",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "jurassic front survival",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "silver pines",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "icarus game",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "icarus",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "race survival arena king",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "nomad drive",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "day z",
+   "rise": null
+  },
+  {
+   "breakout": false,
+   "query": "wow survival game",
+   "rise": 600
+  }
+ ],
+ "seed": "survival game",
+ "top": [
+  {
+   "query": "survival games",
+   "score": 100
+  },
+  {
+   "query": "zombie survival",
+   "score": 68
+  },
+  {
+   "query": "survival zombie game",
+   "score": 68
+  },
+  {
+   "query": "zombie game",
+   "score": 66
+  },
+  {
+   "query": "survival horror game",
+   "score": 54
+  },
+  {
+   "query": "survival horror",
+   "score": 53
+  },
+  {
+   "query": "best survival game",
+   "score": 48
+  },
+  {
+   "query": "game survival pc",
+   "score": 31
+  },
+  {
+   "query": "last survival game",
+   "score": 27
+  },
+  {
+   "query": "last survival",
+   "score": 27
+  },
+  {
+   "query": "island survival game",
+   "score": 25
+  },
+  {
+   "query": "survival island",
+   "score": 25
+  },
+  {
+   "query": "roblox survival game",
+   "score": 25
+  },
+  {
+   "query": "survival game download",
+   "score": 24
+  },
+  {
+   "query": "survival game steam",
+   "score": 22
+  },
+  {
+   "query": "best survival games",
+   "score": 22
+  },
+  {
+   "query": "survival game online",
+   "score": 21
+  },
+  {
+   "query": "ark survival game",
+   "score": 19
+  },
+  {
+   "query": "ark game",
+   "score": 18
+  },
+  {
+   "query": "ark",
+   "score": 18
+  },
+  {
+   "query": "new survival game",
+   "score": 17
+  },
+  {
+   "query": "ark survival",
+   "score": 17
+  },
+  {
+   "query": "zombie survival games",
+   "score": 16
+  },
+  {
+   "query": "zombie games",
+   "score": 15
+  },
+  {
+   "query": "game mode survival",
+   "score": 14
+  }
+ ]
+}

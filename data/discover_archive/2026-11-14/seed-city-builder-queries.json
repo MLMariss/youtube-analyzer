@@ -1,0 +1,201 @@
+{
+ "cat": 8,
+ "date": "2026-11-14",
+ "kind": "queries",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "query": "foundation",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "tiny glade",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "theotown",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "foundation city builder",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "best city building games",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "frostpunk",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "ixion",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "foundation game",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "fantasy city builder",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "viking city builder",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "anno 1800",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "rimworld",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "farthest frontier",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "town to city",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "aesthetic city builder",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "cityrt",
+   "rise": null
+  },
+  {
+   "breakout": false,
+   "query": "best city builder game",
+   "rise": 300
+  },
+  {
+   "breakout": false,
+   "query": "city builder simulator",
+   "rise": 250
+  }
+ ],
+ "seed": "city builder",
+ "top": [
+  {
+   "query": "city builder games",
+   "score": 100
+  },
+  {
+   "query": "best city builder",
+   "score": 39
+  },
+  {
+   "query": "sim city",
+   "score": 20
+  },
+  {
+   "query": "best city builder games",
+   "score": 18
+  },
+  {
+   "query": "best city builder game",
+   "score": 18
+  },
+  {
+   "query": "foundation",
+   "score": 15
+  },
+  {
+   "query": "city builder online",
+   "score": 13
+  },
+  {
+   "query": "city builder simulator",
+   "score": 12
+  },
+  {
+   "query": "city building games",
+   "score": 12
+  },
+  {
+   "query": "tiny glade",
+   "score": 10
+  },
+  {
+   "query": "theotown",
+   "score": 9
+  },
+  {
+   "query": "simcity",
+   "score": 8
+  },
+  {
+   "query": "foundation city builder",
+   "score": 8
+  },
+  {
+   "query": "best city building games",
+   "score": 7
+  },
+  {
+   "query": "medieval city builder",
+   "score": 7
+  },
+  {
+   "query": "coop city builder",
+   "score": 6
+  },
+  {
+   "query": "frostpunk",
+   "score": 6
+  },
+  {
+   "query": "ixion",
+   "score": 6
+  },
+  {
+   "query": "foundation game",
+   "score": 4
+  },
+  {
+   "query": "fantasy city builder",
+   "score": 2
+  },
+  {
+   "query": "viking city builder",
+   "score": 1
+  },
+  {
+   "query": "anno 1800",
+   "score": 1
+  },
+  {
+   "query": "rimworld",
+   "score": 1
+  },
+  {
+   "query": "farthest frontier",
+   "score": 1
+  },
+  {
+   "query": "town to city",
+   "score": 1
+  }
+ ]
+}

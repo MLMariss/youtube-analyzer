@@ -1,0 +1,239 @@
+{
+ "cat": 8,
+ "date": "2026-11-14",
+ "kind": "topics",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "mid": "/g/123236x5p",
+   "rise": null,
+   "title": "Azeroth",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0138mtk_",
+   "rise": null,
+   "title": "Five Nights at Freddy's",
+   "type": "Video game series"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11q96jwg44",
+   "rise": null,
+   "title": "Oxide: Survival Island",
+   "type": "Survival game"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11hpg8m84q",
+   "rise": null,
+   "title": "Blind Descent",
+   "type": "Survival game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0dgpjr",
+   "rise": null,
+   "title": "Survival Island",
+   "type": "2005 film"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11sj79jp9m",
+   "rise": null,
+   "title": "Zombie Apocalypse",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/01028ycx",
+   "rise": null,
+   "title": "The Forest",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11mmjqc932",
+   "rise": null,
+   "title": "frightening",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/025vm2x",
+   "rise": null,
+   "title": "Dailymotion",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11rttmk1cq",
+   "rise": null,
+   "title": "Local co-op",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11t4xtv4c9",
+   "rise": null,
+   "title": "VEIN",
+   "type": "Survival game"
+  },
+  {
+   "breakout": false,
+   "mid": "/g/11ywq5dvj8",
+   "rise": 250,
+   "title": "Last Beacon: Survival",
+   "type": "Survival game"
+  }
+ ],
+ "seed": "survival game",
+ "top": [
+  {
+   "mid": "/g/11bvsrjh30",
+   "score": 100,
+   "title": "Survival game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/02psyd2",
+   "score": 17,
+   "title": "Zombie",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/1217cnnq",
+   "score": 12,
+   "title": "Horror game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/01qf5x",
+   "score": 8,
+   "title": "Survival horror",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/01z747",
+   "score": 5,
+   "title": "Multiplayer video game",
+   "type": "Gameplay"
+  },
+  {
+   "mid": "/m/013c9xk7",
+   "score": 4,
+   "title": "ARK: Survival Evolved",
+   "type": "Survival game"
+  },
+  {
+   "mid": "/m/04f3w5j",
+   "score": 4,
+   "title": "Open world",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/03s0c",
+   "score": 4,
+   "title": "Island",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/02x9hs",
+   "score": 4,
+   "title": "Shooter game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/05l9r9",
+   "score": 3,
+   "title": "Cooperative video game",
+   "type": "Gameplay"
+  },
+  {
+   "mid": "/m/04951x",
+   "score": 3,
+   "title": "Mobile game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11sjch2yf_",
+   "score": 2,
+   "title": "Last War: Survival Game",
+   "type": "Mobile game"
+  },
+  {
+   "mid": "/m/04tr8s",
+   "score": 2,
+   "title": "PC game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/03npn",
+   "score": 2,
+   "title": "Horror",
+   "type": "Film genre"
+  },
+  {
+   "mid": "/g/123236x5p",
+   "score": 2,
+   "title": "Azeroth",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0138mtk_",
+   "score": 1,
+   "title": "Five Nights at Freddy's",
+   "type": "Video game series"
+  },
+  {
+   "mid": "/g/11q96jwg44",
+   "score": 1,
+   "title": "Oxide: Survival Island",
+   "type": "Survival game"
+  },
+  {
+   "mid": "/g/11hpg8m84q",
+   "score": 1,
+   "title": "Blind Descent",
+   "type": "Survival game"
+  },
+  {
+   "mid": "/m/0dgpjr",
+   "score": 1,
+   "title": "Survival Island",
+   "type": "2005 film"
+  },
+  {
+   "mid": "/g/11sj79jp9m",
+   "score": 1,
+   "title": "Zombie Apocalypse",
+   "type": "Video game"
+  },
+  {
+   "mid": "/g/11ywq5dvj8",
+   "score": 0,
+   "title": "Last Beacon: Survival",
+   "type": "Survival game"
+  },
+  {
+   "mid": "/m/01028ycx",
+   "score": 0,
+   "title": "The Forest",
+   "type": "Video game"
+  },
+  {
+   "mid": "/g/11mmjqc932",
+   "score": 0,
+   "title": "frightening",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/025vm2x",
+   "score": 0,
+   "title": "Dailymotion",
+   "type": "Topic"
+  }
+ ]
+}

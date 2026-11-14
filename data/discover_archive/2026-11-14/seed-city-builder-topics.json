@@ -1,0 +1,261 @@
+{
+ "cat": 8,
+ "date": "2026-11-14",
+ "kind": "topics",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "mid": "/m/0h793j",
+   "rise": null,
+   "title": "Civilization",
+   "type": "Series"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/02gjj1",
+   "rise": null,
+   "title": "Browser game",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0f0q9",
+   "rise": null,
+   "title": "Village",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0byj4",
+   "rise": null,
+   "title": "Combat",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0cgh4",
+   "rise": null,
+   "title": "Building",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0bm_gz",
+   "rise": null,
+   "title": "Business simulation game",
+   "type": "Game genre"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0x0w",
+   "rise": null,
+   "title": "Aesthetics",
+   "type": "Field of study"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/01_lc",
+   "rise": null,
+   "title": "Colony",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/011x40ng",
+   "rise": null,
+   "title": "Cities: Skylines",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11jvn6zy_6",
+   "rise": null,
+   "title": "Manor Lords",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/05h2ppk",
+   "rise": null,
+   "title": "Business game",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/04_tv",
+   "rise": null,
+   "title": "Management",
+   "type": "Field of study"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/010ls0q7",
+   "rise": null,
+   "title": "Factorio",
+   "type": "Video game"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/02_286",
+   "rise": 120,
+   "title": "New York",
+   "type": "City in New York State"
+  },
+  {
+   "breakout": false,
+   "mid": "/g/11my1t41tp",
+   "rise": 50,
+   "title": "good",
+   "type": "Topic"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/02q69n_",
+   "rise": 40,
+   "title": "SimCity",
+   "type": "Video game series"
+  }
+ ],
+ "seed": "city builder",
+ "top": [
+  {
+   "mid": "/m/01n32",
+   "score": 100,
+   "title": "City",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/038_hy",
+   "score": 90,
+   "title": "City-building game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11my1t41tp",
+   "score": 13,
+   "title": "good",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/02q69n_",
+   "score": 9,
+   "title": "SimCity",
+   "type": "Video game series"
+  },
+  {
+   "mid": "/m/0h793j",
+   "score": 5,
+   "title": "Civilization",
+   "type": "Series"
+  },
+  {
+   "mid": "/m/0cvr2",
+   "score": 5,
+   "title": "Roguelike",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/02gjj1",
+   "score": 4,
+   "title": "Browser game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0f0q9",
+   "score": 4,
+   "title": "Village",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0_fsnld",
+   "score": 4,
+   "title": "Anno",
+   "type": "Video game series"
+  },
+  {
+   "mid": "/m/04rjz",
+   "score": 4,
+   "title": "Middle Ages",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/07b7r",
+   "score": 4,
+   "title": "Strategy",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/03hf_rm",
+   "score": 4,
+   "title": "Strategy video game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0byj4",
+   "score": 4,
+   "title": "Combat",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/02_286",
+   "score": 4,
+   "title": "New York",
+   "type": "City in New York State"
+  },
+  {
+   "mid": "/m/0cgh4",
+   "score": 3,
+   "title": "Building",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0bm_gz",
+   "score": 3,
+   "title": "Business simulation game",
+   "type": "Game genre"
+  },
+  {
+   "mid": "/m/0x0w",
+   "score": 3,
+   "title": "Aesthetics",
+   "type": "Field of study"
+  },
+  {
+   "mid": "/m/01_lc",
+   "score": 3,
+   "title": "Colony",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/011x40ng",
+   "score": 2,
+   "title": "Cities: Skylines",
+   "type": "Video game"
+  },
+  {
+   "mid": "/g/11jvn6zy_6",
+   "score": 2,
+   "title": "Manor Lords",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/05h2ppk",
+   "score": 2,
+   "title": "Business game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/04_tv",
+   "score": 2,
+   "title": "Management",
+   "type": "Field of study"
+  },
+  {
+   "mid": "/m/010ls0q7",
+   "score": 2,
+   "title": "Factorio",
+   "type": "Video game"
+  }
+ ]
+}
