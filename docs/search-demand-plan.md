@@ -1,10 +1,16 @@
 # Discovery from Google search demand — project plan
 
-Status: **Phase 1 built** (12 Nov 2026) and reworked after the first live check
-(13 Nov 2026): sizes, a noise bar, web-wide scope and other languages as a
-second class. Waiting for its first live sizing searches.
-Phases 2–6 planned. Each phase below
-has a checklist; tick items as they ship so this file stays the source of truth.
+Status (14 Nov 2026): **Discover is about games you have not touched.**
+- Phase 2 (new games radar), Phase 3 (areas heating up) and the Steam
+  momentum and YouTube competition parts of Phase 4 are built. They wait for
+  their first live run.
+- Phase 1 (questions about games you already cover) is built but **paused**:
+  your own video data tracks those games.
+- Phase 5 is **on demand only**.
+- Phase 6 is planned.
+
+Each phase below has a checklist; tick items as they ship so this file stays
+the source of truth.
 
 ## Goal
 
@@ -23,20 +29,22 @@ topics surfaces first.
 | Topic | Decision |
 |---|---|
 | What's measured | **Google web search**, worldwide. Not YouTube search. |
-| Focus | **Discovery only.** No demand board for games you already cover: your dashboard shows those through your own data. |
+| Focus | **Discovery only, of games you have not touched.** No Google searches are spent on games you cover: your dashboard tracks those through your own data (14 Nov 2026: Phase 1 paused, `settings → your_games → search`). |
+| New vs established | The radar leads with **new & upcoming** games (out in the last 12 months, or not out yet). Older games you never covered are listed apart, folded. |
+| One game, one card | A game is one card however people search it: Google *topics* identify games, and the searches naming a game ("valheim tips", "valheim map") are listed on its card. |
 | Build order | 1. Unanswered questions → 2. New games radar → 3. Areas heating up |
 | Radar breadth | Your genres (city builders & colony sims, survival & base building, tactics & strategy) **plus neighbours** (factory, automation, management) |
 | Data source now | **SerpApi free tier**: 250 searches per cycle (renews on the 12th), 250/hour. Free only. |
 | Long-term | **Official Google Trends API.** Apply for the alpha now. It covers web search, so it can replace SerpApi cleanly later. |
 | Budget | Automation capped at **200 searches/month**. **50 a month stay free** for your manual checks. |
 | Geography | Worldwide now. Americas / Europe / Asia / All later, with the official API. |
-| "Market or me" | **Second grade**, built only after discovery works |
+| "Market or me" | **On demand only** (14 Nov 2026): a *Check Google* link on Needs attention cards opens the game's searches beside the baseline. No automatic searches on your games. |
 | Noise | **A rise is not a size.** Every item must be big enough to act on, not just real. Below the bar it is listed apart (*small or one-off*), never dropped silently. The same rule runs the whole dashboard: a *Needs attention* card needs a change worth 0.3% of the channel's weekly views. |
 | Sizes | Each question is measured against a **baseline** on one Trends scale: a search term whose monthly searches are pinned down (now *how to fish*, ~350K, Oct 2026). Too small to read beside it means too small to be worth a video. |
 | Baseline | Calibrated by hand monthly: ~8 terms compared in Trends and Keyword Planner for the same month; their 10×-wide ranges overlap in a ±12% band (README → Baselines). Kept in `data/baselines.json`. Keyword Planner numbers set per game are a cross-check. Automating the monthly calibration comes later. |
 | Scope | **All of web search**, not the Games category: a game reaching news, social media or business pages is a trend too. Only names that are everyday words (Foundation, Grounded, Icarus, Odyssey, Humankind, Windrose) stay in the Games category. |
 | Other languages | **A second class with a higher bar:** among the game's top searches at a score of 20+, and 4× the English count. The rest are listed apart. |
-| Where it shows | A new foldable **Discover** section on `index.html`, below *Needs attention* |
+| Where it shows | A new foldable **Discover** section on `index.html`, below *Needs attention*: New games in your genres, Areas heating up, then the paused questions and Search volumes, folded |
 
 **Changed from the first draft:**
 - YouTube-search Trends → web search.
@@ -85,13 +93,24 @@ so the section shows *new this run* separately from *still rising*.
   topics for a creator channel*.
 - [ ] Optional: allow `serpapi.com` in this cloud environment so I can test
   from here. Otherwise testing runs through a workflow dispatch.
+  (14 Nov 2026: a personal *youtube-analyzer* cloud environment allows
+  `store.steampowered.com` and `api.steampowered.com`; SerpApi parts were
+  tested against mocked responses.)
 - [ ] My first calls check five things:
-  - the games category id for `cat`
-  - the topic "type" field in `RELATED_TOPICS`
-  - that SerpApi's account endpoint is free
-  - which Steam endpoint lists games by tag
+  - [x] the games category id for `cat` (8)
+  - [ ] the topic "type" field in `RELATED_TOPICS` (the radar keeps types
+    with "game" in them, not genre, series or company: check on the first run)
+  - [x] that SerpApi's account endpoint is free
+  - [x] which Steam endpoint lists games by tag:
+    `store.steampowered.com/search/results/?tags=<id>&filter=popularnew|topsellers|popularcomingsoon&category1=998&infinite=1`.
+    It returns HTML rows with app id, name, release date, review count and
+    the top 7 tag ids. Tag ids come from `/tagdata/populartags/english`.
 
-## Phase 1: Unanswered questions in your games (about 40 searches/month)
+## Phase 1: Unanswered questions in your games (paused, 14 Nov 2026)
+
+**Paused** by default (`settings → your_games → search: false`): no searches
+are spent on games you cover. The last results are rebuilt from the saved
+pulls and shown, folded. Set it to `true` to resume (~86 searches a cycle).
 
 **Goal:** rising Google searches about games you already cover that none of
 your videos answers, e.g. *"tropico 6 crash on startup"* or *"how to stop
@@ -179,7 +198,7 @@ Each card links to the Google results and the Trends page for the query
   - [x] an offline run, and one with a missing key, still builds the dashboard
   - [x] screenshots at phone and desktop width
 
-## Phase 2: New games radar (about 40 searches/month)
+## Phase 2: New games radar (about 60 searches/month with Phase 3)
 
 **Goal:** games rising on Google in your genres and neighbours that you've
 never covered.
@@ -220,10 +239,41 @@ shared with your best-performing games).
 - Tracked games get their Steam patches followed. Once you upload a video on
   one, `game_names` sees it and it leaves the radar on its own.
 
+**As built** (14 Nov 2026, `radar.py`):
+- **Candidates:**
+  - Steam's *New & Trending*, *Top Sellers* and *Popular Upcoming* lists for
+    nine tags, every run, free. The search results page gives each game's top
+    seven tags and its review count.
+  - `RELATED_TOPICS` for nine seeds, Games category, `today 1-m`, every 14
+    days. Topics typed as a game are kept (not genres, series or companies).
+- **Not yours:**
+  - Left out: games in your titles, games any title names (even once), your
+    Steam apps, and anything dismissed.
+  - Kept: sequels to your games, marked.
+- **Fit:** the share of your views on games with the same Steam tags (top 24
+  games by views), not a fixed yardstick game.
+- **Sizing:**
+  - The shortlist is 12 new and 4 established games by a first guess, from
+    reviews and why each surfaced.
+  - Each game is measured as its **Google topic** against the baseline, not a
+    yardstick game, 4 to a search, every 14 days. A topic is found once with
+    Trends autocomplete (1 search) and kept.
+- **Momentum:**
+  - Google: the last 4 weeks against the first 4 of the 90 days.
+  - Steam: players at the daily check against a week ago, and reviews in the
+    last week.
+- **Ranking:** log(searches a month) × momentum (×0.5–×3) × (0.5 + fit).
+- **New vs established:** out in the last 12 months or upcoming leads; older
+  games are folded below.
+- **One card per game:** the seeds' related queries naming a game are listed
+  on its card.
+
 **Done when:**
-- [ ] Seeds, Steam candidates, sizing, ranking and the cards ship.
-- [ ] A *Track* form joins `discover-dismiss.yml` (Phase 1), and the run reads
-  it.
+- [x] Seeds, Steam candidates, sizing, ranking and the cards ship.
+- [x] Dismiss (`discover-dismiss.yml` with game `new games`).
+- [ ] A *Track* form, and tracked games' Steam patches followed.
+- [ ] First live run checked: topic types, autocomplete matches, sizes
+  against trends.google.com.
 
 ## Phase 3: Areas heating up (about 20 searches/month)
 
@@ -242,22 +292,44 @@ building"*.
 **Growing reach:** an area that keeps rising for 3 runs is offered as a new
 seed, with a button. You approve it, so the radar widens with you.
 
+**As built** (14 Nov 2026):
+- **Themes:** the seeds' `RELATED_QUERIES` (pulled with the topics) that name
+  no game, grouped by the most shared word beyond every genre word. A theme
+  needs a rising search, and its Steam tag (Cozy, Medieval, Co-op…) gives
+  example games.
+- **Seeds:** a theme rising in 3 pulls is highlighted with *Add as seed*.
+  That button is on every theme, and opens `discover-seed.yml`, which the
+  intake applies within minutes.
+- **Genre trend:** the seeds against the baseline monthly, 4 to a search.
+
 **Done when:**
-- [ ] Themes, genre trend line and the seed suggestions ship.
+- [x] Themes, genre trend line and the seed suggestions ship.
 
 ## Phase 4: Smarter discovery (mostly free)
 
-- **Steam momentum:** week-on-week current players and review counts for
-  candidates. This confirms a Trends rise with real players.
-- **Competition:** recent YouTube videos on a candidate or query, and their
+- [x] **Steam momentum:** week-on-week current players and review counts for
+  candidates. This confirms a Trends rise with real players. Built 14 Nov
+  2026: the top 25 radar games, every run, from `GetNumberOfCurrentPlayers`
+  and `appdetails` (recommendations). Steam's `appreviews` endpoint redirects,
+  so it is not used.
+- [x] **Competition:** recent YouTube videos on a candidate or query, and their
   views, via the Data API. *High search, few videos* is the opportunity
   score. Only counts are stored: API policy bars keeping other channels'
-  metadata past 30 days.
+  metadata past 30 days. Built 14 Nov 2026:
+  - the top 12 radar games, weekly, 101 quota units each
+  - *Few videos* = 2,000+ searches a month and under 10 videos in 30 days
+    (provisional)
+  - counts older than 30 days are deleted
 - **Memory:** when a new upload matches a discovery item, its first 28 days
   are compared with your median new video. *Discoveries that paid off* then
   feed the ranking, the way `actions.py` builds its playbook.
 
-## Phase 5: Second grade, "market or me" (about 25 searches/month, from headroom)
+## Phase 5: Second grade, "market or me" (on demand only, 14 Nov 2026)
+
+**Decided:** no automatic searches on games you cover. *Check Google* on Needs
+attention cards (game cards, and video cards on a game) opens the game's
+searches beside the baseline on Google Trends, for free. The ideas below stay
+for if that is not enough.
 
 - *Needs attention* cards about a game get one line saying whether Google
   searches for that game moved too:
@@ -284,11 +356,12 @@ seed, with a button. You approve it, so the radar widens with you.
 
 | Stream | Searches/month |
 |---|---|
-| 1 Unanswered questions (pulls ~38, sizing ~40, anchor ~8) | ~86 |
-| 2 New games radar (topics ~20, sizing ~20) | ~40 |
-| 3 Areas heating up | ~20 |
-| 5 Market or me (later) | ~25 |
-| Headroom: retries, growth | ~29 |
+| 1 Unanswered questions (paused; ~86 when on) | 0 |
+| 2+3 Seeds: topics and queries, 9 seeds every 14 days | ~40 |
+| 2 Topics found (autocomplete, once per game) and sizing | ~20 |
+| 3 Genres measured monthly | ~3 |
+| 5 Market or me (on demand, free links) | 0 |
+| Headroom: more seeds, retries, Phase 1 if turned on | ~137 |
 | **Automation cap** | **200** |
 | Your manual checks | 50 |
 
@@ -318,11 +391,14 @@ The repo's rules stay:
 | Piece | What |
 |---|---|
 | `trends.py` (new) | Provider (SerpApi now, official later), budget ledger, caching, redacting the key from every log and error |
-| `discover.py` (new) | The filter, the three streams, ranking, Track/Dismiss from issues |
-| `data/discover.json` (new) | **Editable:** seeds, yardstick, per-game term/skip. **Generated:** items with first seen, rise, sizing, Steam match, budget used. |
+| `discover.py` (new) | Phase 1 (paused), Dismiss / Set / Seed forms from issues, runs the radar, writes `discover.json` |
+| `radar.py` (new, 14 Nov 2026) | Phases 2 and 3 and Phase 4's Steam momentum and YouTube competition |
+| `data/discover.json` (new) | **Editable:** `settings → radar` (seeds, steam_tags), `settings → your_games`, per-game term/skip. **Generated:** the radar, the themes, the questions, budget used. |
+| `data/radar_state.json` (new) | What the radar's next run needs: Steam lists, seed pulls, Steam lookups, Google topics, sizes, player and review histories, YouTube counts (deleted after 30 days) |
 | `data/discover_archive/<date>/` | Raw rising lists (point-in-time, can't be re-pulled). Excluded from Pages in `_config.yml`. |
 | `.github/workflows/collect.yml` | **Discover** step after *Find videos that need attention*. `continue-on-error`, `SERPAPI_KEY` + `GITHUB_TOKEN`, dispatch input `discover_force`. Summary shows searches used and left. The daily cron stays; `discover.py` decides what is due. |
-| `.github/ISSUE_TEMPLATE/discover-dismiss.yml` | Dismiss form (Phase 1); a Track form follows in Phase 2 |
+| `.github/ISSUE_TEMPLATE/discover-dismiss.yml` | Dismiss form (a question, a radar game, a theme); a Track form follows |
+| `.github/ISSUE_TEMPLATE/discover-seed.yml` | *Add as seed* form (Phase 3) |
 | `index.html` | **Discover** section with *Unanswered questions*, *New games*, *Areas heating up*, and a "How to read this" box |
 | `README.md` | Link to this plan now; a section when Phase 1 ships |
 

@@ -19,4 +19,4 @@ body:
     id: game
     attributes:
       label: Game
-      description: Hide it only on this game's card (the dashboard fills it in). Empty hides it everywhere.
+      description: Hide it only on this game's card, "new games" for the radar, "areas" for a theme (the dashboard fills it in). Empty hides it everywhere.

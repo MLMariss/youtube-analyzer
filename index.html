@@ -398,7 +398,15 @@
   .dq-sub a, .dq-links a, .disc-foot a { color: var(--link); }
   .dq-links { font-size: 13.5px; margin-top: 4px; color: var(--muted); }
   .disc-foot { color: var(--text-2); font-size: 14px; margin: 4px 2px 14px; line-height: 1.5; }
-  .disc-foot code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .disc-foot code, .vol-how code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .rd-size { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+  .rd-size > div { flex: 1 1 220px; min-width: 0; }
+  .rd-spark { margin-top: 4px; display: flex; justify-content: flex-end; }
+  .rd-h { margin: 18px 0 6px; font-size: 15.5px; }
+  details.sub { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+  details.sub > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; font-weight: 650; font-size: 15.5px; }
+  details.sub > summary::-webkit-details-marker { display: none; }
+  details.sub > ul.dq { margin-top: 10px; }
 
   @media (max-width: 720px) {
     .stat { grid-template-columns: 96px minmax(0, 1fr); }
@@ -1190,7 +1198,7 @@ function videoCard(c) {
     ${updateLine(c.update)}
     ${whyLine(c.drivers, (c.lead === 'impressions' ? 'impressions' : 'views') + (byShift ? ' a week' : ''))}
     ${planList(c.plan, id, c.situation)}
-    ${buttons(id, c.situation, comments)}
+    ${buttons(id, c.situation, comments + (v.game ? checkGoogle(String(v.game).toLowerCase(), v.game) : ''))}
     ${historyFor(id)}
   </article>`;
 }
@@ -1227,6 +1235,7 @@ function gameCard(g) {
     ${updateLine(g.update)}
     ${whyLine(g.drivers, sh ? `${sh.lead} a week` : 'impressions')}
     ${planList(g.plan, null, null)}
+    <div class="vc-actions">${checkGoogle(g.game, g.label)}</div>
     <details class="members"><summary>Show the ${g.members.length} videos</summary>
       <div class="scroll-x"><table class="mtable"><thead><tr><th>Video (opens Studio)</th><th>Impressions</th><th>Views</th><th>CTR</th><th></th></tr></thead>
       <tbody>${rows}</tbody></table></div>
@@ -1418,6 +1427,17 @@ const riseHtml = e => e.breakout ? '<span class="rise breakout">Breakout</span>'
   : e.rise ? `<span class="rise">+${fmt(e.rise)}%</span>`
   : e.score !== null && e.score !== undefined ? `<span class="rise top" title="Share of the game's searches, 0–100">top · ${e.score}</span>` : '';
 
+// Market or me, on demand: the game's Google searches over the same 90 days, beside the
+// baseline, on Google Trends. Opening it costs no SerpApi search.
+function checkGoogle(key, label) {
+  const D = DISCOVER || {}, b = (D.sizes || {}).baseline;
+  const s = (((D.settings || {}).games || {})[key]) || {};
+  const term = s.term || String(label || key).toLowerCase();
+  const terms = b && !s.cat ? [b.term, term] : [term];
+  return `<a class="btn" href="${trendsUrl(terms, s.cat)}" target="_blank" rel="noopener"
+    title="Did Google searches for ${esc(label)} move too? If they did, the game is waking up or cooling; if not, it is your videos. Opens Google Trends, last 90 days${terms.length > 1 ? `, beside “${esc(b.term)}”` : ''}.">Check Google</a>`;
+}
+
 function dismissUrl(query, card) {
   const p = new URLSearchParams({
     template: 'discover-dismiss.yml',
@@ -1532,83 +1552,244 @@ function volumesHtml(Z) {
       : '<p class="empty-state">Your games appear here after their first Discover search.</p>');
 }
 
+// ---- New games in your genres, and areas heating up (radar.py) -----------------
+const LIST_NAME = { top: 'Top Sellers', trending: 'New & Trending', upcoming: 'Popular Upcoming' };
+// Dismiss opens the same form as a question's; `scope` says where it hides: "new games" or "areas".
+function hideUrl(item, scope) {
+  const p = new URLSearchParams({ template: 'discover-dismiss.yml', title: `Dismiss: ${item} — ${scope}`, item, game: scope });
+  return `https://github.com/${REPO}/issues/new?${p}`;
+}
+function seedUrl(seed) {
+  const p = new URLSearchParams({ template: 'discover-seed.yml', title: `Seed: ${seed}`, seed });
+  return `https://github.com/${REPO}/issues/new?${p}`;
+}
+// A 90-day line by week, in searches a month: the last four weeks highlighted.
+function weekSpark(vals, what) {
+  if (!vals || vals.length < 4) return '';
+  const g = sparkGeom(vals), k = vals.length - 4;
+  const pts = vals.map((v, i) => `${g.x(i).toFixed(1)},${g.y(v).toFixed(1)}`);
+  return `<svg class="spark-mini" viewBox="0 0 ${g.W} ${g.H}" preserveAspectRatio="none" role="img"
+      aria-label="${esc(what)}: Google searches a month, week by week over 90 days, the last four weeks highlighted">
+    <title>${esc(what)}, searches a month by week: ${vals.map(fmt).join(' → ')}</title>
+    <line class="sm-base" x1="${g.pad}" y1="${g.H - g.pad}" x2="${g.W - g.pad}" y2="${g.H - g.pad}" vector-effect="non-scaling-stroke"/>
+    <polyline class="sm-old" points="${pts.slice(0, k + 1).join(' ')}" vector-effect="non-scaling-stroke"/>
+    <polyline class="sm-new" points="${pts.slice(k).join(' ')}" vector-effect="non-scaling-stroke"/>
+  </svg>`;
+}
+const trendTxt = z => z.fresh ? 'new on Google in the last weeks'
+  : has(z.trend) ? `${signedPct(z.trend * 100)} over 90 days` : '';
+const sizeTxt = z => `${z.upper ? 'under ' : '~'}${fmt(z.monthly)} searches a month`;
+function releaseTxt(g) {
+  if (g.upcoming) return g.released ? `Coming ${g.released}` : 'Coming soon';
+  if (!g.release_date) return g.appid ? 'Release date unknown' : 'Not on Steam';
+  const days = (Date.parse((DISCOVER.generated_at || '').slice(0, 10) + 'T00:00:00Z') - Date.parse(g.release_date + 'T00:00:00Z')) / 864e5;
+  return days < 365 ? `Out ${g.released}` : `Released ${g.release_date.slice(0, 4)}`;
+}
+function whyTxt(w) {
+  if (w.kind === 'google') return w.list === 'rising'
+    ? `rising beside “${esc(w.seed)}” on Google${w.breakout ? ' (Breakout)' : w.rise ? ` (+${fmt(w.rise)}%)` : ''}`
+    : `among Google's top searches beside “${esc(w.seed)}”`;
+  return `Steam ${LIST_NAME[w.list] || esc(w.list)} #${w.rank} in ${esc(w.tag)}`;
+}
+function momentumTxt(m) {
+  const out = [];
+  if (has(m.players)) out.push(`${fmt(m.players)} playing at the daily check` + (has(m.players_week) && m.players_week > 0
+    ? ` (${signedPct((m.players / m.players_week - 1) * 100)} vs a week ago)` : ''));
+  if (has(m.reviews_week)) out.push(`${m.reviews_week >= 0 ? '+' : '−'}${fmt(Math.abs(m.reviews_week))} reviews in the last week`);
+  return out.join(' · ');
+}
+function competitionTxt(k, days) {
+  if (!k) return '';
+  return `${k.more ? '50+' : fmt(k.videos)} videos by other channels in ${days} days` +
+    (k.videos ? `, ${fmt(k.views)} views between them (the biggest ${fmt(k.top)})` : '');
+}
+const queryList = qs => qs.map(q => `<a href="https://www.google.com/search?q=${enc(q.query)}" target="_blank" rel="noopener">${esc(q.query)}</a>${
+  q.breakout ? ' (Breakout)' : q.rise ? ` (+${fmt(q.rise)}%)` : ''}`).join(', ');
+// The game on Google Trends beside the baseline, as its size was measured (its topic when known).
+function radarTrends(g) {
+  const b = ((DISCOVER || {}).sizes || {}).baseline, t = g.mid || g.search_name || g.name;
+  return trendsUrl(b ? [b.term, t] : [t], null);
+}
+function radarLinks(g) {
+  const name = g.search_name || g.name;
+  return `<div class="dq-links">${g.steam_url ? `<a href="${esc(g.steam_url)}" target="_blank" rel="noopener">Steam</a> · ` : ''}
+    <a href="https://www.google.com/search?q=${enc(name)}" target="_blank" rel="noopener">Google</a> ·
+    <a href="https://www.youtube.com/results?search_query=${enc(name)}&sp=${enc('CAI=')}" target="_blank" rel="noopener" title="Newest videos first">YouTube</a> ·
+    <a href="${radarTrends(g)}" target="_blank" rel="noopener" title="Its Google searches over 90 days${g.mid ? ' (the game as a topic, every spelling)' : ''}">Trends</a> ·
+    <a href="${hideUrl(g.name, 'new games')}" target="_blank" rel="noopener" title="Not for you: hide it from the radar (opens a GitHub issue)">Dismiss</a></div>`;
+}
+
+function radarCard(g, R) {
+  const z = g.size, k = g.competition;
+  const line = (label, html) => html ? `<div class="vc-why"><span class="inl">${label}</span>${html}</div>` : '';
+  const google = z ? `<b>${sizeTxt(z)}</b>${trendTxt(z) ? ` · ${trendTxt(z)}` : ''}${z.spike ? ' · mostly a one-day spike' : ''}`
+    : `<span class="side-why">${g.topic ? 'measured against the baseline on one of the next runs'
+        : `not measured yet: the ${R.shortlist} best by a first guess are measured first`}</span>`;
+  const fit = has(g.fit) ? `<b>${Math.round(g.fit * 100)}%</b>${(g.shared || []).length ? ` · shares ${g.shared.map(esc).join(', ')}` : ''}${
+    (g.like || []).length ? ` with ${g.like.map(esc).join(' and ')}` : ''}` : '';
+  return `<article class="vcard">
+    <div>
+      <div class="vc-meta">${g.new ? '<span class="att-new">New</span>' : ''}${k && k.few
+        ? `<span class="tag how" title="Searched ${R.few_min_monthly ? fmt(R.few_min_monthly) + '+' : 'a lot'} a month, under ${R.few_videos} videos in ${R.competition_days} days">Few videos</span>` : ''}
+        <span class="tag">${esc(releaseTxt(g))}</span>${(g.tags || []).slice(0, 3).map(t => `<span class="tag">${esc(t)}</span>`).join('')}
+        ${has(g.reviews) ? `<span>${fmt(g.reviews)} Steam reviews${has(g.positive) ? `, ${g.positive}% positive` : ''}</span>` : ''}</div>
+      <h4 class="vc-title">${g.steam_url ? `<a href="${esc(g.steam_url)}" target="_blank" rel="noopener" title="Open on Steam">${esc(g.name)}</a>` : esc(g.name)}</h4>
+    </div>
+    <div class="rd-size"><div>${line('Google', google)}</div>${z ? weekSpark(z.weekly, g.search_name || g.name) : ''}</div>
+    ${line('Why', (g.why || []).map(whyTxt).join(' · '))}
+    ${g.follows ? line('Sequel', `follows ${esc(g.follows)}, which you cover: your audience may come along`) : ''}
+    ${line('Fit', fit)}
+    ${line('Steam', momentumTxt(g.momentum || {}))}
+    ${line('YouTube', competitionTxt(k, R.competition_days))}
+    ${(g.searches || []).length ? line('Searched', queryList(g.searches)) : ''}
+    ${radarLinks(g)}
+  </article>`;
+}
+
+function radarRow(g) {
+  const z = g.size;
+  return `<li>
+    <div class="dq-main"><span class="dq-q">${g.steam_url ? `<a href="${esc(g.steam_url)}" target="_blank" rel="noopener">${esc(g.name)}</a>` : esc(g.name)}</span>
+      ${g.new ? '<span class="att-new">New</span>' : ''}<span class="side-why">${esc(releaseTxt(g))}${has(g.reviews) ? ` · ${fmt(g.reviews)} reviews` : ''}</span>
+      ${z ? `<span class="size">${sizeTxt(z)}</span>` : ''}${z && trendTxt(z) ? `<span class="side-why">${trendTxt(z)}</span>` : ''}
+      ${has(g.fit) ? `<span class="side-why">fit ${Math.round(g.fit * 100)}%</span>` : ''}</div>
+    <div class="dq-sub">${(g.why || []).map(whyTxt).join(' · ')}${g.follows ? ` · follows ${esc(g.follows)}` : ''}</div>
+    ${radarLinks(g)}
+  </li>`;
+}
+
+function themeRow(t) {
+  return `<li>
+    <div class="dq-main"><span class="tag i-howto">${esc(t.theme)}</span><span class="dq-q">${esc(t.label)}</span>${
+      t.breakout ? '<span class="rise breakout">Breakout</span>' : t.rise ? `<span class="rise">+${fmt(t.rise)}%</span>` : ''}
+      ${t.rounds >= 2 ? `<span class="side-why">rising in ${t.rounds} pulls running</span>` : ''}</div>
+    <div class="dq-sub">Searched: ${queryList(t.queries.slice(0, 5))}. Beside ${t.seeds.map(s => `“${esc(s)}”`).join(', ')}.${
+      (t.examples || []).length ? ` Steam games tagged ${esc(t.tag)}: ${t.examples.map(esc).join(', ')}.` : ''}${
+      (t.covered || []).length ? ` You already cover ${t.covered.map(esc).join(' and ')}.` : ''}</div>
+    <div class="dq-links">${t.suggest ? `<a class="btn small" href="${seedUrl(t.label)}" target="_blank" rel="noopener" title="Kept rising: watch it as a seed">Add as seed</a> · `
+      : `<a href="${seedUrl(t.label)}" target="_blank" rel="noopener" title="Watch it every two weeks: two Google Trends searches each time">Add as seed</a> · `}
+      <a href="https://www.google.com/search?q=${enc(t.label)}" target="_blank" rel="noopener">Google</a> ·
+      <a href="${trendsUrl(t.label, 8)}" target="_blank" rel="noopener">Trends</a> ·
+      <a href="${hideUrl(t.theme, 'areas')}" target="_blank" rel="noopener" title="Hide this theme (opens a GitHub issue)">Dismiss</a></div>
+  </li>`;
+}
+
+function genresHtml(A) {
+  const rows = (A.genres || []).filter(g => has(g.monthly));
+  if (!rows.length) return '<p class="quiet">The genre searches themselves are measured once a month against the baseline; the first measurement comes with one of the next runs.</p>';
+  return `<p class="vol-how">Each genre search against the baseline, last 90 days${A.genres_date ? ` (measured ${shortDate(A.genres_date)})` : ''}: which genre grows overall.</p>
+    <table class="att-table vol-table"><thead><tr><th style="text-align:left">Genre search</th><th>Google searches a month</th></tr></thead><tbody>${
+    rows.map(g => `<tr><td style="text-align:left;white-space:normal">${esc(g.seed)}</td>
+      <td style="white-space:normal"><b>${sizeTxt(g).replace(' searches a month', '')}</b>${trendTxt(g) ? `<div class="vol-sub">${trendTxt(g)}</div>` : ''}
+        <div class="rd-spark">${weekSpark(g.weekly, g.seed)}</div></td></tr>`).join('')}</tbody></table>`;
+}
+
 function renderDiscover() {
   const el = document.getElementById('discover');
   const D = DISCOVER;
   if (!D || !D.questions) {
     el.innerHTML = `<p class="quiet">Discover fills in after the next collector run with the <code>SERPAPI_KEY</code> secret set.
-      It looks for what is not on your dashboard yet, starting with rising Google searches about your games that none of your videos answers.</p>`;
+      It looks for what is not on your dashboard yet: games in your genres you have never covered, and the areas heating up around them.</p>`;
     return;
   }
   const HEALTH = { error: 'error', warn: 'warn', info: '' };
   const health = (D.health || []).length
     ? `<div class="att-health">${D.health.map(h => `<div class="att-h ${HEALTH[h.level] || ''}">${esc(h.message)}</div>`).join('')}</div>` : '';
+  const saved = openState();
+  const isOpen = (key, dflt) => saved[key] !== undefined ? saved[key] : dflt;
+  const moreBtn = (key, n, all, what) => n > CARDS_SHOWN
+    ? `<p style="margin:12px 0 0"><button type="button" class="btn" data-more="${key}">${all ? 'Show fewer' : `Show all ${n} ${what}`}</button></p>` : '';
+  const paused = !!(D.your_games || {}).paused;
+
+  // New games in your genres.
+  const R = D.radar, A = D.areas;
+  let radar = '<p class="empty-state">The radar fills in after the next collector run: Steam\'s lists are read every run, Google\'s genre searches over the first days.</p>';
+  let nNew = 0;
+  if (R) {
+    const newG = R.games.filter(g => (g.group || 'new') === 'new'), oldG = R.games.filter(g => g.group === 'established');
+    nNew = newG.length;
+    const all = showAll.has('disc-radar'), cards = newG.map(g => radarCard(g, R));
+    const waiting = R.seeds.filter(s => !((R.pulled || {})[s] || {}).topics);
+    const profile = (R.profile || []).slice(0, 5).map(p => `${esc(p.tag)} ${Math.round(p.share * 100)}%`).join(', ');
+    radar = (cards.length ? `<div class="cards">${(all ? cards : cards.slice(0, CARDS_SHOWN)).join('')}</div>${moreBtn('disc-radar', cards.length, all, 'new games')}`
+        : '<p class="empty-state">No new games in your genres yet.</p>') +
+      (oldG.length ? `<details class="sub" data-key="disc-established" ${isOpen('disc-established', false) ? 'open' : ''}>
+          <summary><span class="fold">▶</span>Established games you haven't covered <span class="count">${oldG.length}</span></summary>
+          <p class="vol-how">Out for over a year, in your genres, in none of your titles. Big and steady rather than new; a sequel to one of yours is marked.</p>
+          <ul class="dq">${oldG.map(radarRow).join('')}</ul></details>` : '') +
+      `<p class="vol-how" style="margin-top:14px">${R.candidates} games in your genres checked: Steam's lists for ${R.steam_tags.map(esc).join(', ')}${
+        R.steam_date ? ` (read ${shortDate(R.steam_date)})` : ''}, and the games Google shows beside ${R.seeds.map(s => `“${esc(s)}”`).join(', ')}.${
+        waiting.length ? ` ${waiting.length} of these searches still wait for their first pull.` : ''}${
+        profile ? ` <b>Fit</b> compares Steam tags with the games that bring you views: ${profile} of your views.` : ''}${
+        R.youtube ? '' : ' YouTube counts need the YouTube secrets on the Discover step.'}</p>`;
+  }
+
+  // Areas heating up.
+  let areas = '<p class="empty-state">Themes appear once the genre searches are pulled.</p>', nThemes = 0;
+  if (A) {
+    nThemes = (A.themes || []).length;
+    areas = (nThemes ? `<ul class="dq">${A.themes.map(themeRow).join('')}</ul>`
+        : '<p class="empty-state">No theme is rising beside your genre searches right now.</p>') +
+      `<h4 class="rd-h">Your genres on Google</h4>${genresHtml(A)}`;
+  }
+
+  // Unanswered questions in your games (paused unless settings → your_games → search is true).
   const cards = D.questions.map(questionCard);
   const n = D.questions.reduce((k, c) => k + c.items.length, 0);
-  const saved = openState();
-  const open = saved['disc-questions'] !== undefined ? saved['disc-questions'] : true;
-  const all = showAll.has('disc-questions');
-  const searched = (D.schedule || {}).ranked || [];
-  const pending = Math.max(0, searched.length - Object.keys(D.pulls || {}).filter(k => searched.includes(k)).length);
-  const body = cards.length
-    ? `<div class="cards">${(all ? cards : cards.slice(0, CARDS_SHOWN)).join('')}</div>` +
-      (cards.length > CARDS_SHOWN ? `<p style="margin:12px 0 0"><button type="button" class="btn" data-more="disc-questions">${all ? 'Show fewer' : `Show all ${cards.length} games`}</button></p>` : '')
-    : `<p class="empty-state">Nothing unanswered yet.${pending ? ` ${pending} of your games still wait for their first search; a few are searched each day.` : ''}</p>`;
+  const allQ = showAll.has('disc-questions');
+  const lastPull = Object.values(D.pulls || {}).map(p => p.date).sort().pop();
+  const qBody = (paused ? `<p class="vol-how"><b>Paused:</b> no Google searches are spent on games you already cover; your own video data
+        tracks those. These are the results of the last searches${lastPull ? `, up to ${shortDate(lastPull)}` : ''}. To search them again, set
+        <code>settings → your_games → search</code> to <code>true</code> in <code>data/discover.json</code> (about 86 searches a cycle).</p>` : '') +
+    (cards.length ? `<div class="cards">${(allQ ? cards : cards.slice(0, CARDS_SHOWN)).join('')}</div>${moreBtn('disc-questions', cards.length, allQ, 'games')}`
+      : '<p class="empty-state">Nothing unanswered.</p>');
+
   const B = D.budget || {}, Z = D.sizes || {};
   const known = Object.entries(Z.known || {});
-  const bar = has(Z.min_monthly)
-    ? ` A question needs ~${fmt(Z.min_monthly)}+ searches a month (${shareTxt(Z.min_share)} of its game's searches until there are counts);
-        one in another language needs ${Z.foreign_factor}× that and a top score of ${Z.foreign_top}+.` : '';
-  const sizes = Z.baseline
-    ? `Searches a month are measured against the baseline “${esc(Z.baseline.term)}” (~${fmt(Z.baseline.monthly)} a month,
-        ${esc(monthName(Z.baseline.month))}), about ±12%.`
-    : known.length
-    ? `Counts are estimates from your Keyword Planner numbers (${known.map(([k, v]) => `${esc(k)} ~${fmt(v)}`).join(', ')})${
-        Z.anchor_label ? `, with ${esc(Z.anchor_label)} as the anchor${Z.calibrated ? ` (compared ${shortDate(Z.calibrated)})` : ''}` : ''}:
-        order of magnitude, not exact.`
-    : `Sizes are shares of each game's own searches until you set Keyword Planner numbers under <b>Search volumes</b> below.`;
-  const plan = B.plan_left !== null && B.plan_left !== undefined
-    ? ` · ${fmt(B.plan_left)} left on the SerpApi plan${B.plan_checked ? ` as of ${shortDate(B.plan_checked)}` : ''}` : '';
-  el.innerHTML = health + `<details class="group" data-key="disc-questions" ${open ? 'open' : ''}>
-      <summary><span class="fold">▶</span><h3>Unanswered questions in your games</h3>${n ? `<span class="count">${n}</span>` : ''}
-        <span class="group-what">Google searches about games you cover that none of your videos answers yet, big enough to act on.
-          Searches people already find you with, and anything you dismissed, are left out.</span></summary>
-      <div class="group-body">${body}</div></details>
-    <details class="group" data-key="disc-volumes" ${(saved['disc-volumes'] !== undefined ? saved['disc-volumes'] : !known.length) ? 'open' : ''}>
-      <summary><span class="fold">▶</span><h3>Search volumes</h3>${known.length ? `<span class="count">${known.length}</span>` : ''}
-        <span class="group-what">${Z.baseline
-          ? `How many Google searches a month each game gets, measured against the baseline “${esc(Z.baseline.term)}”.
-             Keyword Planner numbers you set are a cross-check.`
-          : 'How many Google searches a month each game gets. Set two or three from Keyword Planner and Discover turns every share into searches a month.'}</span></summary>
-      <div class="group-body">${volumesHtml(Z)}</div></details>
-    <p class="disc-foot">Google Trends through SerpApi: <b>${fmt(B.used || 0)} of ${fmt(B.cap || 200)}</b> searches used this cycle${
-      B.next_cycle ? ` (renews ${shortDate(B.next_cycle)})` : ''}${plan}. Your top 12 games are searched every 14 days, the next 12 every 30.
-      ${pending ? `${pending} still wait for a first search. ` : ''}${sizes}${bar} Search terms per game, and games to skip, are under
-      <code>settings → games</code> in <code>data/discover.json</code>. The roadmap is in
+  const plan = has(B.plan_left) ? ` · ${fmt(B.plan_left)} left on the SerpApi plan${B.plan_checked ? ` as of ${shortDate(B.plan_checked)}` : ''}` : '';
+  const group = (key, open, title, count, what, body) => `<details class="group" data-key="${key}" ${open ? 'open' : ''}>
+      <summary><span class="fold">▶</span><h3>${title}</h3>${count ? `<span class="count">${count}</span>` : ''}
+        <span class="group-what">${what}</span></summary>
+      <div class="group-body">${body}</div></details>`;
+  el.innerHTML = health +
+    group('disc-radar', isOpen('disc-radar', true), 'New games in your genres', nNew,
+      'Games you have never made a video on, new or coming soon, from Steam\'s lists and from what Google shows beside your genre searches. One card per game: what people search about it is listed on it.', radar) +
+    group('disc-areas', isOpen('disc-areas', true), 'Areas heating up', nThemes,
+      'Themes rising in the searches around your genres ("cozy", "medieval", "co-op"), with Steam games that carry them. One that keeps rising can become a seed.', areas) +
+    group('disc-questions', isOpen('disc-questions', !paused), `Unanswered questions in your games${paused ? ' <span class="tag">paused</span>' : ''}`, n,
+      'Google searches about games you cover that none of your videos answers yet, big enough to act on.', qBody) +
+    group('disc-volumes', isOpen('disc-volumes', false), 'Search volumes', known.length,
+      Z.baseline ? `How many Google searches a month each of your games gets, measured against the baseline “${esc(Z.baseline.term)}”.`
+        : 'How many Google searches a month each of your games gets.', volumesHtml(Z)) +
+    `<p class="disc-foot">Google Trends through SerpApi: <b>${fmt(B.used || 0)} of ${fmt(B.cap || 200)}</b> searches used this cycle${
+      B.next_cycle ? ` (renews ${shortDate(B.next_cycle)})` : ''}${plan}. ${R ? `Each genre search is pulled every two weeks (two searches); the ${R.shortlist}
+      most promising games are measured against the baseline${Z.baseline ? ` “${esc(Z.baseline.term)}”` : ''}. Steam and the YouTube counts cost no searches. ` : ''}${
+      paused ? 'Games you cover are not searched. ' : 'Your top 12 games are searched every 14 days, the next 12 every 30. '}Genre searches and Steam tags are under
+      <code>settings → radar</code> in <code>data/discover.json</code>. The roadmap is in
       <a href="https://github.com/${REPO}/blob/main/docs/search-demand-plan.md" target="_blank" rel="noopener">docs/search-demand-plan.md</a>.</p>
     <details class="glossary" data-key="disc-help"><summary>How to read this</summary><dl class="gloss-body">
-      <div><dt>+250% · Breakout</dt><dd>How much a search grew over the last three months against the three before, worldwide.
-        Breakout means more than +5000%, usually something new. A rise says nothing about size: +250% can be three people.</dd></div>
-      <div><dt>~1.1K/mo · 4% of Snowrunner searches</dt><dd>How big the search is, at the busier of its three-month average and its
-        last week, so a problem that started days ago counts at today's pace. Google never gives counts: a share of the game's
-        searches comes from comparing the two on one scale. Searches a month come from the baseline: a search term (now
-        “how to fish”) whose monthly searches were pinned down by comparing several terms in Trends against Keyword Planner
-        for the same month, recalibrated monthly. Every question is measured against it; one Trends cannot read beside it is
-        under a few thousand a month, too small to be worth a video. Roughly ±12%, not exact.</dd></div>
-      <div><dt>top · 45</dt><dd>One of the game's most searched queries, as a share of its busiest one (0–100). Listed when none of your videos covers it.</dd></div>
-      <div><dt>Small or one-off</dt><dd>Real searches under the bar: too small for Google to chart, a one-day spike that already
-        faded, or fewer searches than the bar. Listed so nothing vanishes; worth a look only if it keeps coming back.</dd></div>
-      <div><dt>Other languages</dt><dd>A second class with a higher bar: shown as a question only when it is one of the game's
-        top searches and several times the English bar. Gaming is international, so a strong one is worth knowing.</dd></div>
-      <div><dt>Trends</dt><dd>Opens the search beside its game on Google Trends, same 90 days, all of web search (a game whose
-        name is an everyday word stays in the Games category). A search too small to chart alone shows as a line near zero.</dd></div>
-      <div><dt>Problem · How-to · News · Topic</dt><dd>What the search asks for. Problems and how-tos are the quickest videos to make;
-        news is tied to the Steam announcement it is about, where there is one.</dd></div>
-      <div><dt>Closest of yours</dt><dd>Your video on the game that shares the most topic words. Adding the answer there
-        (description, pinned comment, chapter) can be enough; otherwise it is a new video.</dd></div>
-      <div><dt>What is left out</dt><dd>Searches one of your titles already answers, YouTube searches that already bring you views,
-        piracy, shop and spec searches, and anything you dismissed.</dd></div>
-      <div><dt>Searched alongside</dt><dd>Other games people looked up in the same searches. A lead for a new game, not a question about this one.</dd></div>
+      <div><dt>New games in your genres</dt><dd>Out in the last year or coming soon, in your Steam tags or beside your genre searches on
+        Google, and in none of your titles. Older ones you never covered are listed apart, folded.</dd></div>
+      <div><dt>~45K searches a month · +80% over 90 days</dt><dd>The game's Google searches (as a topic: every spelling and language),
+        measured against the baseline, a search term whose monthly searches were pinned down by hand. The change compares its
+        last four weeks with its first four. Roughly ±12%, not exact. <i>New on Google</i>: barely searched before, searched now.</dd></div>
+      <div><dt>Fit</dt><dd>How much of your views come from games with the same Steam tags (weighted by those views). 100% would be
+        a game tagged exactly like the games that bring you the most views.</dd></div>
+      <div><dt>Steam</dt><dd>Players at the daily check against a week ago, and reviews written in the last week: real players, not
+        just searches.</dd></div>
+      <div><dt>YouTube · Few videos</dt><dd>Videos other channels uploaded on it in the last 30 days and their views (counts only; nothing
+        about the videos is kept). <i>Few videos</i>: searched a lot, covered little.</dd></div>
+      <div><dt>Searched</dt><dd>Google searches that name the game, from your genre searches: one game, one card, however many ways
+        people ask about it.</dd></div>
+      <div><dt>Areas heating up · Add as seed</dt><dd>Words rising in the searches beside your genres, grouped. <i>Add as seed</i>
+        opens a form; the radar then watches that search too (two Google Trends searches every two weeks).</dd></div>
+      <div><dt>+250% · Breakout</dt><dd>How much a search grew over the last month (questions: three months) against the period before,
+        worldwide. Breakout means more than +5000%, usually something new. A rise says nothing about size: +250% can be three people.</dd></div>
+      <div><dt>Check Google (Needs attention)</dt><dd>Opens a game's Google searches beside the baseline: if they moved with your
+        videos, the game is waking up or cooling; if not, it is your videos.</dd></div>
+      <div><dt>Unanswered questions · top · 45</dt><dd>Searches about games you cover that none of your videos answers, with their size
+        (questions: the busier of the three-month average and the last week). <i>top · 45</i> is a share of the game's busiest search.
+        Small or one-off, other languages and searched-alongside games are listed apart. Paused while Discover is about new games.</dd></div>
     </dl></details>`;
 }
 
@@ -1946,7 +2127,7 @@ attEl.addEventListener('mouseleave', () => { document.getElementById('att-tip').
 // Remember which sections and groups are folded ('toggle' does not bubble).
 document.addEventListener('toggle', e => {
   const d = e.target;
-  if (d.matches && d.matches('details.section, details.group') && d.dataset.key) rememberOpen(d.dataset.key, d.open);
+  if (d.matches && d.matches('details.section, details.group, details.sub') && d.dataset.key) rememberOpen(d.dataset.key, d.open);
 }, true);
 // The table header sticks just below the page header, whatever its height.
 const setHeaderH = () => document.documentElement.style.setProperty(

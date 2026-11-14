@@ -1,0 +1,21 @@
+name: Add a radar seed
+description: Have Discover's new-games radar search one more genre or theme. The dashboard fills it in.
+title: "Seed: "
+labels: ["discover-seed"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A seed is a Google search the radar watches every two weeks (Games category, worldwide): the
+        games people search beside it become radar candidates, and its other searches become themes
+        under *Areas heating up*. Each seed costs two Google Trends searches every two weeks.
+
+        Within a few minutes it is added under `settings → radar → seeds` in `data/discover.json`
+        and this issue is closed; the next daily run searches it. To remove a seed, edit that list.
+  - type: input
+    id: seed
+    attributes:
+      label: Seed
+      description: The search, as people type it, e.g. cozy city builder.
+    validations:
+      required: true

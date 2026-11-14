@@ -110,7 +110,8 @@ monitor.py         flags videos that need attention, with next steps
 signals.py         week-on-week and shift tests (shared)
 patches.py         Steam updates behind a change, and patches touching a video
 actions.py         the learning loop: logs, measures, remembers
-discover.py        what is not on the dashboard yet (Discover); also applies Dismiss and Set forms
+discover.py        what is not on the dashboard yet (Discover); also applies Dismiss, Set and Seed forms
+radar.py           Discover's new games in your genres and areas heating up (Steam + Google Trends)
 trends.py          Google Trends through SerpApi, and the search budget
 auth.py            refresh-token OAuth
 mint_token.py      one-time token minting
@@ -122,7 +123,8 @@ docs/search-demand-plan.md   the Discover roadmap, phase by phase
 .github/ISSUE_TEMPLATE/log-action.yml        the "Log action" form
 .github/ISSUE_TEMPLATE/discover-dismiss.yml  the "Dismiss" form on Discover
 .github/ISSUE_TEMPLATE/discover-volume.yml   the "Set" form under Search volumes (Keyword Planner numbers)
-.github/workflows/discover-intake.yml        applies a Dismiss or Set form within minutes, no searches
+.github/ISSUE_TEMPLATE/discover-seed.yml     the "Add as seed" form under Areas heating up
+.github/workflows/discover-intake.yml        applies a Dismiss, Set or Seed form within minutes, no searches
 data/
   reports/<report_type>/<YYYY-MM-DD>.json   permanent archive, one file per day
   summary.json    per-video totals across 7d/28d/90d/365d/all
@@ -133,7 +135,8 @@ data/
   attention.json  what the "Needs attention" panel shows
   steam.json      Steam app per game and its recent announcements (editable)
   actions.json    every logged or detected action and its measured results
-  discover.json   what Discover shows, its search budget, and per-game search terms (editable)
+  discover.json   what Discover shows, its search budget, and its settings (editable)
+  radar_state.json   what the radar's next run needs: Steam lists, Google pulls, histories
   baselines.json  calibrated search terms Discover measures sizes against (edited by hand, monthly)
   discover_archive/<YYYY-MM-DD>/   raw Google Trends pulls, kept since they cannot be pulled again
   state.json      which reports have been archived
@@ -253,75 +256,110 @@ Issues are public, like the rest of this repository.
 
 ### Discover
 
-What is **not** on the dashboard yet, from Google web search, worldwide. The
-roadmap is in [docs/search-demand-plan.md](docs/search-demand-plan.md); the
-first part is live:
+What is **not** on the dashboard yet: games you have never touched, and the
+areas heating up around them. Games you already cover are tracked by your own
+video data, so Discover spends no Google searches on them. The roadmap is in
+[docs/search-demand-plan.md](docs/search-demand-plan.md).
 
-**Unanswered questions in your games.** For the games you cover that still
-bring views (20+ in 28 days, from your titles), Google's related searches over
-the last three months are pulled from Google Trends, across all of web search
-(a game reaching news or social media is a trend too; only names that are
-everyday words, like *Foundation*, stay in the Games category). Every search
-one of your videos already answers is dropped: when all its words appear in
-one of your titles on the game, or in a YouTube search that already brings
-those videos views. Piracy, shop and spec searches go too, in other languages
-as well. What is left is sorted by intent (problem, how-to, news, topic) with
-how much it rose (*Breakout* is more than +5000%), how big it is, the video of
-yours that comes closest, and the Steam announcement a news search is about.
-Other games people searched alongside are listed apart, as leads. *Dismiss*
-opens a pre-filled issue; the next run hides the search and closes the issue.
+**New games in your genres** (`radar.py`). Candidates come from two places:
+- **Steam**, free, every run: the *New & Trending*, *Top Sellers* and *Popular
+  Upcoming* lists of your genre tags (City Builder, Colony Sim, Survival, Base
+  Building, Strategy, Turn-Based Tactics, Automation, Management, Open World
+  Survival Craft).
+- **Google Trends**, every two weeks: the games Google shows beside your genre
+  searches (*city builder*, *colony sim*, *survival game*…), Games category,
+  last month. A game is one card however people type it. The searches that
+  name it (*anno 117 tips*, *anno 117 map*) are listed on its card, not as
+  rows of their own.
 
-**How big, not just how fast.** A rise says nothing about size: +250% can be
-three people. Right after a game's searches are pulled, one more search puts
-up to four of its questions beside the **baseline** on one scale: a search
-term whose monthly searches are known (see *Baselines*), now *how to fish*,
-~350K a month. A question's count is the baseline's times its level against
-it, at the busier of its three-month average and its last week, so a fresh
-problem counts at today's pace. A question too small for Trends to read
-beside the baseline is under a few thousand searches a month: too small to be
-worth a video, and listed as such. A question needs about
-**100 searches a month** (or 1% of its game's searches until there are
-counts), must be big enough for Google to chart, and must not be a one-day
-spike that already faded. Searches in **another language** are a second class:
-they need to be among the game's top searches (score 20+) and four times that
-count. Everything under the bar is still listed under the game, as *small or
-one-off* or *other languages*. *Trends* opens a question beside its game, so
-one too small to chart alone still shows, as a line near zero.
+A game you have a video on (even one title naming it), one of your Steam apps,
+and anything you dismissed are left out. A sequel to one of yours stays,
+marked. Games out in the last year or not out yet lead, as **new & upcoming**.
+Older games you never covered are listed apart, folded, as **established**.
+
+Each card shows:
+- **Size**: Google searches a month, measured against the baseline, for the
+  game as a Google topic (every spelling and language), and the change over 90
+  days. Only the 16 most promising games are measured (12 new, 4 established).
+  Finding a game's topic costs one search, once.
+- **Fit**: how much of your views come from games with the same Steam tags.
+- **Steam momentum**: players at the daily check against a week ago, and
+  reviews written in the last week.
+- **YouTube competition**: videos other channels uploaded on it in 30 days,
+  and their views. *Few videos* marks a game searched 2,000+ times a month with
+  under 10. Only the counts are kept. This needs the YouTube secrets on the
+  Discover step, which `collect.yml` passes.
+
+Ranking: log(searches a month) × momentum × (0.5 + fit). Games not measured
+yet come after, by a first guess from reviews and why they surfaced.
+*Dismiss* opens a pre-filled issue, and the radar hides that game.
+
+**Areas heating up.** Your genre searches' related searches that name no game
+(*cozy city builder*, *co-op base building*) are grouped into themes by the
+word beyond the genre, with Steam games carrying the matching tag. A theme
+with a rising search is heating up. *Add as seed* opens a form that adds the
+search to the radar's seeds within minutes. It is highlighted once a theme
+has kept rising for three pulls. Once a month the genre searches themselves
+are measured against the baseline: which genre grows overall.
+
+**Unanswered questions in your games (paused).** Google's related searches
+about games you cover that none of your videos answers. It is paused by
+default: its last results stay up, folded. Set `settings → your_games →
+search` to `true` in `data/discover.json` to search them again (about 86
+searches a cycle). How it works:
+- For your games that still bring views, the run pulls three months of
+  related searches across all of web search. Names that are everyday words,
+  like *Foundation*, stay in the Games category.
+- Every search you already answer is dropped: all its words appear in one of
+  your titles on the game, or in a YouTube search that already brings you
+  views.
+- Each remaining question is sized against the baseline. One under about 100
+  searches a month, or too small to chart, is listed as *small or one-off*.
+- Searches in another language need four times that and a top score of 20+.
+
+**Market or me, on demand.** *Needs attention* cards on a game have a **Check
+Google** link. It opens the game's Google searches beside the baseline on
+Google Trends. If they moved with your videos, the game is waking up or
+cooling; if not, it is your videos. Opening it costs no SerpApi search.
 
 **Budget.** SerpApi's free plan gives 250 searches a cycle, renewing on the
 12th. `trends.py` spends at most **200** of them and leaves 50 for checks by
-hand; it reads the searches left from SerpApi before spending. The top 12
-games are searched every 14 days and the next 12 every 30, each with one or
-two sizing searches, and the games are compared with the anchor every 30
-days: six searches a run, about 86 a cycle. Without `SERPAPI_KEY` the last
-results stay up.
+hand. It reads the searches left from SerpApi before spending. What the radar
+uses per cycle:
+
+| What | Searches per cycle |
+|---|---|
+| Nine genre searches, pulled every two weeks (topics and searches) | ~40 |
+| Finding new games' Google topics, and measuring the shortlist | ~20 |
+| Measuring the genres themselves, monthly | ~3 |
+
+The daily run spends at most six; its first days go to the genre pulls.
+Without `SERPAPI_KEY`, Steam is still read and the last Google results stay
+up.
 
 **Editing.** In `data/discover.json`:
-- `settings → games`: a game's search `term`, its `cat` (8 is Google's Games
-  category, for a name that is an everyday word) or `"skip": true`, with
-  `"manual": true` so the run leaves the entry alone.
-- `settings → searches_per_month`: Keyword Planner's average monthly searches
-  for a few of your games, worldwide. The easy way is the dashboard: *Search
-  volumes* (under Discover) lists your games with **Set** next to each, which
-  opens a pre-filled form. Get the number from Google Ads → Tools → Keyword
-  Planner → *Get search volume and forecasts*, location *All locations*, and
-  paste it as shown (a range like `10K – 100K` is fine; without ad spend that
-  is all it shows, so counts are order of magnitude). The *Discover intake*
-  workflow stores it within a few minutes and closes the form's issue; type
-  `clear` to remove one. By hand it is e.g. `{"Snowrunner": "10K-100K"}`.
-  Two or three games of different sizes work best; the one in the middle
-  becomes the anchor the other games are compared with.
-- `dismissed` holds what you hid.
+- `settings → radar → seeds`: the genre searches (or use *Add as seed*).
+- `settings → radar → steam_tags`: Steam tags whose lists are read, by their
+  Steam name.
+- `settings → your_games → search`: `true` searches your own games again.
+- `settings → games` and `settings → searches_per_month`: the unanswered
+  questions' search terms, and Keyword Planner numbers. Set them from the
+  dashboard's *Search volumes* → **Set**, or by hand, e.g.
+  `{"Snowrunner": "10K-100K"}`.
+- `dismissed` holds what you hid. Its `game` is the game's card,
+  `"new games"` for the radar, or `"areas"` for a theme.
 
-The bar and its numbers sit at the top of `discover.py` (`MIN_MONTHLY`,
-`MIN_SHARE`, `FOREIGN_TOP`, `FOREIGN_FACTOR`).
+Raw Google pulls are archived in `data/discover_archive/<date>/`, which is
+kept off Pages. What the radar's next run needs (Steam lists, histories,
+topics) is in `data/radar_state.json`. Thresholds sit at the top of
+`radar.py` and `discover.py`.
 
 ### Baselines
 
 Google never gives search counts: Trends gives shares, and Keyword Planner
 gives ranges ten times wide (100K – 1M) unless you run ads. Together they pin
 a term down. `data/baselines.json` holds the result; the first entry is the
-baseline every question and game is measured against, the rest are backups.
+baseline every game, genre and question is measured against, the rest are backups.
 No run writes that file. Recalibrate it once a month, when Keyword Planner
 has the month before (the dashboard reminds you):
 
