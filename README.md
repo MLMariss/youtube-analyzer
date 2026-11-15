@@ -280,8 +280,10 @@ Older games you never covered are listed apart, folded, as **established**.
 Each card shows:
 - **Size**: Google searches a month, measured against the baseline, for the
   game as a Google topic (every spelling and language), and the change over 90
-  days. Only the 16 most promising games are measured (12 new, 4 established).
-  Finding a game's topic costs one search, once.
+  days. Only the 16 most promising games are measured (12 new, 4 established),
+  in the run that finds them, and again every 14 days. A game Google surfaces
+  comes with its topic; a game from Steam's lists needs one search to find it,
+  once. A game Google has no topic for stays unmeasured.
 - **Fit**: how much of your views come from games with the same Steam tags.
 - **Steam momentum**: players at the daily check against a week ago, and
   reviews written in the last week.
@@ -333,14 +335,19 @@ uses per cycle:
 | Finding new games' Google topics, and measuring the shortlist | ~20 |
 | Measuring the genres themselves, monthly | ~3 |
 
-The daily run spends at most six; its first days go to the genre pulls.
-Without `SERPAPI_KEY`, Steam is still read and the last Google results stay
-up.
+The daily run spends at most six on pulls (the genre searches, and your games
+when they are searched), plus up to 24 to find topics and measure new games
+and genres, so a game is measured in the run that finds it. The 200 a cycle
+caps both. Without `SERPAPI_KEY`, Steam is still read and the last Google
+results stay up.
 
 **Editing.** In `data/discover.json`:
 - `settings → radar → seeds`: the genre searches (or use *Add as seed*).
 - `settings → radar → steam_tags`: Steam tags whose lists are read, by their
   Steam name.
+- `settings → radar → exclude_tags`: Steam tags that keep a game off the radar
+  (default Sports, Racing, Fighting, Shooter, FPS, Extraction Shooter): a
+  sports game can sit in a Management list.
 - `settings → your_games → search`: `true` searches your own games again.
 - `settings → games` and `settings → searches_per_month`: the unanswered
   questions' search terms, and Keyword Planner numbers. Set them from the
@@ -379,6 +386,12 @@ has the month before (the dashboard reminds you):
    times each term's average is its monthly searches, roughly ±12%.
 5. **Write it down** in `data/baselines.json`: `term`, `monthly`, `low`,
    `high`, `month` ("2026-10"). Put the flattest term first.
+
+Every measurement puts the baseline in the same Trends chart. Its level there
+is its average over the calibrated month, not over the chart's 90 days: *how
+to fish* is seasonal (about twice as high in August as in October), and a
+90-day average would make every count about a third too low. A size measured
+against an older calibration is measured again on the next run.
 
 Claude can do step 4 from screenshots of the two charts. October 2026 gave:
 one Trends point ≈ 27K searches; *how to fish* ~350K (320K–400K), *wardogs*
@@ -421,7 +434,8 @@ python monitor.py
 
 export SERPAPI_KEY=...
 python discover.py --dry-run         # which games are due, what it would spend
-python discover.py --max-searches 1  # one search now
+python discover.py --max-searches 1  # at most one pull now (measuring has its own 24)
+python discover.py --measure-searches 0   # measure nothing new this run
 python trends.py account             # searches left on the SerpApi plan
 python trends.py queries "tropico 6" # one manual check (uses a search)
 python trends.py compare "snowrunner" "snowrunner mods"   # two searches on one scale (uses a search)

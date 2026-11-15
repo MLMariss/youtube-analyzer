@@ -19,12 +19,17 @@ dismissed. Candidates come from two places:
         ("valheim tips", "valheim map") are listed under that game, not as
         rows of their own.
 
+A game carrying a Steam tag in settings -> radar -> exclude_tags (Sports,
+Shooter...) is left out: those lists also hold games outside your genres.
+
 Each game gets:
     fit         Steam tags it shares with the games that bring you views,
                 weighted by those views (0-1).
     size        searches a month, measured as its Google topic against the
-                baseline (data/baselines.json), 90 days, four to a search;
-                the topic is found once with Trends' autocomplete and kept.
+                baseline (data/baselines.json), 90 days, four to a search, in
+                the run that finds the game (MEASURE_RUN searches a run, apart
+                from the seed pulls); the topic comes with Google's related
+                topics, or is found once with Trends' autocomplete, and kept.
                 Only the SHORTLIST best by a first guess are measured
                 (twelve new, four established).
     momentum    Google: its last four weeks against its first four, 90 days
@@ -69,7 +74,8 @@ from datetime import date, datetime, timedelta, timezone
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import trends
-from discover import FOREIGN_WORDS, JUNK, MIN_POINTS, PLATFORM, archive, iso, load_json, mean, size_of, slug, words
+from discover import (FOREIGN_WORDS, JUNK, MIN_POINTS, PLATFORM, archive, iso, load_json, mean, ref_level, size_of,
+                      slug, words)
 from monitor import SEQUEL, game_of
 from summarize import DATA_DIR, write_json
 
@@ -88,9 +94,12 @@ SIZE_RANGE = "today 3-m"
 NEW_FOR_DAYS = 365      # released this recently, or not out yet: "new & upcoming"; older is "established"
 SHORTLIST = (12, 4)     # games measured on Google, the best by the first guess: (new, established)
 SIZE_EVERY = 14         # days before a game is measured again
-RESOLVE_RUN = 2         # Trends autocomplete searches per run (finding a game's topic)
-SIZE_RUN = 2            # sizing searches per run, four games each
+MEASURE_RUN = 24        # searches per run for finding topics and measuring, besides the seed pulls' allowance,
+                        # so a game is measured in the run that finds it (16 new games: 16 topics + 4 charts)
 TOPIC_RETRY = 60        # days before a game with no Google topic is looked up again
+# Steam tags that put a game off the radar: a sports or shooter game can sit in a
+# Management or Base Building list. Copied into settings -> radar -> exclude_tags.
+EXCLUDE_TAGS = ["Sports", "Racing", "Fighting", "Shooter", "FPS", "Extraction Shooter"]
 GENRES_EVERY = 30       # days between measuring the seeds themselves
 KEEP = (30, 15)         # games written for the dashboard: (new, established)
 SEARCHES_PER_GAME = 6   # searches listed under a game
@@ -361,24 +370,35 @@ class Radar:
                                "Edit freely; a seed's results come with its next pull.")
         self.seeds = [s.strip().lower() for s in cfg.setdefault("seeds", list(SEEDS)) if str(s).strip()]
         self.steam_tags = [str(t).strip() for t in cfg.setdefault("steam_tags", list(STEAM_TAGS)) if str(t).strip()]
+        self.exclude_tags = {str(t).strip().lower() for t in cfg.setdefault("exclude_tags", list(EXCLUDE_TAGS))
+                             if str(t).strip()}
         self.state = load_json(STATE_PATH, {})
-        self.health, self.spent = [], 0
+        self.health, self.spent, self.measure_spent, self.stopped, self.charts = [], 0, 0, False, 0
 
     # -------------------------------------------------- spending
 
     def room(self):
-        return min(self.ctx["max"] - self.spent, self.ctx["budget"].left())
+        """Searches the seed pulls may still spend this run."""
+        return 0 if self.stopped else min(self.ctx["max"] - self.spent, self.ctx["budget"].left())
 
-    def search(self, what, call):
+    def measure_room(self):
+        """Searches finding topics and measuring may still spend this run: an allowance of their own."""
+        return 0 if self.stopped else min(self.ctx.get("measure_max", MEASURE_RUN) - self.measure_spent,
+                                          self.ctx["budget"].left())
+
+    def search(self, what, call, measuring=False):
         """One Google Trends search, counted. Returns its result, or None after a failure."""
-        self.spent += 1
+        if measuring:
+            self.measure_spent += 1
+        else:
+            self.spent += 1
         try:
             return call()
         except trends.TrendsError as e:
             print(f"  ! {what}: {e}")
             self.health.append({"level": "error", "message": f"Google Trends search for {what} failed: {e}"})
             if "401" in str(e) or "Invalid API key" in str(e):
-                self.spent = 10 ** 6   # a bad key: stop searching this run
+                self.stopped = True   # a bad key: stop searching this run
             return None
 
     # -------------------------------------------------- Steam (free)
@@ -469,84 +489,110 @@ class Radar:
             if kind == "queries":
                 self.saw_themes(seed, got)
 
-    def resolve(self, games):
-        """A Google topic (mid) for shortlisted games that have none: one autocomplete search each, kept."""
-        topics = self.state.setdefault("topic", {})
-        budget, done = self.ctx["budget"], 0
-        for c in games:
-            if c.get("mid") or done >= RESOLVE_RUN or self.room() <= 0:
-                continue
-            e = topics.get(c["key"])
-            if e and (e.get("mid") or days_since(e.get("date"), self.today) < TOPIC_RETRY):
-                continue
-            name = display_short(c["name"])
-            got = self.search(f"“{name}” (topic)", lambda: trends.autocomplete(name, budget=budget))
-            done += 1
-            if got is None:
-                continue
-            want = {norm(c["name"]), short(c["name"])}
-            pick = next((t for t in got if is_game_topic(t) and norm(t["title"]) in want), None) or \
-                next((t for t in got if is_game_topic(t) and short(t["title"]) in want), None)
-            topics[c["key"]] = {**(pick or {"none": True}), "date": iso(self.today)}
-            if pick:
-                c["mid"] = pick["mid"]
+    def find_topic(self, c):
+        """A game's Google topic (mid): one autocomplete search, kept, so a game is looked up once."""
+        name = display_short(c["name"])
+        got = self.search(f"“{name}” (topic)", lambda: trends.autocomplete(name, budget=self.ctx["budget"]),
+                          measuring=True)
+        if got is None:
+            return
+        want = {norm(c["name"]), short(c["name"])}
+        pick = next((t for t in got if is_game_topic(t) and norm(t["title"]) in want), None) or \
+            next((t for t in got if is_game_topic(t) and short(t["title"]) in want), None)
+        self.state.setdefault("topic", {})[c["key"]] = {**(pick or {"none": True}), "date": iso(self.today)}
+        if pick:
+            c["mid"] = pick["mid"]
 
     def measure(self, games, base):
-        """The shortlist's sizes against the baseline, four to a search."""
+        """
+        The shortlist's sizes against the baseline, four games to a search, in
+        the run that finds them: a game without its Google topic gets it first,
+        then joins the next chart. Slots a chart would leave empty go to the
+        games measured longest ago.
+        """
         if not base:
             return
         sizes = self.state.setdefault("sizes", {})
-        due = [c for c in games if c.get("mid") and (c["key"] not in sizes or sizes[c["key"]].get("mid") != c["mid"]
-                                                     or days_since(sizes[c["key"]].get("date"), self.today) >= SIZE_EVERY)]
-        budget, runs = self.ctx["budget"], 0
-        while due and runs < SIZE_RUN and self.room() > 0:
-            batch, seen = [], set()
-            for c in list(due):
-                if len(batch) == trends.MAX_TERMS - 1:
-                    break
-                due.remove(c)
-                if c["mid"] not in seen:
-                    seen.add(c["mid"])
-                    batch.append(c)
-            runs += 1
-            terms = [base["term"]] + [c["mid"] for c in batch]
-            got = self.search("game sizes", lambda: trends.interest_over_time(terms, SIZE_RANGE, budget=budget))
-            if got is None:
+        topics = self.state.setdefault("topic", {})
+
+        def fresh(c):
+            s = sizes.get(c["key"])
+            return bool(s) and s.get("mid") == c["mid"] and s.get("calibrated") == base.get("month") \
+                and days_since(s.get("date"), self.today) < SIZE_EVERY
+
+        batch, charted = [], set()
+        for c in games:
+            if self.measure_room() <= 0:
+                break
+            if not c.get("mid"):
+                e = topics.get(c["key"])
+                if e and days_since(e.get("date"), self.today) < TOPIC_RETRY:
+                    continue   # looked up lately: Google has no game topic for it
+                if self.measure_room() < 2:
+                    continue   # its chart would not fit in this run
+                self.find_topic(c)
+                if not c.get("mid"):
+                    continue
+            if fresh(c) or c["mid"] in {b["mid"] for b in batch}:
                 continue
-            archive("radar-sizes", {"vs": base["term"], "range": SIZE_RANGE, "terms": terms,
-                                    "games": [c["name"] for c in batch], **got}, self.today)
-            series = list(got["series"].values())
-            ref = mean(series[0]) if series else 0.0
-            if ref <= 0:
-                print(f"  ! “{base['term']}” has no data in this comparison")
-                continue
-            for i, c in enumerate(batch):
-                sizes[c["key"]] = {**measure_series(series[i + 1] if i + 1 < len(series) else [], ref, got["dates"],
-                                                    base["monthly"]), "mid": c["mid"], "date": iso(self.today)}
+            batch.append(c)
+            if len(batch) == trends.MAX_TERMS - 1:
+                self.chart(batch, base)
+                charted |= {b["key"] for b in batch}
+                batch = []
+        if batch and self.measure_room() > 0:
+            mids = {b["mid"] for b in batch}
+            spare = sorted((c for c in games if c.get("mid") and c["key"] in sizes and c["key"] not in charted
+                            and c["mid"] not in mids), key=lambda c: sizes[c["key"]].get("date") or "")
+            self.chart(batch + spare[:trends.MAX_TERMS - 1 - len(batch)], base)
+
+    def chart(self, batch, base):
+        """One search: the baseline and up to four games on one Trends scale, each game's size from it."""
+        terms = [base["term"]] + [c["mid"] for c in batch]
+        got = self.search("game sizes", lambda: trends.interest_over_time(terms, SIZE_RANGE, budget=self.ctx["budget"]),
+                          measuring=True)
+        if got is None:
+            return
+        self.charts += 1   # one file per chart: raw Trends pulls cannot be pulled again
+        archive(f"radar-sizes-{self.now:%H%M}-{self.charts}", {"vs": base["term"], "range": SIZE_RANGE, "terms": terms,
+                                                               "games": [c["name"] for c in batch], **got}, self.today)
+        series = list(got["series"].values())
+        ref = ref_level(series[0], got["dates"], base.get("month")) if series else 0.0
+        if ref <= 0:
+            print(f"  ! “{base['term']}” has no data in this comparison")
+            return
+        sizes = self.state.setdefault("sizes", {})
+        for i, c in enumerate(batch):
+            sizes[c["key"]] = {**measure_series(series[i + 1] if i + 1 < len(series) else [], ref, got["dates"],
+                                                base["monthly"]), "mid": c["mid"], "date": iso(self.today),
+                               "calibrated": base.get("month")}
 
     def measure_genres(self, base):
         """The seeds against the baseline once a month: which genre grows overall."""
         g = self.state.setdefault("genres", {})
         if not base or (g.get("date") and days_since(g["date"], self.today) < GENRES_EVERY
-                        and set(g.get("seeds", {})) >= set(self.seeds)):
+                        and set(g.get("seeds", {})) >= set(self.seeds) and g.get("calibrated") == base.get("month")):
             return
         budget, out = self.ctx["budget"], {}
         for i in range(0, len(self.seeds), trends.MAX_TERMS - 1):
-            if self.room() <= 0:
+            if self.measure_room() <= 0:
                 return   # finish next run: nothing is saved half done
             batch = self.seeds[i:i + trends.MAX_TERMS - 1]
             terms = [base["term"]] + batch
-            got = self.search("genre sizes", lambda: trends.interest_over_time(terms, SIZE_RANGE, budget=budget))
+            got = self.search("genre sizes", lambda: trends.interest_over_time(terms, SIZE_RANGE, budget=budget),
+                              measuring=True)
             if got is None:
                 return
+            archive(f"radar-genres-{self.now:%H%M}-{i // (trends.MAX_TERMS - 1) + 1}",
+                    {"vs": base["term"], "range": SIZE_RANGE, "terms": terms, **got}, self.today)
             series = list(got["series"].values())
-            ref = mean(series[0]) if series else 0.0
+            ref = ref_level(series[0], got["dates"], base.get("month")) if series else 0.0
             for j, s in enumerate(batch):
                 if ref > 0:
                     out[s] = measure_series(series[j + 1] if j + 1 < len(series) else [], ref, got["dates"],
                                             base["monthly"])
         archive("radar-genres", {"vs": base["term"], "seeds": out}, self.today)
-        g.update({"date": iso(self.today), "vs": base["term"], "seeds": out})
+        g.update({"date": iso(self.today), "vs": base["term"], "seeds": out, "calibrated": base.get("month")})
 
     # -------------------------------------------------- themes (areas heating up)
 
@@ -610,6 +656,9 @@ class Radar:
             fill(c, row)
             for lst, tag, rank in row.get("lists") or []:
                 c["why"].append({"kind": "steam", "list": lst, "tag": tag, "rank": rank})
+        # A game Google names joins the Steam game of the same name even before
+        # its Steam lookup, so the topic id Google sent stays on its card.
+        by_name = {norm(c["name"]): key for key, c in pool.items()}
         for seed in self.seeds:
             p = ((self.state.get("seeds") or {}).get(seed) or {}).get("topics") or {}
             for kind in ("rising", "top"):
@@ -617,8 +666,10 @@ class Radar:
                     if not is_game_topic(t):
                         continue
                     row = lookup.get(norm(t["title"]))
-                    key = f"app:{row['appid']}" if row and row.get("appid") else f"topic:{t['mid'] or norm(t['title'])}"
+                    key = f"app:{row['appid']}" if row and row.get("appid") else \
+                        by_name.get(norm(t["title"])) or f"topic:{t['mid'] or norm(t['title'])}"
                     c = add(key, t["title"])
+                    by_name.setdefault(norm(t["title"]), key)
                     if row and row.get("appid"):
                         if not c["appid"]:
                             fill(c, row)
@@ -631,6 +682,7 @@ class Radar:
                 c["mid"] = topics[c["key"]]["mid"]
 
         hidden = {norm(d["item"]) for d in dismissed if d.get("game") in (None, "", "new games")}
+        off_genre = {t for t, n in tagname.items() if n.lower() in self.exclude_tags}
         bases = {}
         for k in names:
             bases.setdefault(base_of(k), []).append(k)
@@ -639,6 +691,8 @@ class Radar:
             full, sh = norm(c["name"]), short(c["name"])
             if c["appid"] in your_appids or full in names or sh in names or full in hidden or sh in hidden:
                 continue
+            if off_genre & set(c["tags"]):
+                continue   # settings -> radar -> exclude_tags
             named = re.compile(r"(?<![\w])" + re.escape(sh) + r"(?![\w])")
             if len(sh) >= 4 and any(named.search(t) for t in titles):
                 continue   # a video of yours names it
@@ -818,8 +872,7 @@ def run(ctx, settings, today, now, network, have_key):
     order = sorted(games.values(), key=lambda c: -c["guess"])
     shortlist = split(order, SHORTLIST)
 
-    if network and have_key and r.room() > 0:
-        r.resolve(shortlist)
+    if network and have_key:
         r.measure(shortlist, base)
         r.measure_genres(base)
 
@@ -906,7 +959,7 @@ def run(ctx, settings, today, now, network, have_key):
     }
     if network:
         write_json(os.path.basename(STATE_PATH), r.state)
-    return radar, areas, r.health, min(r.spent, ctx["max"])
+    return radar, areas, r.health, r.spent + r.measure_spent
 
 
 def themes(r, known, games, your_tags, labels, ranked, dismissed):
