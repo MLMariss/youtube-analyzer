@@ -283,7 +283,9 @@ Each card shows:
   days. Only the 16 most promising games are measured (12 new, 4 established),
   in the run that finds them, and again every 14 days. A game Google surfaces
   comes with its topic; a game from Steam's lists needs one search to find it,
-  once. A game Google has no topic for stays unmeasured.
+  once. A game Google has no topic for stays unmeasured. A game too small to
+  read beside the baseline shows *under* a ceiling, with no trend, and ranks
+  with the unmeasured ones.
 - **Fit**: how much of your views come from games with the same Steam tags.
 - **Steam momentum**: players at the daily check against a week ago, and
   reviews written in the last week.

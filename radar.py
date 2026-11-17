@@ -38,7 +38,7 @@ Each game gets:
     competition videos other channels uploaded on it in the last 30 days
                 (YouTube search; only counts are kept, never the videos).
 Ranked by log10(searches a month) x momentum x (0.5 + fit); games not
-measured yet come after, by the first guess. Games out in the last
+measured yet, or too small on Google to read, come after, by the first guess. Games out in the last
 NEW_FOR_DAYS days or not out yet are "new & upcoming" and lead; older games
 you never covered are "established" and listed apart.
 
@@ -74,7 +74,7 @@ from datetime import date, datetime, timedelta, timezone
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import trends
-from discover import (FOREIGN_WORDS, JUNK, MIN_POINTS, PLATFORM, archive, iso, load_json, mean, ref_level, size_of,
+from discover import (FOREIGN_WORDS, JUNK, PLATFORM, archive, iso, load_json, mean, ref_level, size_of,
                       slug, words)
 from monitor import SEQUEL, game_of
 from summarize import DATA_DIR, write_json
@@ -94,6 +94,8 @@ SIZE_RANGE = "today 3-m"
 NEW_FOR_DAYS = 365      # released this recently, or not out yet: "new & upcoming"; older is "established"
 SHORTLIST = (12, 4)     # games measured on Google, the best by the first guess: (new, established)
 SIZE_EVERY = 14         # days before a game is measured again
+READABLE = 1.0          # a level under one Trends point is mostly "<1" days: an upper bound, no trend
+SIZE_RULE = 2           # sizes measured under an older rule are measured again
 MEASURE_RUN = 24        # searches per run for finding topics and measuring, besides the seed pulls' allowance,
                         # so a game is measured in the run that finds it (16 new games: 16 topics + 4 charts)
 TOPIC_RETRY = 60        # days before a game with no Google topic is looked up again
@@ -109,6 +111,7 @@ UPCOMING_COUNT = 15
 LOOKUP_EVERY = 30       # days before a Steam lookup (tags, reviews) is repeated
 LOOKUPS_RUN = 60        # Steam lookups per run
 STEAM_PAUSE = 0.25      # seconds between Steam requests
+LOOKUP_PAUSE = 1.5      # more before each lookup: up to LOOKUPS_RUN in a row got Steam's 429
 MOMENTUM_GAMES = (20, 5)  # games whose players and reviews are read every run: (new, established)
 HISTORY_DAYS = 21
 
@@ -434,9 +437,13 @@ class Radar:
                 break
             done += 1
             try:
+                time.sleep(LOOKUP_PAUSE)
                 r = steam_lookup(name, appid)
             except Exception as ex:
                 print(f"  ! Steam lookup {name}: {str(ex)[:120]}")
+                if "429" in str(ex):
+                    print("    Steam is rate limiting: the remaining lookups wait for the next run")
+                    break
                 continue
             cache[key] = {**(r or {"none": True}), "date": iso(self.today)}
 
@@ -518,7 +525,7 @@ class Radar:
         def fresh(c):
             s = sizes.get(c["key"])
             return bool(s) and s.get("mid") == c["mid"] and s.get("calibrated") == base.get("month") \
-                and days_since(s.get("date"), self.today) < SIZE_EVERY
+                and s.get("rule") == SIZE_RULE and days_since(s.get("date"), self.today) < SIZE_EVERY
 
         batch, charted = [], set()
         for c in games:
@@ -565,7 +572,7 @@ class Radar:
         for i, c in enumerate(batch):
             sizes[c["key"]] = {**measure_series(series[i + 1] if i + 1 < len(series) else [], ref, got["dates"],
                                                 base["monthly"]), "mid": c["mid"], "date": iso(self.today),
-                               "calibrated": base.get("month")}
+                               "calibrated": base.get("month"), "rule": SIZE_RULE}
 
     def measure_genres(self, base):
         """The seeds against the baseline once a month: which genre grows overall."""
@@ -755,19 +762,21 @@ class Radar:
 def measure_series(vals, ref_avg, dates, base_monthly):
     """
     A game's (or genre's) size from its line beside the baseline: searches a
-    month at its level (an upper bound when too small to chart), its trend
-    (last four weeks against the first four of the 90 days), and its line by
-    week in searches a month.
+    month at its level, its trend (last four weeks against the first four of
+    the 90 days), and its line by week in searches a month. Under READABLE
+    its days are mostly "<1", which Trends reports without a number: the size
+    is an upper bound (one point's worth), with no trend and no line.
     """
     sz = size_of(vals, ref_avg, dates)
-    upper = sz["level"] < MIN_POINTS
-    monthly = base_monthly * (sz["floor"] if upper else sz["ratio"]) if sz["ratio"] is not None else None
-    first, last = mean(vals[:28]), mean(vals[-28:])
+    upper = sz["level"] < READABLE
     per = base_monthly / ref_avg if ref_avg > 0 else None
+    monthly = (READABLE if upper else sz["level"]) * per if per else None
+    first, last = mean(vals[:28]), mean(vals[-28:])
     return {"monthly": round(monthly) if monthly is not None else None, "upper": upper,
-            "trend": round(last / first - 1, 3) if first > 0 else None, "fresh": first == 0 and last > 0,
-            "spike": sz["spike"],
-            "weekly": [round(mean(vals[i:i + 7]) * per) for i in range(0, len(vals), 7)] if per and vals else []}
+            "trend": round(last / first - 1, 3) if first > 0 and not upper else None,
+            "fresh": first == 0 and last > 0, "spike": sz["spike"],
+            "weekly": [round(mean(vals[i:i + 7]) * per) for i in range(0, len(vals), 7)]
+            if per and vals and not upper else []}
 
 
 def momentum_factor(size):
@@ -879,8 +888,8 @@ def run(ctx, settings, today, now, network, have_key):
     sizes = r.state.get("sizes") or {}
     for c in games.values():
         sz = sizes.get(c["key"])
-        c["size"] = sz if sz and c.get("mid") and sz.get("mid") == c["mid"] else None
-        if c["size"] and c["size"].get("monthly"):
+        c["size"] = sz if sz and c.get("mid") and sz.get("mid") == c["mid"] and sz.get("rule") == SIZE_RULE else None
+        if c["size"] and c["size"].get("monthly") and not c["size"].get("upper"):
             c["score"] = round(math.log10(1 + c["size"]["monthly"]) * momentum_factor(c["size"])
                                * (0.5 + (c["fit"] or 0)), 3)
     order = sorted(games.values(), key=lambda c: (c.get("score") is None, -(c.get("score") or c["guess"])))

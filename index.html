@@ -1622,7 +1622,8 @@ function radarLinks(g) {
 function radarCard(g, R) {
   const z = g.size, k = g.competition;
   const line = (label, html) => html ? `<div class="vc-why"><span class="inl">${label}</span>${html}</div>` : '';
-  const google = z ? `<b>${sizeTxt(z)}</b>${trendTxt(z) ? ` · ${trendTxt(z)}` : ''}${z.spike ? ' · mostly a one-day spike' : ''}`
+  const google = z ? `<b>${sizeTxt(z)}</b>${trendTxt(z) ? ` · ${trendTxt(z)}` : ''}${z.spike ? ' · mostly a one-day spike' : ''}${
+      z.upper ? ' · too small beside the baseline to read a trend' : ''}`
     : `<span class="side-why">${g.topic ? 'measured against the baseline on one of the next runs'
         : `not measured yet: the ${R.shortlist} best by a first guess are measured first`}</span>`;
   const fit = has(g.fit) ? `<b>${Math.round(g.fit * 100)}%</b>${(g.shared || []).length ? ` · shares ${g.shared.map(esc).join(', ')}` : ''}${
@@ -1772,7 +1773,8 @@ function renderDiscover() {
         Google, and in none of your titles. Older ones you never covered are listed apart, folded.</dd></div>
       <div><dt>~45K searches a month · +80% over 90 days</dt><dd>The game's Google searches (as a topic: every spelling and language),
         measured against the baseline, a search term whose monthly searches were pinned down by hand. The change compares its
-        last four weeks with its first four. Roughly ±12%, not exact. <i>New on Google</i>: barely searched before, searched now.</dd></div>
+        last four weeks with its first four. Roughly ±12%, not exact. <i>New on Google</i>: barely searched before, searched now.
+        <i>Under</i>: too small beside the baseline to read, so a ceiling with no trend; it ranks by its Steam signals and fit.</dd></div>
       <div><dt>Fit</dt><dd>How much of your views come from games with the same Steam tags (weighted by those views). 100% would be
         a game tagged exactly like the games that bring you the most views.</dd></div>
       <div><dt>Steam</dt><dd>Players at the daily check against a week ago, and reviews written in the last week: real players, not
