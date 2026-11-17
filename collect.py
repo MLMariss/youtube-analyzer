@@ -59,6 +59,7 @@ SNAPSHOT_DAYS = 30
 
 MAX_RETRIES = 4
 RETRY_BASE_DELAY = 2.0
+RETRY_429_DELAY = 20.0  # a 429 is a quota: wait 20, 40, 60 s (two minutes in all) for it to refill
 
 
 # ---------------------------------------------------------------- HTTP helpers
@@ -101,7 +102,9 @@ def _request(creds, url, method="GET", body=None, accept_gzip=False):
             # 429/5xx are transient; retry with backoff. Other 4xx are not.
             if e.code == 429 or 500 <= e.code < 600:
                 last_err = f"HTTP {e.code}: {detail[:300]}"
-                time.sleep(RETRY_BASE_DELAY * (2 ** attempt))
+                if attempt < MAX_RETRIES - 1:
+                    time.sleep(RETRY_429_DELAY * (attempt + 1) if e.code == 429
+                               else RETRY_BASE_DELAY * (2 ** attempt))
                 continue
             # Never echo the URL itself: report downloadUrls carry access tokens.
             raise RuntimeError(f"HTTP {e.code} for {_url_label(url)}\n{detail[:600]}") from e
@@ -324,7 +327,7 @@ def collect_report_type(creds, report_type_id, job_id, state, dry_run=False):
     try:
         reports = list_reports(creds, job_id)
     except Exception as e:
-        print(f"  ! {report_type_id}: could not list reports: {str(e)[:200]}")
+        print(f"  ! {report_type_id}: could not list reports: {str(e)[:500]}")
         return {"new": 0, "replaced": 0, "failed": 1, "skipped": 0}
 
     if not reports:
