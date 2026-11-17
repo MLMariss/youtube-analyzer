@@ -1297,7 +1297,9 @@ function smallHtml(A) {
       ? `<a href="${studio(e.video_id, 'analytics')}" target="_blank" rel="noopener">${esc(attTitle(e.video_id))}</a>`
       : `<b>${esc(e.label)}</b> (${e.videos} videos together)`;
     const sit = e.video_id ? SITUATION_LABEL[e.situation] || e.situation : (e.direction > 0 ? 'rising' : 'losing reach');
-    const change = e.video_id ? `${fmt(e.from)} → ${fmt(e.to)} ${METRIC_UNIT[e.metric] || e.metric}${e.basis === 'shift' ? ' (level)' : ''}` : '';
+    const change = !e.video_id ? ''
+      : e.metric === 'ctr' ? `${pct(e.from)} → ${pct(e.to)} CTR`
+      : `${fmt(e.from)} → ${fmt(e.to)} ${METRIC_UNIT[e.metric] || e.metric}${e.basis === 'shift' ? ' (level)' : ''}`;
     return `<tr><td style="text-align:left;white-space:normal">${what}</td><td>${esc(sit)}</td><td>${change}</td><td>~${fmt(e.stake)}</td></tr>`;
   }).join('');
   return rows ? `<div class="scroll-x"><table class="att-table"><thead><tr><th style="text-align:left">Video</th><th>What</th>

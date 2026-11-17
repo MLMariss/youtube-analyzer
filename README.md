@@ -186,9 +186,10 @@ week), and CTR changes need 100 impressions in each week.
 
 **Big enough to act on.** Real is not the same as worth an hour: 4 → 11 views a
 week can be a clear change and still not matter. A card needs a change worth
-at least **0.3% of the channel's weekly views** (about 23 a week at 7,600),
+at least **1% of the channel's weekly views** (about 97 a week at 9,700),
 counting ten impressions as one view and a CTR change as the clicks it wins or
-loses. The bar grows with the channel. Smaller changes are listed under
+loses. Only changes in the card's own direction count: a small rise does not
+get a card because the same video also fell. The bar grows with the channel. Smaller changes are listed under
 *Small changes* (folded), so nothing vanishes. The same bar applies to rising
 searches and sites and to videos building up; conversation cards keep their
 own minimum (5 comments a week).
