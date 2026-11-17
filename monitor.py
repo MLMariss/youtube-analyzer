@@ -31,10 +31,12 @@ same-day jumps in the public view counter.
 
 A change must also be big enough to act on. Telling a real change from
 chance is not enough: 4 -> 11 views a week can be real and not worth an hour.
-A card needs a change worth at least 0.3% of the channel's weekly views (in
-views, or ten times that in impressions, or in clicks won or lost to CTR).
-Smaller ones are listed apart as small changes, so nothing vanishes. The
-same floor applies to rising searches and sites, and to videos building up.
+A card needs a change worth at least 1% of the channel's weekly views (in
+views, or ten times that in impressions, or in clicks won or lost to CTR),
+in the card's own direction: a small rise does not get a card because the
+video also fell, nor the other way round. Smaller ones are listed apart as
+small changes, so nothing vanishes. The same floor applies to rising
+searches and sites, and to videos building up.
 
 Each card carries concrete next steps; actions.py records what was done and
 measures whether it helped, and those results are shown next to the steps.
@@ -85,9 +87,9 @@ SETTLING_DAYS = 91    # within this long of a rise, easing back is the wave sett
 STALE_DAYS = 60       # a game's newest video older than this is worth saying
 COVERED_MIN = 20      # views over four weeks before a game's Steam updates are followed
 # What a change must be worth to get a card: this share of the channel's
-# weekly views (about 20 a week at 6,700), never under FLOOR_MIN. Impressions
+# weekly views (about 97 a week at 9,700), never under FLOOR_MIN. Impressions
 # count at IMPRESSIONS_PER_VIEW to one, so the floor for reach is ten times it.
-FLOOR_SHARE = 0.003
+FLOOR_SHARE = 0.01
 FLOOR_MIN = 10
 IMPRESSIONS_PER_VIEW = 10
 
@@ -361,32 +363,36 @@ def in_views(metric, n):
     return n / IMPRESSIONS_PER_VIEW if metric == "impressions" else n
 
 
-def stake(sig):
+def changes(sig, sit):
     """
-    What a video's change is worth a week, in views: the biggest of its
-    flagged changes (this week's against the week it is compared with, or the
-    level now against before a shift), impressions counted as views, and the
-    clicks a CTR change wins or loses at this week's impressions.
+    The flagged changes that count for a card in situation `sit`, each with
+    what it is worth a week in views: this week's against the week it is
+    compared with, or the level now against before a shift, impressions
+    counted as views, and the clicks a CTR change wins or loses at this
+    week's impressions. Only changes in the card's own direction count: a
+    rising card is not sized by a fall, nor a losing one by a rise.
     """
-    best = 0.0
+    want = -1 if sit in ("clicks", "losing") else 1
+    out = []
     for m in METRICS:
         s = sig[m]
-        if s["dir"]:
-            best = max(best, in_views(m, abs(s["weeks"][2] - s["base"])))
-        if s["shift"]:
-            best = max(best, in_views(m, abs(s["shift"]["now"] - s["shift"]["before"])))
+        if s["dir"] == want:
+            out.append({"worth": in_views(m, abs(s["weeks"][2] - s["base"])),
+                        "metric": m, "from": s["base"], "to": s["weeks"][2], "basis": "week"})
+        if s["shift"] and s["shift"]["dir"] == want:
+            out.append({"worth": in_views(m, abs(s["shift"]["now"] - s["shift"]["before"])),
+                        "metric": m, "from": s["shift"]["before"], "to": s["shift"]["now"], "basis": "shift"})
     c = sig["ctr"]
-    if c["dir"] and c["last"] is not None and c["this"] is not None:
-        best = max(best, c.get("impressions", 0) * abs(c["this"] - c["last"]) / 100)
-    return best
+    # Packaging is impressions up with CTR down: the clicks lost are its point.
+    if (c["dir"] == want or sit == "packaging") and c["last"] is not None and c["this"] is not None:
+        out.append({"worth": c.get("impressions", 0) * abs(c["this"] - c["last"]) / 100,
+                    "metric": "ctr", "from": c["last"], "to": c["this"], "basis": "week"})
+    return out
 
 
-def change_of(sig, lead, basis):
-    """The lead metric's weekly level before and now, for the small-changes list."""
-    s = sig[lead]
-    if basis == "shift" and s["shift"]:
-        return {"metric": lead, "from": s["shift"]["before"], "to": s["shift"]["now"]}
-    return {"metric": lead, "from": s["base"], "to": s["weeks"][2]}
+def stake(sig, sit):
+    """What a card's change is worth a week, in views: the biggest of its changes."""
+    return max((ch["worth"] for ch in changes(sig, sit)), default=0.0)
 
 
 def channel_floor(daily, end):
@@ -957,9 +963,9 @@ def main():
         update = (patches.near(steam.get(g), move["shift"]["date"]) if move
                   else patches.within(steam.get(g), recent, iso(calendar)))
         covering = patches.covered_by(update, names[g], videos_of[g]) if update else []
-        worth = sum(stake(c["signals"]) for c in members)
+        worth = sum(stake(c["signals"], c["situation"]) for c in members)
         if move:
-            worth = max(worth, stake(move["signals"]))
+            worth = max(worth, stake(move["signals"], "wave" if direction > 0 else "losing"))
         game_cards.append({
             "game": g, "label": names[g], "direction": direction, "totals": totals, "stake": round(worth),
             "shift": {"lead": lead, "of": move["of"], "weeks": {m: move["signals"][m]["weeks"] for m in METRICS},
@@ -986,11 +992,13 @@ def main():
     # Comments and dislikes have their own minimum, so conversation cards stay.
     small = []
     for c in cards:
-        c["stake"] = round(stake(c["signals"]))
+        c["stake"] = round(stake(c["signals"], c["situation"]))
     for c in [c for c in cards if c["situation"] != "conversation" and c["stake"] < floor["views"]]:
         cards.remove(c)
+        # The change its worth comes from, so the row adds up.
+        top = max(changes(c["signals"], c["situation"]), key=lambda ch: ch["worth"])
         small.append({"video_id": c["video_id"], "situation": c["situation"], "game": c["game"],
-                      "basis": c["basis"], "stake": c["stake"], **change_of(c["signals"], c["lead"], c["basis"])})
+                      "stake": c["stake"], **{k: top[k] for k in ("metric", "from", "to", "basis")}})
     for g in [g for g in game_cards if g["stake"] < floor["views"]]:
         game_cards.remove(g)
         small.append({"game": g["game"], "label": g["label"], "direction": g["direction"], "stake": g["stake"],
