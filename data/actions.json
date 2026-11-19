@@ -2,31 +2,14 @@
  "actions": [
   {
    "date": "2026-11-18",
-   "id": "auto-OopDjsg19UQ-title-2026-11-18",
+   "id": "auto-OopDjsg19UQ-2026-11-18",
    "issue": null,
    "kind": "title",
-   "notes": null,
-   "results": {},
-   "situation": "losing",
-   "source": "detected",
-   "video_id": "OopDjsg19UQ"
-  },
-  {
-   "date": "2026-11-18",
-   "id": "auto-OopDjsg19UQ-tags-2026-11-18",
-   "issue": null,
-   "kind": "tags",
-   "notes": null,
-   "results": {},
-   "situation": "losing",
-   "source": "detected",
-   "video_id": "OopDjsg19UQ"
-  },
-  {
-   "date": "2026-11-18",
-   "id": "auto-OopDjsg19UQ-description-2026-11-18",
-   "issue": null,
-   "kind": "description",
+   "kinds": [
+    "title",
+    "description",
+    "tags"
+   ],
    "notes": null,
    "results": {},
    "situation": "losing",

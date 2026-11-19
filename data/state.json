@@ -5124,6 +5124,11 @@
         "create_time": "2026-11-18T06:01:36.971625Z",
         "report_id": "20792406877",
         "row_count": 720
+      },
+      "2026-11-16": {
+        "create_time": "2026-11-19T08:31:38.663731Z",
+        "report_id": "17813473696",
+        "row_count": 663
       }
     },
     "channel_province_a3": {
@@ -13528,7 +13533,7 @@
     "playlist_province_a2": "0c217b96-e686-44cc-9daf-7651980893b0",
     "playlist_traffic_source_a2": "2f9ca6e0-4576-40ed-98ba-9cb41adb4726"
   },
-  "last_run": "2026-11-19T08:23:07.063413+00:00",
+  "last_run": "2026-11-19T08:38:09.110624+00:00",
   "offered": [
     "channel_annotations_a1",
     "channel_basic_a3",
@@ -13552,12 +13557,6 @@
     "playlist_traffic_source_a2"
   ],
   "runs": [
-    {
-      "at": "2026-09-27T07:58:45.363999+00:00",
-      "backfilled": 24,
-      "failed": 0,
-      "new": 17
-    },
     {
       "at": "2026-09-28T08:35:25.906137+00:00",
       "backfilled": 21,
@@ -13911,6 +13910,12 @@
       "backfilled": 0,
       "failed": 0,
       "new": 0
+    },
+    {
+      "at": "2026-11-19T08:38:09.110624+00:00",
+      "backfilled": 0,
+      "failed": 0,
+      "new": 1
     }
   ]
 }

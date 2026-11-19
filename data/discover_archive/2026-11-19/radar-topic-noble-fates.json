@@ -1,6 +1,9 @@
 {
- "ambiguous": true,
- "picked": null,
+ "picked": {
+  "mid": "/g/11sgkk345g",
+  "title": "Noble Fates",
+  "type": "Console game"
+ },
  "suggestions": [
   {
    "mid": "",
