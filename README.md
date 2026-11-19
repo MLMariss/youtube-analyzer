@@ -241,15 +241,22 @@ The thresholds sit at the top of `signals.py` and `monitor.py`.
 
 Notice → act → measure → remember:
 
-1. **Act.** *✓ Did this* on a step (or *Log action* on a card) opens a
-   pre-filled "Log an action" issue; submit it. Title, description, tag and
+1. **Act.** *Log action* (top of the page, or on a card) and *✓ Did this* on a
+   step open a checklist: find the video by title, game or link, tick
+   everything the update changed (thumbnail, A/B test, title, description,
+   hashtags, tags, chapters, subtitles, translations, an edit in Studio's
+   Editor, pinned comment, end screen, playlist, follow-up, community post,
+   replies, outside promotion or other), set the date, and it opens the
+   "Log an action" issue filled in; submit it. Title, description, tag and
    thumbnail changes are also detected on their own from the daily
    fingerprints, without logging.
 2. **Measure.** 7, 14 and 28 days later the video is compared with the same
    number of days before the action, on the metric the action targets (CTR for
-   thumbnails and titles, search views for descriptions and tags, views
-   otherwise), allowing for how the rest of the back catalogue moved. The
-   result is posted on the issue.
+   thumbnails, A/B tests and titles, search views for descriptions, hashtags,
+   tags, chapters and subtitles, views otherwise), allowing for how the rest of
+   the back catalogue moved. An update that changed several things is measured
+   once, on the first of those metrics it targets, and a detected change it
+   includes is folded into it. The result is posted on the issue.
 3. **Remember.** Results are pooled per situation and action in *Actions and
    what worked*, and each suggested step shows how that action went before.
 

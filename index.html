@@ -316,7 +316,8 @@
   ol.vc-plan { margin: 0; padding-left: 22px; display: grid; gap: 9px; font-size: 15.5px; line-height: 1.45; }
   ol.vc-plan li::marker { color: var(--muted); font-weight: 700; }
   .learned { display: block; font-size: 14px; color: var(--text-2); margin-top: 2px; }
-  a.did { font-size: 14px; font-weight: 600; margin-left: 6px; white-space: nowrap; color: var(--link); }
+  .did { font-size: 14px; font-weight: 600; margin-left: 6px; white-space: nowrap; color: var(--link); }
+  button.did { background: none; border: 0; padding: 0; text-decoration: underline; }
   .vc-actions { display: flex; flex-wrap: wrap; gap: 8px; }
   .btn {
     display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px;
@@ -326,6 +327,54 @@
   .btn:hover { border-color: var(--baseline); }
   .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
   .btn.small { padding: 5px 10px; font-size: 13.5px; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* Log action: pick a video, tick what changed, then open the filled-in GitHub issue. */
+  dialog.log {
+    width: min(660px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto;
+    padding: 0; border: 1px solid var(--border); border-radius: 12px;
+    background: var(--surface); color: var(--text); box-shadow: var(--shadow);
+  }
+  dialog.log::backdrop { background: rgba(0, 0, 0, .45); }
+  .log form { padding: 16px 18px 18px; display: grid; gap: 12px; }
+  .log-pick, .log-step { display: grid; gap: 12px; }
+  .log-pick { gap: 6px; }
+  .log .hidden { display: none; }
+  .log-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .log-head h2 { margin: 0; font-size: 18px; }
+  .log-x { border: 0; background: none; color: var(--muted); font-size: 18px; padding: 2px 8px; }
+  .log-lbl, .log legend { font-size: 13.5px; font-weight: 650; color: var(--muted); padding: 0; }
+  .log fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .log input[type=search] { width: 100%; min-width: 0; }
+  .log-results { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow-y: auto;
+    border: 1px solid var(--line); border-radius: 8px; }
+  .log-results:empty { display: none; }
+  .log-results .more { padding: 8px 10px; font-size: 13.5px; color: var(--muted); }
+  .log-hit {
+    display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 0 10px; align-items: center;
+    width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--line); border-radius: 0;
+    padding: 7px 10px; background: transparent;
+  }
+  .log-results li:last-child .log-hit { border-bottom: 0; }
+  .log-hit:hover, .log-hit:focus-visible { background: var(--surface-2); }
+  .log-hit img, .log-chosen img { grid-row: span 2; width: 64px; height: 36px; object-fit: cover;
+    border-radius: 4px; background: var(--surface-2); }
+  .log-hit .t, .log-chosen .t { font-weight: 600; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .log-hit .m, .log-chosen .m { font-size: 13px; color: var(--muted); }
+  .log-chosen { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 0 10px; align-items: center;
+    padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); }
+  .log-chosen .t, .log-chosen .m { grid-column: 2; }
+  .log-chosen .t { white-space: normal; }
+  .log-chosen .btn { grid-column: 3; grid-row: 1 / span 2; }
+  .log-kinds { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr)); gap: 4px 14px; }
+  .log-kinds label { display: flex; gap: 8px; align-items: center; font-size: 14.5px; cursor: pointer; padding: 3px 0; }
+  .log-kinds input { width: 16px; height: 16px; margin: 0; padding: 0; accent-color: var(--accent); flex: none; }
+  .log textarea {
+    width: 100%; font: inherit; font-size: 14.5px; color: var(--text); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 7px; padding: 6px 10px; resize: vertical;
+  }
+  .log textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .log-hint { margin: 0; font-size: 13.5px; color: var(--text-2); }
   .vc-history { font-size: 14px; color: var(--text-2); border-top: 1px dashed var(--line); padding-top: 10px; }
   .chip-result { font-weight: 700; white-space: nowrap; }
   .chip-result.flat { color: var(--muted); font-weight: 600; }
@@ -443,6 +492,7 @@
     <span class="stamp" id="stamp">loading…</span>
   </div>
   <span class="spacer"></span>
+  <button type="button" class="theme-toggle" data-log="">✓ Log action</button>
   <button class="theme-toggle" id="theme-toggle" title="Toggle light / dark">
     <span id="theme-icon">◐</span><span id="theme-label">Theme</span>
   </button>
@@ -540,6 +590,37 @@
   </details>
 
 </div>
+
+<dialog class="log" id="log-dialog" aria-labelledby="log-h">
+  <form id="log-form" method="dialog">
+    <div class="log-head">
+      <h2 id="log-h">Log an action</h2>
+      <button type="button" class="log-x" data-log-close aria-label="Close">✕</button>
+    </div>
+    <div id="log-pick" class="log-pick">
+      <label class="log-lbl" for="log-q">Which video did you update?</label>
+      <input type="search" id="log-q" placeholder="Video or game title, or a video link" autocomplete="off">
+      <ul class="log-results" id="log-results"></ul>
+    </div>
+    <div id="log-step2" class="log-step hidden">
+      <div class="log-chosen" id="log-chosen"></div>
+      <div id="log-kinds"></div>
+      <div>
+        <label class="log-lbl" for="log-date">Date it went live</label><br>
+        <input type="date" id="log-date">
+      </div>
+      <div>
+        <label class="log-lbl" for="log-notes">Notes (optional)</label>
+        <textarea id="log-notes" rows="2" placeholder="For example the new title, or what the new thumbnail shows"></textarea>
+      </div>
+      <p class="log-hint">This opens the action on GitHub, already filled in. Press <b>Create</b> there to save it.</p>
+      <div class="vc-actions">
+        <button type="submit" class="btn primary" id="log-go" disabled>Save on GitHub ↗</button>
+        <button type="button" class="btn" data-log-close>Cancel</button>
+      </div>
+    </div>
+  </form>
+</dialog>
 
 <script>
 // This dashboard is read-only. There is no OAuth, no API key and no login:
@@ -991,11 +1072,21 @@ const REPO = (() => {
 })();
 // Mirrors actions.KINDS: these labels are what the issue form expects.
 const KIND_LABEL = {
-  thumbnail: 'Thumbnail / Test & Compare', title: 'Title', description: 'Description', tags: 'Tags',
-  pinned_comment: 'Pinned comment', end_screen: 'End screen / cards', playlist: 'Playlist',
-  follow_up: 'Follow-up video or Short', community_post: 'Community post',
+  thumbnail: 'Thumbnail', ab_test: 'A/B test (Test & Compare)', title: 'Title', description: 'Description',
+  hashtags: 'Hashtags', tags: 'Tags', chapters: 'Chapters', subtitles: 'Subtitles', translations: 'Translations',
+  video_edit: 'Trimmed in Studio Editor', pinned_comment: 'Pinned comment', end_screen: 'End screen / cards',
+  playlist: 'Playlist', follow_up: 'Follow-up video or Short', community_post: 'Community post',
   reply_comments: 'Replied to comments', external: 'Outside promotion', other: 'Other',
 };
+// The Log action checklist, in two groups.
+const KIND_GROUPS = [
+  ['Packaging and search', ['thumbnail', 'ab_test', 'title', 'description', 'hashtags', 'tags',
+    'chapters', 'subtitles', 'translations']],
+  ['The video and around it', ['video_edit', 'end_screen', 'pinned_comment', 'playlist', 'follow_up',
+    'community_post', 'reply_comments', 'external', 'other']],
+];
+// An action can be several changes made together: "Title + Description + Hashtags".
+const actionLabel = a => (a.kinds || [a.kind]).map(k => KIND_LABEL[k] || k).join(' + ');
 const SITUATION_LABEL = {
   packaging: 'reach up, clicks down', clicks: 'clicks dropping', wave: 'rising',
   losing: 'losing reach', conversation: 'conversation', '*': 'any situation',
@@ -1017,15 +1108,104 @@ const ageLabel = d => d >= 365 ? `${(d / 365).toFixed(1)} years old` : `${d} day
 const attTitle = id => ((ATTENTION.videos || {})[id] || {}).title
   || (((SUMMARY && SUMMARY.video_meta) || {})[id] || {}).title || id;
 
-function logUrl(id, situation, key) {
-  const label = key ? KIND_LABEL[key] : '';
+// ---- Log action ----------------------------------------------------------------
+// A dialog: find the video (title, game or link), tick what changed, and open
+// the "Log an action" issue filled in. The page has no login, so GitHub saves it.
+const logState = { id: null, situation: '' };
+const metaOf = id => (((SUMMARY && SUMMARY.video_meta) || {})[id]) || {};
+const logTitle = id => metaOf(id).title || (((ATTENTION && ATTENTION.videos) || {})[id] || {}).title || id;
+const localDay = () => {
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+};
+
+function logHit(id) {
+  const m = metaOf(id);
+  const when = m.published_at ? new Date(m.published_at).toLocaleDateString(undefined,
+    { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' }) : '';
+  const views = m.view_count !== undefined && m.view_count !== null ? `${fmt(m.view_count)} views` : '';
+  return `${m.thumbnail ? `<img src="${esc(m.thumbnail)}" alt="" loading="lazy">` : '<span></span>'}
+    <span class="t">${esc(logTitle(id))}</span><span class="m">${[when, views].filter(Boolean).join(' · ')}</span>`;
+}
+
+// Every word typed must appear in the title or the game; a pasted link or ID
+// finds that video. Most viewed first; with nothing typed, the latest uploads.
+function logSearch(q) {
+  const meta = (SUMMARY && SUMMARY.video_meta) || {};
+  const games = (ATTENTION && ATTENTION.videos) || {};
+  const ids = Object.keys(meta);
+  const linked = (q.match(/(?:v=|\/video\/|youtu\.be\/|\/shorts\/|^)([A-Za-z0-9_-]{11})(?![A-Za-z0-9_-])/) || [])[1];
+  if (linked && meta[linked]) return { hits: [linked], more: 0 };
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) {
+    const latest = ids.sort((a, b) => (meta[b].published_at || '').localeCompare(meta[a].published_at || ''));
+    return { hits: latest.slice(0, 8), more: 0, latest: true };
+  }
+  const hits = ids.filter(id => {
+    const hay = `${meta[id].title || ''} ${(games[id] || {}).game || ''}`.toLowerCase();
+    return words.every(w => hay.includes(w));
+  }).sort((a, b) => (meta[b].view_count || 0) - (meta[a].view_count || 0));
+  return { hits: hits.slice(0, 30), more: Math.max(0, hits.length - 30) };
+}
+
+function renderLogResults() {
+  const q = document.getElementById('log-q').value.trim();
+  const { hits, more, latest } = logSearch(q);
+  const list = document.getElementById('log-results');
+  list.innerHTML = (latest && hits.length ? '<li class="more">Latest uploads</li>' : '') +
+    hits.map(id => `<li><button type="button" class="log-hit" data-pick="${esc(id)}">${logHit(id)}</button></li>`).join('') +
+    (more ? `<li class="more">${more} more: type more of the title to narrow it down</li>` : '') +
+    (q && !hits.length ? '<li class="more">No video matches that</li>' : '');
+}
+
+function logChoose(id) {
+  logState.id = id;
+  document.getElementById('log-chosen').innerHTML =
+    `${logHit(id)}<button type="button" class="btn small" data-log-change>Change</button>`;
+  document.getElementById('log-pick').classList.add('hidden');
+  document.getElementById('log-step2').classList.remove('hidden');
+  logReady();
+}
+
+function logChecked() {
+  return [...document.querySelectorAll('#log-kinds input:checked')].map(i => i.value);
+}
+
+function logReady() {
+  document.getElementById('log-go').disabled = !(logState.id && logChecked().length);
+}
+
+function openLog(id, situation, key) {
+  const dlg = document.getElementById('log-dialog');
+  logState.id = null;
+  logState.situation = situation || '';
+  document.getElementById('log-kinds').innerHTML = KIND_GROUPS.map(([title, keys]) => `<fieldset>
+    <legend>${esc(title)}</legend><div class="log-kinds">${keys.map(k => `<label>
+      <input type="checkbox" value="${k}"${k === key ? ' checked' : ''}> ${esc(KIND_LABEL[k])}</label>`).join('')}</div>
+    </fieldset>`).join('');
+  const day = document.getElementById('log-date');
+  day.value = day.max = localDay();
+  document.getElementById('log-notes').value = '';
+  document.getElementById('log-q').value = '';
+  document.getElementById('log-pick').classList.remove('hidden');
+  document.getElementById('log-step2').classList.add('hidden');
+  if (id) logChoose(id); else renderLogResults();
+  dlg.showModal();
+  if (!id) document.getElementById('log-q').focus();
+}
+
+function logIssueUrl() {
+  const id = logState.id, labels = logChecked().map(k => KIND_LABEL[k]);
   const p = new URLSearchParams({
     template: 'log-action.yml',
-    title: `Action: ${label || '…'} — ${attTitle(id)}`,
+    title: `Action: ${labels.join(' + ')} — ${logTitle(id)}`,
     video: `https://studio.youtube.com/video/${id}/edit`,
-    situation: situation || '',
+    action: labels.join(', '),
+    situation: logState.situation,
+    date: document.getElementById('log-date').value,
   });
-  if (label) p.set('action', label);
+  const notes = document.getElementById('log-notes').value.trim();
+  if (notes) p.set('notes', notes);
   return `https://github.com/${REPO}/issues/new?${p}`;
 }
 
@@ -1139,7 +1319,7 @@ function planList(steps, id, situation) {
   if (!steps || !steps.length) return '';
   return `<ol class="vc-plan">${steps.map(s => {
     const link = s.link && id ? ` <a class="did" href="${studio(id, s.link)}" target="_blank" rel="noopener">Open in Studio ↗</a>` : '';
-    const did = s.key && id ? ` <a class="did" href="${logUrl(id, situation, s.key)}" target="_blank" rel="noopener">✓ Did this</a>` : '';
+    const did = s.key && id ? ` <button type="button" class="did" data-log="${esc(id)}" data-sit="${esc(situation || '')}" data-key="${esc(s.key)}">✓ Did this</button>` : '';
     return `<li>${esc(s.text)}${link}${did}${learnedText(s.learned)}</li>`;
   }).join('')}</ol>`;
 }
@@ -1157,7 +1337,7 @@ function historyFor(id) {
   const acts = (ATTENTION.actions || []).filter(a => a.video_id === id).slice(0, 2);
   if (!acts.length) return '';
   return `<div class="vc-history"><span class="inl">Done before</span>${acts.map(a =>
-    `${esc(KIND_LABEL[a.kind] || a.kind)} on ${shortDate(a.date)}` +
+    `${esc(actionLabel(a))} on ${shortDate(a.date)}` +
     (a.source === 'detected' ? ' (detected)' : '') + ' — ' +
     ['7', '14', '28'].map(h => resultChip((a.results || {})[h], `${h} days`)).join(' · ')).join('<br>')}</div>`;
 }
@@ -1168,7 +1348,7 @@ function buttons(id, situation, extra = '') {
     <a class="btn" href="${studio(id, 'analytics')}" target="_blank" rel="noopener">Reach in Studio</a>
     ${extra}
     <button type="button" class="btn" data-focus="${esc(id)}">Show in table</button>
-    <a class="btn" href="${logUrl(id, situation)}" target="_blank" rel="noopener">Log action</a>
+    <button type="button" class="btn" data-log="${esc(id)}" data-sit="${esc(situation || '')}">Log action</button>
   </div>`;
 }
 
@@ -1218,7 +1398,7 @@ function gameCard(g) {
       <td>${fmt(m.impressions[0])} → <b>${fmt(m.impressions[1])}</b></td>
       <td>${fmt(m.views[0])} → <b>${fmt(m.views[1])}</b></td>
       <td>${pct(m.ctr[0])} → ${pct(m.ctr[1])}</td>
-      <td><a class="btn small" href="${logUrl(m.video_id, m.situation)}" target="_blank" rel="noopener">Log</a></td></tr>`;
+      <td><button type="button" class="btn small" data-log="${esc(m.video_id)}" data-sit="${esc(m.situation || '')}">Log</button></td></tr>`;
   }).join('');
   return `<article class="vcard">
     <div>
@@ -1322,12 +1502,12 @@ function learnedHtml(A) {
   const recent = acts.length ? `<h4 style="margin:16px 0 4px;font-size:15px">Recent actions</h4><div class="scroll-x"><table class="att-table">
       <thead><tr><th>Video</th><th>What</th><th>Date</th><th>Recorded</th><th>Results</th></tr></thead><tbody>${acts.slice(0, 20).map(a => `<tr>
       <td><a href="${studio(a.video_id, 'edit')}" target="_blank" rel="noopener">${esc(attTitle(a.video_id))}</a></td>
-      <td>${esc(KIND_LABEL[a.kind] || a.kind)}</td><td>${shortDate(a.date)}</td>
+      <td>${esc(actionLabel(a))}</td><td>${shortDate(a.date)}</td>
       <td>${a.issue ? `<a href="${esc(a.issue.url)}" target="_blank" rel="noopener">logged #${a.issue.number}</a>` : 'detected'}</td>
       <td style="text-align:left">${['7', '14', '28'].map(h => resultChip((a.results || {})[h], `${h}d`)).join(' · ')}</td></tr>`).join('')}
       </tbody></table></div>` : '';
   return intro + pb + recent +
-    `<div class="vc-actions" style="margin-top:12px"><a class="btn" href="https://github.com/${REPO}/issues/new?template=log-action.yml" target="_blank" rel="noopener">Log an action</a></div>`;
+    `<div class="vc-actions" style="margin-top:12px"><button type="button" class="btn" data-log="">Log an action</button></div>`;
 }
 
 // ---- Groups ------------------------------------------------------------------
@@ -2127,6 +2307,43 @@ const setHeaderH = () => document.documentElement.style.setProperty(
   '--header-h', document.querySelector('header').offsetHeight + 'px');
 window.addEventListener('resize', setHeaderH);
 setHeaderH();
+
+// Log action: any [data-log] button opens the dialog, with its video when it names one.
+document.addEventListener('click', e => {
+  const open = e.target.closest('[data-log]');
+  if (open) openLog(open.dataset.log, open.dataset.sit, open.dataset.key);
+});
+(() => {
+  const dlg = document.getElementById('log-dialog'), q = document.getElementById('log-q');
+  q.addEventListener('input', renderLogResults);
+  q.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const first = document.querySelector('#log-results [data-pick]');
+    if (first) logChoose(first.dataset.pick);
+  });
+  dlg.addEventListener('click', e => {
+    const pick = e.target.closest('[data-pick]');
+    if (pick) { logChoose(pick.dataset.pick); return; }
+    if (e.target.closest('[data-log-change]')) {
+      logState.id = null;
+      logState.situation = '';
+      document.getElementById('log-step2').classList.add('hidden');
+      document.getElementById('log-pick').classList.remove('hidden');
+      renderLogResults();
+      q.focus();
+      return;
+    }
+    if (e.target.closest('[data-log-close]') || e.target === dlg) dlg.close();
+  });
+  dlg.addEventListener('change', logReady);
+  document.getElementById('log-form').addEventListener('submit', e => {
+    e.preventDefault();
+    if (!logState.id || !logChecked().length) return;
+    window.open(logIssueUrl(), '_blank', 'noopener');
+    dlg.close();
+  });
+})();
 
 // Clicking a row opens its breakdown; clicking it again closes it.
 document.getElementById('rows').addEventListener('click', e => {

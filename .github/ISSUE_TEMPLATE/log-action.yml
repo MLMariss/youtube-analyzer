@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        The dashboard fills this in. The collector compares the video 7, 14 and 28 days after
+        The dashboard's Log action checklist fills this in. The collector compares the video 7, 14 and 28 days after
         the date below with the same number of days before it, and posts each result here.
         Title, description, tag and thumbnail changes are also picked up without logging them;
         log those anyway if you want the result posted here.
@@ -22,9 +22,10 @@ body:
     attributes:
       label: What did you do?
       description: >-
-        Thumbnail / Test & Compare, Title, Description, Tags, Pinned comment, End screen / cards,
-        Playlist, Follow-up video or Short, Community post, Replied to comments,
-        Outside promotion, or Other.
+        One or more, separated by commas: Thumbnail, A/B test (Test & Compare), Title, Description,
+        Hashtags, Tags, Chapters, Subtitles, Translations, Trimmed in Studio Editor, Pinned comment,
+        End screen / cards, Playlist, Follow-up video or Short, Community post, Replied to comments,
+        Outside promotion, or Other. Several together are measured as one update.
     validations:
       required: true
   - type: input

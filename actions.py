@@ -38,12 +38,19 @@ Z_RESULT = 2.0        # a result counts as better or worse at twice the normal s
 SAME_ACTION_DAYS = 3  # a detected change this close to a logged one is the same action
 BACK_CATALOGUE_DAYS = 28
 
-# key: (label, the metric the action is meant to move)
+# key: (label, the metric the action is meant to move). index.html mirrors
+# these in KIND_LABEL; the dashboard's checklist writes the labels.
 KINDS = {
-    "thumbnail": ("Thumbnail / Test & Compare", "ctr"),
+    "thumbnail": ("Thumbnail", "ctr"),
+    "ab_test": ("A/B test (Test & Compare)", "ctr"),
     "title": ("Title", "ctr"),
     "description": ("Description", "search_views"),
+    "hashtags": ("Hashtags", "search_views"),
     "tags": ("Tags", "search_views"),
+    "chapters": ("Chapters", "search_views"),
+    "subtitles": ("Subtitles", "search_views"),
+    "translations": ("Translations", "views"),
+    "video_edit": ("Trimmed in Studio Editor", "views"),
     "pinned_comment": ("Pinned comment", "views"),
     "end_screen": ("End screen / cards", "views"),
     "playlist": ("Playlist", "views"),
@@ -53,16 +60,25 @@ KINDS = {
     "external": ("Outside promotion", "views"),
     "other": ("Other", "views"),
 }
-# Words that identify a kind in free text, most specific first.
+# Words that identify a kind in free text, most specific first. Each matches
+# at the start of a word, so "title" is not read in "subtitles", nor "tag" in
+# "hashtags".
 KIND_WORDS = [
-    ("thumbnail", "thumbnail"), ("test & compare", "thumbnail"), ("title", "title"),
-    ("description", "description"), ("tag", "tags"), ("pin", "pinned_comment"),
+    ("test & compare", "ab_test"), ("a/b", "ab_test"), ("ab test", "ab_test"),
+    ("thumbnail", "thumbnail"), ("subtitle", "subtitles"), ("caption", "subtitles"),
+    ("title", "title"), ("description", "description"), ("hashtag", "hashtags"), ("tag", "tags"),
+    ("chapter", "chapters"), ("timestamp", "chapters"), ("translat", "translations"),
+    ("editor", "video_edit"), ("trim", "video_edit"),
+    ("pinned comment", "pinned_comment"), ("pin", "pinned_comment"),
     ("end screen", "end_screen"), ("card", "end_screen"), ("playlist", "playlist"),
     ("follow-up", "follow_up"), ("follow up", "follow_up"), ("short", "follow_up"),
     ("new video", "follow_up"), ("community", "community_post"), ("repl", "reply_comments"),
     ("comment", "reply_comments"), ("promot", "external"), ("outside", "external"),
     ("reddit", "external"), ("forum", "external"),
 ]
+# An update that changes several things is measured once, on the metric of
+# the first of these it aims at: CTR when the packaging changed, else search.
+METRIC_ORDER = ("ctr", "search_views", "views")
 METRIC_LABEL = {"ctr": "CTR", "views": "Views", "search_views": "Search views"}
 METRIC_PHRASE = {"ctr": "CTR", "views": "views", "search_views": "views from YouTube search"}
 # Below these, before and after together, there is nothing to measure.
@@ -128,15 +144,40 @@ def form_fields(body):
     return out
 
 
-def kind_of(text):
-    low = (text or "").lower()
-    for key, (label, _) in KINDS.items():
-        if label.lower() in low or key.replace("_", " ") in low:
-            return key
-    for word, key in KIND_WORDS:
-        if word in low:
-            return key
-    return "other" if low.strip() else None
+def kinds_of(text):
+    """Every kind an answer names, in KINDS order. The dashboard writes labels
+    separated by commas ("Title, Description, Hashtags"); free text is read by
+    its words."""
+    found = set()
+    for part in re.split(r"[,;\n]|\s\+\s", (text or "").lower()):
+        part = part.strip(" -*•.")
+        if not part:
+            continue
+        exact = [k for k, (label, _) in KINDS.items() if part in (label.lower(), k.replace("_", " "))]
+        if exact:
+            found.update(exact)
+            continue
+        for word, key in KIND_WORDS:
+            pattern = r"\b" + re.escape(word) + r"[\w-]*"
+            if re.search(pattern, part):
+                found.add(key)
+                part = re.sub(pattern, " ", part)
+    if not found and (text or "").strip():
+        found.add("other")
+    return [k for k in KINDS if k in found]
+
+
+def kinds_in(action):
+    return action.get("kinds") or [action["kind"]]
+
+
+def primary_kind(kinds):
+    """The kind whose metric an update with several changes is measured on."""
+    return min(kinds, key=lambda k: METRIC_ORDER.index(KINDS[k][1]))
+
+
+def label_of(action):
+    return " + ".join(KINDS[k][0] for k in kinds_in(action))
 
 
 def parse_issue(issue):
@@ -146,13 +187,14 @@ def parse_issue(issue):
     # action, since a video title can contain any of the keywords.
     title_kind = title.split("—")[0].split(":", 1)[-1]
     found = VIDEO_ID.search(fields.get("video", "") or "") or VIDEO_ID.search(title)
-    kind = kind_of(fields.get("what did you do?") or title_kind)
-    if not found or not kind:
+    kinds = kinds_of(fields.get("what did you do?") or title_kind)
+    if not found or not kinds:
         return None
     when = re.search(r"\d{4}-\d{2}-\d{2}", fields.get("date (if not today)", ""))
     sit = (fields.get("situation") or "").strip().lower()
     return {
-        "id": f"issue-{issue['number']}", "video_id": found.group(1), "kind": kind,
+        "id": f"issue-{issue['number']}", "video_id": found.group(1),
+        "kind": primary_kind(kinds), "kinds": kinds,
         "date": when.group(0) if when else issue["created_at"][:10], "source": "logged",
         "situation": sit if sit in SITUATIONS else None,
         "issue": {"number": issue["number"], "url": issue.get("html_url"), "state": issue.get("state")},
@@ -213,7 +255,7 @@ def detected_changes():
                 # Snapshots are taken early each day (UTC), so the change went
                 # live during the earlier snapshot's day.
                 out.append({"id": f"auto-{vid}-{kind}-{keys[i - 1]}", "video_id": vid, "kind": kind,
-                            "date": keys[i - 1], "source": "detected", "situation": None,
+                            "kinds": [kind], "date": keys[i - 1], "source": "detected", "situation": None,
                             "issue": None, "notes": None})
     return out
 
@@ -301,7 +343,7 @@ def result_comment(action, h, r, title):
             "allows for that." if r.get("tide") not in (None, 1.0) else "")
     return (f"<!-- yt-analyzer:result:{h} -->\n"
             f"**{h} days after: {word}**{(' (' + change + ')') if change else ''}\n\n"
-            f"{KINDS[action['kind']][0]} on _{title or action['video_id']}_, "
+            f"{label_of(action)} on _{title or action['video_id']}_, "
             f"{action['date']}.\n\n"
             f"| | {r['before'][0]} – {r['before'][1]} | {r['after'][0]} – {r['after'][1]} |\n"
             f"|---|---|---|\n{table}\n\n"
@@ -333,20 +375,24 @@ def post_results(action, title):
 # ------------------------------------------------------------------ remembering
 
 def build_playbook(entries):
-    """Results pooled per (situation, action), plus per action in any situation."""
-    groups = defaultdict(list)
+    """Results pooled per (situation, action), plus per action in any situation.
+    An update that changed several things is its own action ("title+description"),
+    since its result cannot be split between them."""
+    groups, labels = defaultdict(list), {}
     for a in entries:
         r = a.get("results", {})
         best = r.get("14") or r.get("7")
         if not best or best["verdict"] == "too little data":
             continue
+        kind = "+".join(kinds_in(a))
+        labels[kind] = (label_of(a), METRIC_LABEL[KINDS[primary_kind(kinds_in(a))][1]])
         for sit in {a.get("situation") or "*", "*"}:
-            groups[(sit, a["kind"])].append(best)
+            groups[(sit, kind)].append(best)
     out = []
     for (sit, kind), results in groups.items():
         changes = [r["change"] for r in results if r["change"] is not None]
         out.append({
-            "situation": sit, "kind": kind, "label": KINDS[kind][0], "metric": METRIC_LABEL[KINDS[kind][1]],
+            "situation": sit, "kind": kind, "label": labels[kind][0], "metric": labels[kind][1],
             "tries": len(results), "better": sum(r["verdict"] == "better" for r in results),
             "unclear": sum(r["verdict"] == "unclear" for r in results),
             "worse": sum(r["verdict"] == "worse" for r in results),
@@ -387,7 +433,7 @@ def update(meta, daily, through, classify):
         for a in logged:
             old = known.get(a["id"])
             # Keep earlier results unless the issue was edited to say something else.
-            if old and all(old.get(k) == a[k] for k in ("video_id", "kind", "date")):
+            if old and all(old.get(k) == a[k] for k in ("video_id", "kinds", "date")):
                 a["results"], a["posted"] = old.get("results", {}), old.get("posted", [])
                 a["situation"] = a["situation"] or old.get("situation")
             known[a["id"]] = a
@@ -396,10 +442,10 @@ def update(meta, daily, through, classify):
     for a in detected_changes():
         known.setdefault(a["id"], a)
 
-    # A detected change next to a logged action of the same kind is that action.
+    # A detected change next to a logged action that includes it is that action.
     for a in [a for a in known.values() if a["source"] == "detected"]:
         for other in known.values():
-            if (other["source"] == "logged" and other["video_id"] == a["video_id"] and other["kind"] == a["kind"]
+            if (other["source"] == "logged" and other["video_id"] == a["video_id"] and a["kind"] in kinds_in(other)
                     and abs((date.fromisoformat(other["date"]) - date.fromisoformat(a["date"])).days)
                     <= SAME_ACTION_DAYS):
                 other["detected"] = True
