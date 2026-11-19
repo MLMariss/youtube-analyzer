@@ -295,13 +295,15 @@ Each card shows:
   or coming, where rising mostly happens, and 4 older), in the run that finds
   them, and again every 14 days. A game Google surfaces comes with its topic; a
   game from Steam's lists needs one search to find it, once (what Google
-  suggested is archived as `radar-topic-*`). Without a topic, the game's name
-  is measured as typed, unless Google knows that name as something else (*Main
-  Sequence*, a star), which stays unmeasured. The baseline reads small games
-  poorly: under one Trends point (about 20K searches a month when a big game
-  shares the chart) is no reading at all. A game under 5 points is measured
-  again beside a **second ruler**: the smallest steady game of 60K searches a
-  month or less that the baseline read well (5+ points) in the last 14 days.
+  suggested is archived as `radar-topic-*`). A game Google has no topic for is
+  not measured: its name typed would count everyday searches (*Probably
+  Stolen*, *Main Sequence*); it ranks by its Steam players. The baseline reads
+  small games poorly: under one Trends point (about 20K searches a month when a
+  big game shares the chart) is no reading at all. A game under 3 points is
+  measured again beside a **second ruler**: the smallest steady game of 60K
+  searches a month or less that the baseline read well (3+ points) in the last
+  14 days; one measured before points were kept is first read again alone
+  beside the baseline.
   That reads down to a few hundred a month, with a trend. Under that it shows
   *under* a ceiling with no trend, and ranks by Steam.
 - **Fit**: how much of your views come from games with the same Steam tags.

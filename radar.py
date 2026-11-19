@@ -30,12 +30,13 @@ Each game gets:
                 that finds the game (MEASURE_RUN searches a run, apart from the
                 seed pulls). Measured as its Google topic, which comes with
                 Google's related topics or is found once with Trends'
-                autocomplete; without one, as its name typed, unless Google
-                knows that name as something else. A game under one Trends
-                point beside the baseline (~20K a month) is measured again
-                beside a second ruler, a steady smaller game the baseline did
-                read. Only the SHORTLIST best by a first guess are measured
-                (twelve out in the last year or coming, four older).
+                autocomplete. A game without one is not measured: its name
+                typed would count everyday phrases ("probably stolen"). A
+                game under one Trends point beside the baseline (~20K a
+                month) is measured again beside a second ruler, a steady
+                smaller game the baseline did read. Only the SHORTLIST best by
+                a first guess are measured (twelve out in the last year or
+                coming, four older).
     momentum    Google: its last four weeks against its first four, 90 days
                 back. Steam: players at the daily check against a week ago at
                 about the same hour, and reviews written in the last week.
@@ -105,10 +106,11 @@ SIZE_RULE = 2           # sizes measured under an older rule are measured again
 MEASURE_RUN = 24        # searches per run for finding topics and measuring, besides the seed pulls' allowance,
                         # so a game is measured in the run that finds it (16 games: 16 topics + 4 charts + rulers)
 TOPIC_RETRY = 60        # days before a game with no Google topic is looked up again
-TOPIC_RULE = 3          # lookups made under an older rule are made again (rules 1 and 2 never read SerpApi's topic id)
-MIN_PHRASE = 4          # a name shorter than this is never measured as typed: too many other meanings
+TOPIC_RULE = 4          # lookups made under an older rule are made again (rules 1 and 2 never read SerpApi's topic
+                        # id; rule 3 took a "Console game" for a console)
 RULER_MAX_TREND = 0.5   # a second ruler must be steady: within ±50% over its 90 days
-PRECISE = 5.0           # Trends points a game needs beside the baseline to be a ruler; under it, read again beside one
+PRECISE = 3.0           # Trends points (90-day average) a game needs beside the baseline to be a ruler; under it,
+                        # read again beside one. ~3 points is ~13K a month beside "how to fish"
 RULER_MAX = 60000       # a bigger ruler reads small games no better than the baseline (its floor is ~1/80 of it)
 RISING_MIN = 2000       # searches a month a game needs before its Google growth counts: +300% of 200 is nothing
 
@@ -152,7 +154,7 @@ LISTS = {"trending": ("New & Trending", {"filter": "popularnew"}, STEAM_COUNT),
 
 # Google's topic types: a game, not a genre, a series or a company.
 GAME_TYPE = re.compile(r"\bgames?\b", re.I)
-NOT_GAME_TYPE = re.compile(r"genre|series|franchise|developer|publisher|company|studio|engine|console|platform|"
+NOT_GAME_TYPE = re.compile(r"genre|series|franchise|developer|publisher|company|studio|engine|console$|platform|"
                            r"board|card|tabletop|sport|character|store|award|esport|tournament|streamer|youtuber|"
                            r"website|magazine|convention|expo|festival|software|\bmod\b", re.I)
 # Words that make no theme on their own: "best colony sim", "city builder simulator".
@@ -203,7 +205,7 @@ def same(name):
 
 
 def size_term(s):
-    """What a saved size measured: a topic id, or a typed name (sizes before typed names kept it as "mid")."""
+    """What a saved size measured: a topic id (older sizes keep it as "mid"; a few typed names are no longer used)."""
     return s.get("term") or s.get("mid")
 
 
@@ -547,9 +549,7 @@ class Radar:
     def find_topic(self, c):
         """
         A game's Google topic (mid): one autocomplete search, kept, so a game
-        is looked up once. When Google knows the name only as something else
-        ("Main sequence", a star), the entry is marked ambiguous: its typed name
-        would measure that, not the game. What Google suggested is archived.
+        is looked up once. What Google suggested is archived.
         """
         name = display_short(c["name"])
         got = self.search(f"“{name}” (topic)", lambda: trends.autocomplete(name, budget=self.ctx["budget"]),
@@ -560,34 +560,17 @@ class Radar:
         games = [t for t in got if t["mid"] and is_game_topic(t)]
         pick = next((t for t in games if same(t["title"]) in want), None) or \
             next((t for t in games if same(head_of(t["title"])) in want), None)
-        # Another topic of that name; a plain search term (no id) is only the name typed back.
-        other = not pick and any(t["mid"] and (same(t["title"]) in want or same(head_of(t["title"])) in want)
-                                 for t in got)
-        archive(f"radar-topic-{slug(name)}", {"term": name, "suggestions": got, "picked": pick,
-                                              "ambiguous": other}, self.today)
-        print(f"  · {name}: " + (f"topic “{pick['title']}” ({pick['type']})" if pick else
-                                 "no game topic; " + ("the name means something else on Google" if other
-                                                      else "measured as typed")))
-        entry = {**(pick or {"none": True}), "date": iso(self.today), "rule": TOPIC_RULE}
-        if other:
-            entry["ambiguous"] = True
-        self.state.setdefault("topic", {})[c["key"]] = entry
+        archive(f"radar-topic-{slug(name)}", {"term": name, "suggestions": got, "picked": pick}, self.today)
+        print(f"  · {name}: " + (f"topic “{pick['title']}” ({pick['type']})" if pick else "no game topic on Google"))
+        self.state.setdefault("topic", {})[c["key"]] = {**(pick or {"none": True}), "date": iso(self.today),
+                                                        "rule": TOPIC_RULE}
         if pick:
             c["mid"] = pick["mid"]
 
-    def term_of(self, c):
-        """
-        What Google measures for a game: its topic (every spelling and
-        language), or its name as typed once Google has no game topic for it
-        and the name means nothing else there. None until it is looked up.
-        """
-        if c.get("mid"):
-            return c["mid"]
-        e = (self.state.get("topic") or {}).get(c["key"])
-        typed = short(c["name"])
-        if e and e.get("rule") == TOPIC_RULE and e.get("none") and not e.get("ambiguous") and len(typed) >= MIN_PHRASE:
-            return typed
-        return None
+    @staticmethod
+    def term_of(c):
+        """What Google measures for a game: its topic, every spelling and language. None without one."""
+        return c.get("mid") or None
 
     def measure(self, games, base, names):
         """
@@ -614,7 +597,7 @@ class Radar:
             if not c.get("term"):
                 e = topics.get(c["key"])
                 if e and e.get("rule") == TOPIC_RULE and days_since(e.get("date"), self.today) < TOPIC_RETRY:
-                    continue   # looked up lately: no game topic, and its name means something else on Google
+                    continue   # looked up lately: Google has no game topic for it
                 if self.measure_room() < 2:
                     continue   # its chart would not fit in this run
                 self.find_topic(c)
@@ -664,7 +647,7 @@ class Radar:
         for i, c in enumerate(batch):
             sizes[c["key"]] = {**measure_series(series[i + 1] if i + 1 < len(series) else [], ref, got["dates"],
                                                 ruler["monthly"] if ruler else base["monthly"]),
-                               "term": c["term"], "phrase": not c.get("mid"), "date": iso(self.today),
+                               "term": c["term"], "date": iso(self.today),
                                "calibrated": base.get("month"), "rule": SIZE_RULE}
             if ruler:
                 sizes[c["key"]]["ruler"] = ruler["name"]
@@ -682,18 +665,32 @@ class Radar:
             return
         sizes = self.state.get("sizes") or {}
         mine = {c["key"] for c in small}
-        rulers = sorted(((k, s) for k, s in sizes.items() if k not in mine and not s.get("upper") and not s.get("ruler")
-                         and s.get("points", 0) >= PRECISE and s["monthly"] <= RULER_MAX
-                         and not s.get("spike") and s.get("weekly") and size_term(s)
-                         and s.get("calibrated") == base.get("month") and s.get("rule") == SIZE_RULE
-                         and days_since(s.get("date"), self.today) < SIZE_EVERY
-                         and abs(s.get("trend") or 0) <= RULER_MAX_TREND),
-                        key=lambda ks: (ks[0] not in names, ks[1]["monthly"]))
-        if not rulers:
+
+        def steady(k, s):
+            """A topic the baseline read lately, under the same calibration, small and flat enough to be a ruler."""
+            return k not in mine and not s.get("upper") and not s.get("ruler") and not s.get("phrase") \
+                and s["monthly"] <= RULER_MAX and not s.get("spike") and s.get("weekly") and size_term(s) \
+                and s.get("calibrated") == base.get("month") and s.get("rule") == SIZE_RULE \
+                and days_since(s.get("date"), self.today) < SIZE_EVERY \
+                and s.get("trend") is not None and abs(s["trend"]) <= RULER_MAX_TREND
+
+        def rulers():
+            return sorted(((k, s) for k, s in sizes.items() if steady(k, s) and s.get("points", 0) >= PRECISE),
+                          key=lambda ks: (ks[0] not in names, ks[1]["monthly"]))
+
+        if not rulers():
+            # A steady game measured before its Trends points were kept: read it again alone beside the
+            # baseline (one search), where the baseline sets the scale and its points are known.
+            old = sorted(((k, s) for k, s in sizes.items() if steady(k, s) and "points" not in s
+                          and s["monthly"] >= PRECISE * base["monthly"] / 100), key=lambda ks: ks[1]["monthly"])
+            if old and self.measure_room() > 1:
+                k, s = old[0]
+                self.chart([{"key": k, "term": size_term(s), "name": names.get(k) or k}], base)
+        if not rulers():
             print(f"  {len(small)} game(s) too small beside the baseline; no steady game of {RULER_MAX:,} searches a month "
                   "or less measured well lately to read them against")
             return
-        k, s = rulers[0]
+        k, s = rulers()[0]
         ruler = {"term": size_term(s), "name": names.get(k) or k, "monthly": mean(s["weekly"])}
         for i in range(0, len(small), trends.MAX_TERMS - 1):
             if self.measure_room() <= 0:
@@ -1105,10 +1102,10 @@ def run(ctx, settings, today, now, network, have_key):
                 s["list"] != "rising", not s["breakout"], -(s["rise"] or 0), -(s["score"] or 0)))[:SEARCHES_PER_GAME],
             "topic": bool(c.get("mid")), "mid": c.get("mid"),
             "size": {**{k2: c["size"][k2] for k2 in ("monthly", "upper", "trend", "fresh", "spike", "weekly", "date")},
-                     "phrase": c["size"].get("phrase", False), "ruler": c["size"].get("ruler")} if c["size"] else None,
-            # Why Google has no size for it: measured on a next run, its name means something else, or not shortlisted.
-            "unmeasured": None if c["size"] else "ambiguous" if (topics.get(c["key"]) or {}).get("rule") == TOPIC_RULE
-            and (topics.get(c["key"]) or {}).get("ambiguous") else "next" if c["key"] in shortlisted else "outside",
+                     "ruler": c["size"].get("ruler")} if c["size"] else None,
+            # Why Google has no size for it: no game topic on Google, measured on a next run, or not shortlisted.
+            "unmeasured": None if c["size"] else "notopic" if not c.get("mid") and (topics.get(c["key"]) or {}).get(
+                "rule") == TOPIC_RULE else "next" if c["key"] in shortlisted else "outside",
             "basis": c["basis"], "growth": round(growth(c), 2),
             "momentum": {"players": c["players"], "players_week": c["players_week"], "reviews": rv_now,
                          "reviews_week": (rv_now - rv_week) if rv_now is not None and rv_week is not None else None},

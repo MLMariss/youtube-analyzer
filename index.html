@@ -1808,8 +1808,9 @@ function radarCard(g, R) {
   const line = (label, html) => html ? `<div class="vc-why"><span class="inl">${label}</span>${html}</div>` : '';
   const google = z ? `<b>${sizeTxt(z)}</b>${trendTxt(z) ? ` · ${trendTxt(z)}` : ''}${z.spike ? ' · mostly a one-day spike' : ''}${
       z.upper ? ` · too small${z.ruler ? '' : ' beside the baseline'} to read a trend` : ''}${
-      z.phrase ? ' · its name as typed: Google has no topic for the game' : ''}${z.ruler ? ` · read against ${esc(z.ruler)}` : ''}`
-    : `<span class="side-why">${g.unmeasured === 'ambiguous' ? 'not measured: Google has no topic for the game, and its name means something else there'
+      z.ruler ? ` · read against ${esc(z.ruler)}` : ''}`
+    : `<span class="side-why">${g.unmeasured === 'notopic' ? `not measured: Google has no topic for the game, and its name alone would count other searches${
+          has((g.momentum || {}).players) ? '; ranked by its Steam players' : ''}`
         : g.unmeasured === 'outside' ? `not among the ${R.shortlist} measured on Google${has((g.momentum || {}).players) ? '; ranked by its Steam players' : ''}`
         : 'measured on one of the next runs'}</span>`;
   const fit = has(g.fit) ? `<b>${Math.round(g.fit * 100)}%</b>${(g.shared || []).length ? ` · shares ${g.shared.map(esc).join(', ')}` : ''}${
@@ -1946,8 +1947,9 @@ function renderDiscover() {
         measured against the baseline, a search term whose monthly searches were pinned down by hand. The change compares its
         last four weeks with its first four. Roughly ±12%, not exact. <i>New on Google</i>: barely searched before, searched now.
         <i>Read against</i>: the baseline reads small games poorly (under about 20K a month, often not at all), so they are
-        measured again beside a steady game of 60K a month or less that the baseline read well (less exact). <i>Its name as typed</i>: Google has no topic for the game, so
-        its name is measured as a search. <i>Under</i>: too small to read even so: a ceiling with no trend; it ranks by Steam.</dd></div>
+        measured again beside a steady game of 60K a month or less that the baseline read well (less exact). A game Google has
+        no topic for is not measured: its name alone would count everyday searches; it ranks by Steam.
+        <i>Under</i>: too small to read even so: a ceiling with no trend; it ranks by Steam.</dd></div>
       <div><dt>Fit</dt><dd>How much of your views come from games with the same Steam tags (weighted by those views). 100% would be
         a game tagged exactly like the games that bring you the most views.</dd></div>
       <div><dt>Steam</dt><dd>Players at the daily check against a week ago at about the same hour (players swing through the day),
