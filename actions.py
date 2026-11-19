@@ -229,7 +229,8 @@ def logged_actions():
 
 
 def detected_changes():
-    """Title, description, tag and thumbnail changes between daily snapshots."""
+    """Title, description, tag and thumbnail changes between daily snapshots:
+    one update per video and day, naming every part that changed."""
     if not os.path.exists(SNAPSHOT_PATH):
         return []
     with open(SNAPSHOT_PATH, encoding="utf-8") as f:
@@ -245,6 +246,7 @@ def detected_changes():
             old = before.get(vid)
             if not old:
                 continue
+            changed = set()
             for index, kind in enumerate(FINGERPRINTED):
                 if old[index] is None or new[index] is None or old[index] == new[index]:
                     continue
@@ -252,11 +254,15 @@ def detected_changes():
                 # counts only when the next day's snapshot still shows it.
                 if kind == "thumbnail" and (not following or (following.get(vid) or [None] * 4)[3] != new[3]):
                     continue
-                # Snapshots are taken early each day (UTC), so the change went
-                # live during the earlier snapshot's day.
-                out.append({"id": f"auto-{vid}-{kind}-{keys[i - 1]}", "video_id": vid, "kind": kind,
-                            "kinds": [kind], "date": keys[i - 1], "source": "detected", "situation": None,
-                            "issue": None, "notes": None})
+                changed.add(kind)
+            if not changed:
+                continue
+            kinds = [k for k in KINDS if k in changed]
+            # A day's fingerprints are from its first run (collect.record_snapshot),
+            # so the change went live during the earlier snapshot's day.
+            out.append({"id": f"auto-{vid}-{keys[i - 1]}", "video_id": vid, "kind": primary_kind(kinds),
+                        "kinds": kinds, "date": keys[i - 1], "source": "detected", "situation": None,
+                        "issue": None, "notes": None})
     return out
 
 
@@ -440,12 +446,22 @@ def update(meta, daily, through, classify):
         for key in [k for k, a in known.items() if a["source"] == "logged" and k not in fresh]:
             del known[key]   # the issue was deleted or no longer reads as an action
     for a in detected_changes():
-        known.setdefault(a["id"], a)
+        old = known.get(a["id"])
+        if old and kinds_in(old) == a["kinds"]:
+            continue
+        # New, or grown (a thumbnail is confirmed a day later): it replaces what
+        # was recorded for that video and day, including the one-row-per-part
+        # records written before changes were combined.
+        for key in [k for k, o in known.items()
+                    if o["source"] == "detected" and o["video_id"] == a["video_id"] and o["date"] == a["date"]]:
+            del known[key]
+        known[a["id"]] = a
 
-    # A detected change next to a logged action that includes it is that action.
+    # A detected change next to a logged action that shares a part with it is that action.
     for a in [a for a in known.values() if a["source"] == "detected"]:
         for other in known.values():
-            if (other["source"] == "logged" and other["video_id"] == a["video_id"] and a["kind"] in kinds_in(other)
+            if (other["source"] == "logged" and other["video_id"] == a["video_id"]
+                    and set(kinds_in(a)) & set(kinds_in(other))
                     and abs((date.fromisoformat(other["date"]) - date.fromisoformat(a["date"])).days)
                     <= SAME_ACTION_DAYS):
                 other["detected"] = True

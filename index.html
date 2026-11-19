@@ -1491,9 +1491,11 @@ function learnedHtml(A) {
   const acts = A.actions || [], all = A.playbook || [];
   const spread = k => all.filter(p => p.kind === k && p.situation !== '*').length;
   const book = all.filter(p => p.situation !== '*' || spread(p.kind) > 1);
-  const intro = `<p class="empty-state">${acts.length ? '' : 'Nothing measured yet. '}Use <b>✓ Did this</b> on a suggestion
-    or <b>Log action</b> on any card. Title, description, tag and thumbnail changes are picked up on their own.
-    Each action is measured 7, 14 and 28 days later against the same days before it.</p>`;
+  const intro = `<p class="empty-state">${acts.length ? '' : 'Nothing measured yet. '}Title, description
+    (hashtags and chapters included), tag and thumbnail changes are picked up on their own: all of a day's changes
+    to a video count as one update. Log anything else with <b>✓ Log action</b>: A/B tests, subtitles, pinned comments,
+    end screens, playlists, follow-ups, promotion. Each action is measured 7, 14 and 28 days later against the same
+    days before it.</p>`;
   const pb = book.length ? `<div class="scroll-x"><table class="att-table"><thead><tr><th>What you did</th><th>When it was</th>
       <th>Tries</th><th>Better</th><th>No clear change</th><th>Worse</th><th>Median change</th></tr></thead><tbody>${book.map(p => `<tr>
       <td>${esc(p.label)}</td><td>${esc(SITUATION_LABEL[p.situation] || p.situation)}</td><td>${p.tries}</td>

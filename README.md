@@ -249,14 +249,17 @@ Notice → act → measure → remember:
    replies, outside promotion or other), set the date, and it opens the
    "Log an action" issue filled in; submit it. Title, description, tag and
    thumbnail changes are also detected on their own from the daily
-   fingerprints, without logging.
+   fingerprints, without logging: everything that changed on a video between
+   two days is one update. A day keeps the fingerprints of its first run, so
+   an extra run later that day cannot date an edit a day early.
 2. **Measure.** 7, 14 and 28 days later the video is compared with the same
    number of days before the action, on the metric the action targets (CTR for
    thumbnails, A/B tests and titles, search views for descriptions, hashtags,
    tags, chapters and subtitles, views otherwise), allowing for how the rest of
    the back catalogue moved. An update that changed several things is measured
-   once, on the first of those metrics it targets, and a detected change it
-   includes is folded into it. The result is posted on the issue.
+   once, on the first of those metrics it targets. A logged update absorbs a
+   detected one that shares a part with it, within three days, and its date
+   wins. The result is posted on the issue.
 3. **Remember.** Results are pooled per situation and action in *Actions and
    what worked*, and each suggested step shows how that action went before.
 

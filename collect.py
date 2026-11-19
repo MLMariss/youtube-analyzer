@@ -477,17 +477,24 @@ def record_snapshot(meta, taken_at):
         except Exception as e:
             print(f"  ! unreadable snapshots.json, starting a new one: {str(e)[:120]}")
 
-    # One snapshot per UTC day; a second run on the same day replaces it.
+    # One snapshot per UTC day; a second run on the same day replaces the
+    # counters but keeps the fingerprints the day's first run saw.
     day = taken_at.strftime("%Y-%m-%d")
+    # What the video looked like that day, so actions.py can tell when the
+    # title, description, tags or thumbnail were changed. An edit made after
+    # the first run belongs to this day: had a later run overwritten them,
+    # it would read as made the day before.
+    first = snaps["days"].get(day, {}).get("fingerprints") or {}
+    fingerprints = {}
+    for vid, m in meta.items():
+        now = [m.get("title"), m.get("description_hash"), m.get("tags_hash"), m.get("thumbnail_hash")]
+        was = first.get(vid) or [None] * len(now)
+        fingerprints[vid] = [w if w is not None else n for w, n in zip(was, now)]
     snaps["days"][day] = {
         "taken_at": taken_at.isoformat(),
         "videos": {vid: [m.get("view_count"), m.get("like_count"), m.get("comment_count")]
                    for vid, m in meta.items()},
-        # What the video looked like that day, so actions.py can tell when the
-        # title, description, tags or thumbnail were changed.
-        "fingerprints": {vid: [m.get("title"), m.get("description_hash"),
-                               m.get("tags_hash"), m.get("thumbnail_hash")]
-                         for vid, m in meta.items()},
+        "fingerprints": fingerprints,
     }
     oldest = (taken_at - timedelta(days=SNAPSHOT_DAYS)).strftime("%Y-%m-%d")
     snaps["days"] = {d: s for d, s in snaps["days"].items() if d > oldest}
