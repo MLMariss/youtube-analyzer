@@ -261,11 +261,29 @@ def related_topics(term, date_range="today 1-m", cat=None, geo=None, budget=None
     return {"rising": rising, "top": top}
 
 
+TOPIC_ID = re.compile(r"^/[mg]/[\w-]+$")
+
+
+def topic_id(s):
+    """
+    A suggestion's topic id ("/m/0k8z", "/g/11..."), or "". SerpApi puts it
+    in "q" and in the "?q=" of "link", not in "mid"; a value that is not a
+    topic id (a plain query) is no id.
+    """
+    for v in (s.get("mid"), s.get("value"), s.get("q"),
+              (urllib.parse.parse_qs(urllib.parse.urlsplit(str(s.get("link") or "")).query).get("q") or [""])[0]):
+        v = str(v or "").strip()
+        if TOPIC_ID.match(v):
+            return v
+    return ""
+
+
 def autocomplete(term, budget=None):
     """
-    The topics Google Trends suggests for `term`: [{"mid", "title", "type"}].
-    A topic's mid ("/g/11...") measures the game itself in interest_over_time,
-    every spelling and language, not one typed phrase.
+    The topics Google Trends suggests for `term`: [{"mid", "title", "type"}],
+    "mid" "" when a suggestion carries no topic id. A topic's mid ("/g/11...")
+    measures the game itself in interest_over_time, every spelling and
+    language, not one typed phrase.
     """
     if not api_key():
         raise TrendsError("SERPAPI_KEY is not set")
@@ -282,13 +300,15 @@ def autocomplete(term, budget=None):
     raw = data.get("suggestions") or []
     out = []
     for s in raw:
-        mid, title = str(s.get("mid") or s.get("value") or "").strip(), str(s.get("title") or "").strip()
-        if mid and title:
-            out.append({"mid": mid, "title": title, "type": str(s.get("type") or "").strip()})
+        title = str(s.get("title") or "").strip()
+        if title:   # kept without a topic id too: its title still says what else the name means
+            out.append({"mid": topic_id(s), "title": title, "type": str(s.get("type") or "").strip()})
     # Say what came back: a lookup that finds nothing is otherwise silent.
     keys = sorted({k for s in raw if isinstance(s, dict) for k in s})
-    print(f"  · {term} (autocomplete): {len(out)} topic(s)" + (f" of {len(raw)} suggestions (keys: {', '.join(keys)})"
-                                                                if len(out) < len(raw) else "")
+    with_id = sum(1 for t in out if t["mid"])
+    print(f"  · {term} (autocomplete): {with_id} topic(s)" + (f" of {len(raw)} suggestions (keys: {', '.join(keys)}; "
+                                                               f"first q={str(raw[0].get('q'))[:40]!r})"
+                                                               if with_id < len(raw) else "")
           + (f"; {redact(err)}" if err else "")
           + ("" if raw or err else "; Google suggested nothing" if "suggestions" in data
              else f"; no suggestions in the response (it has {', '.join(sorted(data)) or 'nothing'})"))
