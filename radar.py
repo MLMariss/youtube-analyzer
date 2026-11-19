@@ -105,7 +105,7 @@ SIZE_RULE = 2           # sizes measured under an older rule are measured again
 MEASURE_RUN = 24        # searches per run for finding topics and measuring, besides the seed pulls' allowance,
                         # so a game is measured in the run that finds it (16 games: 16 topics + 4 charts + rulers)
 TOPIC_RETRY = 60        # days before a game with no Google topic is looked up again
-TOPIC_RULE = 2          # lookups made under an older rule are made again (rule 1 found nothing in 15 tries)
+TOPIC_RULE = 3          # lookups made under an older rule are made again (rules 1 and 2 never read SerpApi's topic id)
 MIN_PHRASE = 4          # a name shorter than this is never measured as typed: too many other meanings
 RULER_MAX_TREND = 0.5   # a second ruler must be steady: within ±50% over its 90 days
 PRECISE = 5.0           # Trends points a game needs beside the baseline to be a ruler; under it, read again beside one
@@ -557,10 +557,12 @@ class Radar:
         if got is None:
             return
         want = {same(c["name"]), same(head_of(c["name"]))}
-        games = [t for t in got if is_game_topic(t)]
+        games = [t for t in got if t["mid"] and is_game_topic(t)]
         pick = next((t for t in games if same(t["title"]) in want), None) or \
             next((t for t in games if same(head_of(t["title"])) in want), None)
-        other = not pick and any(same(t["title"]) in want or same(head_of(t["title"])) in want for t in got)
+        # Another topic of that name; a plain search term (no id) is only the name typed back.
+        other = not pick and any(t["mid"] and (same(t["title"]) in want or same(head_of(t["title"])) in want)
+                                 for t in got)
         archive(f"radar-topic-{slug(name)}", {"term": name, "suggestions": got, "picked": pick,
                                               "ambiguous": other}, self.today)
         print(f"  · {name}: " + (f"topic “{pick['title']}” ({pick['type']})" if pick else
