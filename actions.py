@@ -2,21 +2,24 @@
 The learning loop: what was done to a video, and whether it helped.
 
     A  notice    monitor.py flags a change and suggests what to do
-    B  act       you log what you did: the dashboard's "Log action" opens a
-                 pre-filled GitHub issue. The collector also notices title,
-                 description, tag and thumbnail changes on its own.
+    B  act       you log what you did: the dashboard's "Log action" saves it
+                 to a Google Sheet, which watch.py copies into data/edits.json
+                 hourly (older actions were logged as GitHub issues, and are
+                 still read). Title, description, tag and thumbnail changes
+                 are noticed on their own: hourly by watch.py, and from the
+                 collector's daily snapshots for any hour it missed.
     C  measure   7, 14 and 28 days later the video is compared with the same
                  span before the change, allowing for how the rest of the
-                 back catalogue moved over those days. Each result is posted
-                 on the action's issue.
+                 back catalogue moved over those days. Each result of an
+                 action logged as an issue is posted on it.
     D  remember  results are pooled per situation and action, and the next
                  suggestion says what worked before.
 
-State lives in data/actions.json. Logged actions are read from issues titled
-"Action: ..." (or labelled "action") through the GitHub API, which needs
-GITHUB_TOKEN and GITHUB_REPOSITORY; the workflow provides both. Without them
-the logged actions already in actions.json are kept and only new detected
-changes are added.
+State lives in data/actions.json. Actions logged on the dashboard come from
+data/edits.json. Older ones are read from issues titled "Action: ..." (or
+labelled "action") through the GitHub API, which needs GITHUB_TOKEN and
+GITHUB_REPOSITORY; the workflow provides both. Without them the issue actions
+already in actions.json are kept.
 """
 
 import json
@@ -33,6 +36,7 @@ from summarize import DATA_DIR, iter_shards, num, source_key
 
 ACTIONS_PATH = os.path.join(DATA_DIR, "actions.json")
 SNAPSHOT_PATH = os.path.join(DATA_DIR, "snapshots.json")
+EDITS_PATH = os.path.join(DATA_DIR, "edits.json")   # written hourly by watch.py
 HORIZONS = (7, 14, 28)
 Z_RESULT = 2.0        # a result counts as better or worse at twice the normal swing
 SAME_ACTION_DAYS = 3  # a detected change this close to a logged one is the same action
@@ -266,6 +270,48 @@ def detected_changes():
     return out
 
 
+def load_edits():
+    """What watch.py saw (data/edits.json), or None before its first run."""
+    if not os.path.exists(EDITS_PATH):
+        return None
+    with open(EDITS_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def watched_changes(edits, snapshot_changes):
+    """The hourly watcher's edits joined with the daily snapshots' (same video and
+    day, one update). Each watcher record is marked `watched`: it is dated by the hour."""
+    out = {a["id"]: a for a in snapshot_changes}
+    for c in (edits or {}).get("changes", []):
+        key = f"auto-{c['video_id']}-{c['date']}"
+        a = out.setdefault(key, {"id": key, "video_id": c["video_id"], "kinds": [], "date": c["date"],
+                                 "source": "detected", "situation": None, "issue": None, "notes": None})
+        a["kinds"] = [k for k in KINDS if k in set(a["kinds"]) | set(c["kinds"])]
+        a["kind"], a["watched"] = primary_kind(a["kinds"]), True
+    return list(out.values())
+
+
+def sheet_actions(edits):
+    """Actions saved with the dashboard's Log action, as watch.py copied them from the log."""
+    return [{"id": f"log-{a['id']}", "video_id": a["video_id"], "kind": primary_kind(a["kinds"]),
+             "kinds": a["kinds"], "date": a["date"], "source": "logged", "situation": a.get("situation"),
+             "issue": None, "notes": a.get("notes")} for a in edits.get("logs", [])]
+
+
+def merge_logged(known, logged, prefix):
+    """Add or refresh logged actions, and drop those from this source (`prefix`) now gone."""
+    fresh = {a["id"] for a in logged}
+    for a in logged:
+        old = known.get(a["id"])
+        # Keep earlier results unless the entry was edited to say something else.
+        if old and all(old.get(k) == a[k] for k in ("video_id", "kinds", "date")):
+            a["results"], a["posted"] = old.get("results", {}), old.get("posted", [])
+            a["situation"] = a["situation"] or old.get("situation")
+        known[a["id"]] = a
+    for key in [k for k, a in known.items() if a["source"] == "logged" and k.startswith(prefix) and k not in fresh]:
+        del known[key]   # deleted, or no longer reads as an action
+
+
 # ------------------------------------------------------------------ measuring
 
 def load_search_views(since, through):
@@ -435,27 +481,36 @@ def update(meta, daily, through, classify):
         ensure_label()
     logged = logged_actions()
     if logged is not None:
-        fresh = {a["id"] for a in logged}
-        for a in logged:
-            old = known.get(a["id"])
-            # Keep earlier results unless the issue was edited to say something else.
-            if old and all(old.get(k) == a[k] for k in ("video_id", "kinds", "date")):
-                a["results"], a["posted"] = old.get("results", {}), old.get("posted", [])
-                a["situation"] = a["situation"] or old.get("situation")
-            known[a["id"]] = a
-        for key in [k for k, a in known.items() if a["source"] == "logged" and k not in fresh]:
-            del known[key]   # the issue was deleted or no longer reads as an action
-    for a in detected_changes():
+        merge_logged(known, logged, "issue-")
+    edits = load_edits()
+    if edits is not None:
+        merge_logged(known, sheet_actions(edits), "log-")
+    for a in watched_changes(edits, detected_changes()):
         old = known.get(a["id"])
-        if old and kinds_in(old) == a["kinds"]:
+        if old and kinds_in(old) == a["kinds"] and (old.get("watched") or not a.get("watched")):
             continue
-        # New, or grown (a thumbnail is confirmed a day later): it replaces what
-        # was recorded for that video and day, including the one-row-per-part
+        # New, newly seen by the watcher, or grown (a thumbnail is confirmed a day
+        # later): it replaces what was recorded for that video and day, including the one-row-per-part
         # records written before changes were combined.
         for key in [k for k, o in known.items()
                     if o["source"] == "detected" and o["video_id"] == a["video_id"] and o["date"] == a["date"]]:
             del known[key]
         known[a["id"]] = a
+
+    # The watcher dates an edit by the hour; the daily snapshots' record of the same
+    # part, dated by the run before, gives way to it.
+    watched = [a for a in known.values() if a.get("watched")]
+    for key, o in list(known.items()):
+        if o["source"] != "detected" or o.get("watched"):
+            continue
+        seen = {k for w in watched if w["video_id"] == o["video_id"] and abs(
+            (date.fromisoformat(w["date"]) - date.fromisoformat(o["date"])).days) <= SAME_ACTION_DAYS
+            for k in kinds_in(w)}
+        left = [k for k in kinds_in(o) if k not in seen]
+        if not left:
+            del known[key]
+        elif len(left) < len(kinds_in(o)):
+            o["kinds"], o["kind"] = left, primary_kind(left)
 
     # A detected change next to a logged action that shares a part with it is that action.
     for a in [a for a in known.values() if a["source"] == "detected"]:

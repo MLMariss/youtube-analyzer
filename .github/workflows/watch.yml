@@ -1,0 +1,82 @@
+name: Watch for edits
+
+on:
+  schedule:
+    # Hourly, at an odd minute: schedules on the hour queue behind everyone
+    # else's. GitHub may still start a run late or skip one under load.
+    - cron: '41 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  # Its own group: in the collector's, a queued watch run would cancel a
+  # queued collector run. The two commit different files, so they never clash.
+  group: watch
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # Only what the watcher reads: the scripts, videos.json and edits.json.
+      # The report archive (hundreds of MB) is never downloaded.
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref_name }}
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*.py
+            /data/videos.json
+            /data/edits.json
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      # What the last check saw lives in the Actions cache, not in git, so an
+      # hour without edits commits nothing. The newest saved check is restored.
+      - name: Restore the last check
+        uses: actions/cache/restore@v4
+        with:
+          path: .watch
+          key: watch-${{ github.run_id }}
+          restore-keys: watch-
+
+      - name: Check for edits and new log entries
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          ACTION_LOG_URL: ${{ secrets.ACTION_LOG_URL }}
+          ACTION_LOG_KEY: ${{ secrets.ACTION_LOG_KEY }}
+        run: python watch.py
+
+      - name: Commit edits.json if it changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/edits.json
+          if git diff --staged --quiet; then
+            echo "No edits or new log entries."
+            exit 0
+          fi
+          git commit -m "data: edits seen $(date -u +'%Y-%m-%d %H:%M UTC')"
+          for attempt in 1 2 3 4; do
+            git pull --rebase origin ${{ github.ref_name }} && git push && exit 0
+            sleep $((attempt * 10))
+          done
+          exit 1
+
+      # Saved only once the commit is pushed: if it failed, the next run sees
+      # the same edits again instead of losing them.
+      - name: Save this check
+        uses: actions/cache/save@v4
+        with:
+          path: .watch
+          key: watch-${{ github.run_id }}-${{ github.run_attempt }}

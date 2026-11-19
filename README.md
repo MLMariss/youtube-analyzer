@@ -60,6 +60,8 @@ the "unverified app" warning); the script prints three values.
 | `YT_CLIENT_SECRET` | from step 2 |
 | `YT_REFRESH_TOKEN` | from step 2 |
 | `SERPAPI_KEY` | optional, for *Discover*: the API key from a free [SerpApi](https://serpapi.com) account (*Your Account → API Key*) |
+| `ACTION_LOG_URL` | for *Log action*: your action log's web app URL (step 6) |
+| `ACTION_LOG_KEY` | for *Log action*: the key you gave the action log (step 6) |
 
 Never commit these.
 
@@ -84,6 +86,28 @@ Only `index.html` and the summary files in `data/*.json` are published:
 `_config.yml` excludes the raw archive in `data/reports/`, which would
 otherwise push the site past GitHub Pages' 1 GB limit.
 
+### 6. Action log (Google Sheet)
+
+*Log action* on the dashboard saves to a Google Sheet in your account, through
+a small Apps Script web app, not to GitHub. About five minutes, once:
+
+1. Make a new Google Sheet. **Extensions → Apps Script**, replace the code with
+   [docs/action-log.gs](docs/action-log.gs), save.
+2. **Project Settings** (gear) → **Script properties → Add**: `KEY` = a long
+   random password.
+3. **Deploy → New deployment**, type **Web app**. *Execute as*: **Me**. *Who has
+   access*: **Anyone**. Deploy, allow access, copy the **Web app URL**.
+4. Add the URL and the key as the secrets `ACTION_LOG_URL` and `ACTION_LOG_KEY`
+   (step 3).
+5. On the dashboard, open *Log action* → *Action log settings* and paste the
+   same URL and key. Once per browser (phone and computer each); they stay in
+   that browser only.
+
+Anyone with the URL but not the key can neither read nor write the log. Rows
+can be edited or deleted in the Sheet: the watcher reads the whole log every
+hour, and a deleted row deletes the action. After changing the script, deploy
+it again (*Manage deployments → Edit → New version*) to keep the same URL.
+
 ## Daily operation
 
 Runs at **02:23 UTC** — 05:23 Riga in summer, 04:23 in winter, since GitHub cron
@@ -101,6 +125,24 @@ Runs are **idempotent**. Re-running downloads nothing new. Backfill corrections
 replace exactly one day's shard, and a failed download is *not* marked archived,
 so the next run retries it.
 
+### Hourly edit watcher
+
+`watch.py` runs every hour at :41 (`.github/workflows/watch.yml`), apart from
+the daily run. It reads the action log first, and checks the videos named in
+new entries first, including uploads too new to be on the dashboard yet. Then it
+fingerprints every video's title, description, tags and thumbnail and compares
+them with the hour before. An edit is dated by the last check that still showed
+the old version, on YouTube's Pacific-time day. A new thumbnail counts only
+when the next check still shows it, as an image can come back re-encoded once.
+
+What it costs: 16 Data API calls of 1 quota unit each for about 750 videos
+(384 of the 10,000 units a day), and the thumbnail images, which use no quota.
+What the last check saw stays in the Actions cache, not in git, and only
+`data/edits.json` is committed, when something changed. So an hour without
+edits or new log entries commits nothing and deploys nothing. GitHub may start
+an hourly run late or skip one under load. The daily snapshots still catch an
+edit the watcher missed.
+
 ## Layout
 
 ```
@@ -110,6 +152,7 @@ monitor.py         flags videos that need attention, with next steps
 signals.py         week-on-week and shift tests (shared)
 patches.py         Steam updates behind a change, and patches touching a video
 actions.py         the learning loop: logs, measures, remembers
+watch.py           hourly: reads the action log, and notices title, description, tag and thumbnail edits
 discover.py        what is not on the dashboard yet (Discover); also applies Dismiss, Set and Seed forms
 radar.py           Discover's games rising in your genres and areas heating up (Steam + Google Trends)
 trends.py          Google Trends through SerpApi, and the search budget
@@ -119,8 +162,10 @@ report_types.py    registry of all report types
 index.html         read-only dashboard
 _config.yml        keeps the raw archives off the published Pages site
 docs/search-demand-plan.md   the Discover roadmap, phase by phase
+docs/action-log.gs           the action log's Apps Script (setup step 6)
 .github/workflows/collect.yml
-.github/ISSUE_TEMPLATE/log-action.yml        the "Log action" form
+.github/workflows/watch.yml                  the hourly edit watcher; commits data/edits.json only when it changed
+.github/ISSUE_TEMPLATE/log-action.yml        the old "Log action" issue form (actions logged with it are still read)
 .github/ISSUE_TEMPLATE/discover-dismiss.yml  the "Dismiss" form on Discover
 .github/ISSUE_TEMPLATE/discover-volume.yml   the "Set" form under Search volumes (Keyword Planner numbers)
 .github/ISSUE_TEMPLATE/discover-seed.yml     the "Add as seed" form under Areas heating up
@@ -135,6 +180,7 @@ data/
   attention.json  what the "Needs attention" panel shows
   steam.json      Steam app per game and its recent announcements (editable)
   actions.json    every logged or detected action and its measured results
+  edits.json      what the hourly watcher saw: edits and when, and a copy of the action log
   discover.json   what Discover shows, its search budget, and its settings (editable)
   radar_state.json   what the radar's next run needs: Steam lists, Google pulls, histories
   baselines.json  calibrated search terms Discover measures sizes against (edited by hand, monthly)
@@ -246,12 +292,16 @@ Notice → act → measure → remember:
    everything the update changed (thumbnail, A/B test, title, description,
    hashtags, tags, chapters, subtitles, translations, an edit in Studio's
    Editor, pinned comment, end screen, playlist, follow-up, community post,
-   replies, outside promotion or other), set the date, and it opens the
-   "Log an action" issue filled in; submit it. Title, description, tag and
-   thumbnail changes are also detected on their own from the daily
-   fingerprints, without logging: everything that changed on a video between
-   two days is one update. A day keeps the fingerprints of its first run, so
-   an extra run later that day cannot date an edit a day early.
+   replies, outside promotion or other), set the date, and **Save**. It goes
+   straight to your action log (setup step 6), and the hourly watcher picks it
+   up first thing. It shows under *Actions* after that check, and is measured
+   from the next daily run. Title, description, tag and thumbnail changes are
+   also detected on their own, without logging: hourly by the watcher, dated by
+   the hour, and from the daily fingerprints for any hour the watcher missed
+   (a day keeps the fingerprints of its first run, so an extra run later that
+   day cannot date an edit a day early). Everything that changed on a video on
+   one day is one update. Actions logged earlier as GitHub issues are still
+   read.
 2. **Measure.** 7, 14 and 28 days later the video is compared with the same
    number of days before the action, on the metric the action targets (CTR for
    thumbnails, A/B tests and titles, search views for descriptions, hashtags,
@@ -259,7 +309,8 @@ Notice → act → measure → remember:
    the back catalogue moved. An update that changed several things is measured
    once, on the first of those metrics it targets. A logged update absorbs a
    detected one that shares a part with it, within three days, and its date
-   wins. The result is posted on the issue.
+   wins. Results show on the dashboard, and are also posted on actions
+   logged as issues.
 3. **Remember.** Results are pooled per situation and action in *Actions and
    what worked*, and each suggested step shows how that action went before.
 
@@ -461,6 +512,7 @@ python collect.py                    # normal run
 python collect.py --only channel_reach_basic_a1
 python summarize.py
 python monitor.py
+python watch.py                      # one hourly check (ACTION_LOG_URL / ACTION_LOG_KEY to read the log)
 
 export SERPAPI_KEY=...
 python discover.py --dry-run         # which games are due, what it would spend
@@ -495,6 +547,9 @@ clicks separately, then divide. Retention is weighted by views the same way.
 | Discover says *too little Google data* for a game | Give it a better `term` (or `cat`) under `settings → games` in `data/discover.json`, with `"manual": true` |
 | Discover shows shares, not searches a month | Add a baseline to `data/baselines.json` (*Baselines*); or press **Set** under *Search volumes* for two or three games and paste Keyword Planner's numbers |
 | Discover says it is time to recalibrate | Last month's Keyword Planner numbers are out: redo *Baselines* steps 1–5 and update `data/baselines.json` |
+| *Log action* says *Not saved: wrong key* | The key in *Action log settings* is not the script's `KEY` property |
+| *Log action* says *Not saved: Failed to fetch* | The web app URL is wrong, or the script is not deployed for *Anyone* |
+| A saved action never shows under *Actions* | Check the *Watch for edits* run (Actions tab): `ACTION_LOG_URL` or `ACTION_LOG_KEY` missing or different from the dashboard's |
 | A Set or Dismiss form changed nothing | The *Discover intake* workflow applies it within minutes (Actions tab); a form it cannot read is closed with a comment saying why |
 
 ## Data retention
@@ -505,6 +560,8 @@ is **rewritten** each run rather than accumulated. For the same reason
 `snapshots.json` keeps each video's public view, like and comment counts, and
 its title with fingerprints (hashes, not text) of the description, tags and
 thumbnail, for the last 30 days only. `actions.json` keeps only what was done,
-when, and the measured numbers. The aggregate metrics in
+when, and the measured numbers, and `edits.json` only which parts of a video
+changed and when (30 days), plus your action log. The watcher's last check
+(title and other fingerprints) is replaced every hour in the Actions cache. The aggregate metrics in
 `data/reports/` are not resource metadata and are kept indefinitely — that is
 the entire point.
