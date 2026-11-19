@@ -3398,6 +3398,11 @@
         "create_time": "2026-11-18T06:07:31.891773Z",
         "report_id": "9907866086",
         "row_count": 245
+      },
+      "2026-11-16": {
+        "create_time": "2026-11-19T08:42:54.830272Z",
+        "report_id": "17813614422",
+        "row_count": 235
       }
     },
     "channel_device_os_a3": {
@@ -6603,6 +6608,11 @@
         "create_time": "2026-11-18T06:33:58.283942Z",
         "report_id": "17807934200",
         "row_count": 376
+      },
+      "2026-11-16": {
+        "create_time": "2026-11-19T09:00:30.198651Z",
+        "report_id": "20799688477",
+        "row_count": 364
       }
     },
     "channel_reach_combined_a1": {
@@ -10550,6 +10560,11 @@
         "create_time": "2026-11-18T06:36:36.551122Z",
         "report_id": "20793376961",
         "row_count": 13
+      },
+      "2026-11-16": {
+        "create_time": "2026-11-19T08:40:01.735433Z",
+        "report_id": "17813627220",
+        "row_count": 10
       }
     },
     "playlist_device_os_a2": {
@@ -12029,6 +12044,11 @@
         "create_time": "2026-11-18T06:56:46.367057Z",
         "report_id": "20793952799",
         "row_count": 12
+      },
+      "2026-11-16": {
+        "create_time": "2026-11-19T08:41:16.772773Z",
+        "report_id": "20799388339",
+        "row_count": 9
       }
     },
     "playlist_province_a2": {
@@ -13508,6 +13528,11 @@
         "create_time": "2026-11-18T06:41:34.322867Z",
         "report_id": "17808372570",
         "row_count": 13
+      },
+      "2026-11-16": {
+        "create_time": "2026-11-19T08:38:53.448836Z",
+        "report_id": "20799416928",
+        "row_count": 9
       }
     }
   },
@@ -13533,7 +13558,7 @@
     "playlist_province_a2": "0c217b96-e686-44cc-9daf-7651980893b0",
     "playlist_traffic_source_a2": "2f9ca6e0-4576-40ed-98ba-9cb41adb4726"
   },
-  "last_run": "2026-11-19T08:38:09.110624+00:00",
+  "last_run": "2026-11-19T09:04:11.892833+00:00",
   "offered": [
     "channel_annotations_a1",
     "channel_basic_a3",
@@ -13557,12 +13582,6 @@
     "playlist_traffic_source_a2"
   ],
   "runs": [
-    {
-      "at": "2026-09-28T08:35:25.906137+00:00",
-      "backfilled": 21,
-      "failed": 0,
-      "new": 17
-    },
     {
       "at": "2026-09-29T08:18:14.824049+00:00",
       "backfilled": 25,
@@ -13916,6 +13935,12 @@
       "backfilled": 0,
       "failed": 0,
       "new": 1
+    },
+    {
+      "at": "2026-11-19T09:04:11.892833+00:00",
+      "backfilled": 0,
+      "failed": 0,
+      "new": 5
     }
   ]
 }
