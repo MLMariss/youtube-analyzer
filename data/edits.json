@@ -1,4 +1,20 @@
 {
  "changes": [],
- "logs": []
+ "logs": [
+  {
+   "date": "2026-11-19",
+   "id": "ac8abb27",
+   "kinds": [
+    "ab_test",
+    "title",
+    "description",
+    "hashtags",
+    "tags"
+   ],
+   "logged_at": "2026-11-19T21:34:38.839Z",
+   "notes": null,
+   "situation": null,
+   "video_id": "z3aFxD7iUSY"
+  }
+ ]
 }
