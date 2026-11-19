@@ -1041,7 +1041,7 @@ def main(argv=None):
                     stop = True
                     break
 
-    # New games in your genres, and the areas heating up (radar.py). It must
+    # Games rising in your genres, and the areas heating up (radar.py). It must
     # never stop the rest from being written.
     radar_out, areas_out = prev.get("radar"), prev.get("areas")
     try:

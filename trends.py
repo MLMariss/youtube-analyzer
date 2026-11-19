@@ -279,11 +279,19 @@ def autocomplete(term, budget=None):
     err = data.get("error")
     if err and not NO_RESULTS.search(err):
         raise TrendsError(redact(err))
+    raw = data.get("suggestions") or []
     out = []
-    for s in data.get("suggestions") or []:
-        mid, title = str(s.get("mid") or "").strip(), str(s.get("title") or "").strip()
+    for s in raw:
+        mid, title = str(s.get("mid") or s.get("value") or "").strip(), str(s.get("title") or "").strip()
         if mid and title:
             out.append({"mid": mid, "title": title, "type": str(s.get("type") or "").strip()})
+    # Say what came back: a lookup that finds nothing is otherwise silent.
+    keys = sorted({k for s in raw if isinstance(s, dict) for k in s})
+    print(f"  · {term} (autocomplete): {len(out)} topic(s)" + (f" of {len(raw)} suggestions (keys: {', '.join(keys)})"
+                                                                if len(out) < len(raw) else "")
+          + (f"; {redact(err)}" if err else "")
+          + ("" if raw or err else "; Google suggested nothing" if "suggestions" in data
+             else f"; no suggestions in the response (it has {', '.join(sorted(data)) or 'nothing'})"))
     return out
 
 

@@ -4,8 +4,8 @@ Discover, parts 2 and 3: games you have not touched yet, and the areas around
 them heating up. discover.py runs this; the roadmap is in
 docs/search-demand-plan.md.
 
-New games in your genres
-------------------------
+Rising in your genres
+---------------------
 Every game here is one you have never made a video on: not in your titles
 (monitor.game_names), not one of your Steam apps (data/steam.json), not
 dismissed. Candidates come from two places:
@@ -25,22 +25,27 @@ Shooter...) is left out: those lists also hold games outside your genres.
 Each game gets:
     fit         Steam tags it shares with the games that bring you views,
                 weighted by those views (0-1).
-    size        searches a month, measured as its Google topic against the
-                baseline (data/baselines.json), 90 days, four to a search, in
-                the run that finds the game (MEASURE_RUN searches a run, apart
-                from the seed pulls); the topic comes with Google's related
-                topics, or is found once with Trends' autocomplete, and kept.
-                Only the SHORTLIST best by a first guess are measured
-                (twelve new, four established).
+    size        searches a month, measured against the baseline
+                (data/baselines.json), 90 days, four to a search, in the run
+                that finds the game (MEASURE_RUN searches a run, apart from the
+                seed pulls). Measured as its Google topic, which comes with
+                Google's related topics or is found once with Trends'
+                autocomplete; without one, as its name typed, unless Google
+                knows that name as something else. A game under one Trends
+                point beside the baseline (~20K a month) is measured again
+                beside a second ruler, a steady smaller game the baseline did
+                read. Only the SHORTLIST best by a first guess are measured
+                (twelve out in the last year or coming, four older).
     momentum    Google: its last four weeks against its first four, 90 days
-                back. Steam: players now against a week ago, and reviews
-                written in the last week.
+                back. Steam: players at the daily check against a week ago at
+                about the same hour, and reviews written in the last week.
     competition videos other channels uploaded on it in the last 30 days
                 (YouTube search; only counts are kept, never the videos).
-Ranked by log10(searches a month) x momentum x (0.5 + fit); games not
-measured yet, or too small on Google to read, come after, by the first guess. Games out in the last
-NEW_FOR_DAYS days or not out yet are "new & upcoming" and lead; older games
-you never covered are "established" and listed apart.
+One list, any release date, ranked by log10(size) x growth x (0.5 + fit):
+size is Google searches a month, or, when Google has none, players at the
+last check (those come after every game with a Google size); growth is the
+Google trend, or Steam players against a week ago. Rising games lead,
+weighted by size so a tiny game doubling does not.
 
 Areas heating up
 ----------------
@@ -91,19 +96,27 @@ STEAM_TAGS = ["City Builder", "Colony Sim", "Survival", "Base Building", "Strate
 SEED_EVERY = 14         # days between a seed's pulls
 SEED_RANGE = "today 1-m"
 SIZE_RANGE = "today 3-m"
-NEW_FOR_DAYS = 365      # released this recently, or not out yet: "new & upcoming"; older is "established"
-SHORTLIST = (12, 4)     # games measured on Google, the best by the first guess: (new, established)
+NEW_FOR_DAYS = 365      # released this recently, or not out yet: "Out ..." on its card; older: "Released <year>"
+SHORTLIST = (12, 4)     # games measured on Google, the best by the first guess: (out in the last year or
+                        # coming, older). Rising is mostly new games; the list itself is one, any release date
 SIZE_EVERY = 14         # days before a game is measured again
 READABLE = 1.0          # a level under one Trends point is mostly "<1" days: an upper bound, no trend
 SIZE_RULE = 2           # sizes measured under an older rule are measured again
 MEASURE_RUN = 24        # searches per run for finding topics and measuring, besides the seed pulls' allowance,
-                        # so a game is measured in the run that finds it (16 new games: 16 topics + 4 charts)
+                        # so a game is measured in the run that finds it (16 games: 16 topics + 4 charts + rulers)
 TOPIC_RETRY = 60        # days before a game with no Google topic is looked up again
+TOPIC_RULE = 2          # lookups made under an older rule are made again (rule 1 found nothing in 15 tries)
+MIN_PHRASE = 4          # a name shorter than this is never measured as typed: too many other meanings
+RULER_MAX_TREND = 0.5   # a second ruler must be steady: within ±50% over its 90 days
+PRECISE = 5.0           # Trends points a game needs beside the baseline to be a ruler; under it, read again beside one
+RULER_MAX = 60000       # a bigger ruler reads small games no better than the baseline (its floor is ~1/80 of it)
+RISING_MIN = 2000       # searches a month a game needs before its Google growth counts: +300% of 200 is nothing
+
 # Steam tags that put a game off the radar: a sports or shooter game can sit in a
 # Management or Base Building list. Copied into settings -> radar -> exclude_tags.
 EXCLUDE_TAGS = ["Sports", "Racing", "Fighting", "Shooter", "FPS", "Extraction Shooter"]
 GENRES_EVERY = 30       # days between measuring the seeds themselves
-KEEP = (30, 15)         # games written for the dashboard: (new, established)
+KEEP = 40               # games written for the dashboard
 SEARCHES_PER_GAME = 6   # searches listed under a game
 
 STEAM_COUNT = 25        # games per Steam list
@@ -112,10 +125,12 @@ LOOKUP_EVERY = 30       # days before a Steam lookup (tags, reviews) is repeated
 LOOKUPS_RUN = 60        # Steam lookups per run
 STEAM_PAUSE = 0.25      # seconds between Steam requests
 LOOKUP_PAUSE = 1.5      # more before each lookup: up to LOOKUPS_RUN in a row got Steam's 429
-MOMENTUM_GAMES = (20, 5)  # games whose players and reviews are read every run: (new, established)
+MOMENTUM_GAMES = 30     # games whose players and reviews are read every run
 HISTORY_DAYS = 21
+SAME_HOURS = 3          # players are compared only between checks this close in the time of day (UTC)
+MIN_PLAYERS = 100       # players a week ago below this say nothing about growth
 
-COMPETITION_GAMES = (10, 2)  # games whose YouTube competition is counted: (new, established)
+COMPETITION_GAMES = 12  # games whose YouTube competition is counted
 COMPETITION_EVERY = 7
 COMPETITION_DAYS = 30
 FEW_VIDEOS = 10         # "few videos": under this many in 30 days...
@@ -174,6 +189,22 @@ def short(name):
 
 def display_short(name):
     return head_of(name) or str(name)
+
+
+ROMAN = {"ii": "2", "iii": "3", "iv": "4", "v": "5", "vi": "6", "vii": "7", "viii": "8", "ix": "9", "x": "10"}
+
+
+def same(name):
+    """norm() with a closing Roman numeral as a number, so "Slay the Spire II" and "Slay the Spire 2" match."""
+    parts = norm(name).split()
+    if len(parts) > 1 and parts[-1] in ROMAN:
+        parts[-1] = ROMAN[parts[-1]]
+    return " ".join(parts)
+
+
+def size_term(s):
+    """What a saved size measured: a topic id, or a typed name (sizes before typed names kept it as "mid")."""
+    return s.get("term") or s.get("mid")
 
 
 def base_of(key):
@@ -316,20 +347,37 @@ def reviews_now(appid):
     return ((got.get("data") or {}).get("recommendations") or {}).get("total", 0)
 
 
-def remember(history, today, value):
-    """Append today's value to a [[date, n]] history, one per day, the last HISTORY_DAYS."""
-    history = [h for h in history if h[0] != iso(today)] + [[iso(today), value]]
+def remember(history, today, value, hour=None):
+    """Append today's value to a [[date, n, hour]] history, one per day, the last HISTORY_DAYS."""
+    history = [h for h in history if h[0] != iso(today)] + [[iso(today), value] + ([hour] if hour is not None else [])]
     return [h for h in history if days_since(h[0], today) <= HISTORY_DAYS]
 
 
-def week_ago(history, today):
-    """The value 6-9 days back nearest to 7, or None."""
+def week_ago(history, today, hour=None):
+    """
+    The value 6-9 days back nearest to 7, or None. With `hour`, only a check
+    within SAME_HOURS of it counts: players swing through the day, and the
+    daily run starts anywhere between 02:00 and 11:00 UTC.
+    """
     best = None
-    for d, v in history:
+    for h in history:
+        d, v = h[0], h[1]
+        if hour is not None and (len(h) < 3 or min(abs(h[2] - hour), 24 - abs(h[2] - hour)) > SAME_HOURS):
+            continue
         age = days_since(d, today)
         if 6 <= age <= 9 and (best is None or abs(age - 7) < abs(best[0] - 7)):
             best = (age, v)
     return best[1] if best else None
+
+
+def players_then(h):
+    """(players at the last check, players a week before it at about the same hour) from a momentum history."""
+    p = (h or {}).get("players") or []
+    if not p:
+        return None, None
+    last = p[-1]
+    week = week_ago(p, date.fromisoformat(last[0]), last[2]) if len(last) > 2 else None
+    return last[1], week
 
 
 # ------------------------------------------------------------------ YouTube competition
@@ -456,7 +504,7 @@ class Radar:
             try:
                 p = players_now(c["appid"])
                 if p is not None:
-                    h["players"] = remember(h["players"], self.today, p)
+                    h["players"] = remember(h["players"], self.today, p, self.now.hour)
                 r = reviews_now(c["appid"])
                 if r is not None:
                     h["reviews"] = remember(h["reviews"], self.today, r)
@@ -464,7 +512,7 @@ class Radar:
                 print(f"  ! Steam momentum {c['name']}: {str(e)[:120]}")
         for k in list(hist):   # keep only games still on the radar
             if not any(str(c.get("appid")) == k for c in games):
-                if all(days_since(d, self.today) > HISTORY_DAYS for d, _ in hist[k]["players"] + hist[k]["reviews"]):
+                if all(days_since(h[0], self.today) > HISTORY_DAYS for h in hist[k]["players"] + hist[k]["reviews"]):
                     del hist[k]
 
     # -------------------------------------------------- Google Trends
@@ -497,25 +545,55 @@ class Radar:
                 self.saw_themes(seed, got)
 
     def find_topic(self, c):
-        """A game's Google topic (mid): one autocomplete search, kept, so a game is looked up once."""
+        """
+        A game's Google topic (mid): one autocomplete search, kept, so a game
+        is looked up once. When Google knows the name only as something else
+        ("Main sequence", a star), the entry is marked ambiguous: its typed name
+        would measure that, not the game. What Google suggested is archived.
+        """
         name = display_short(c["name"])
         got = self.search(f"“{name}” (topic)", lambda: trends.autocomplete(name, budget=self.ctx["budget"]),
                           measuring=True)
         if got is None:
             return
-        want = {norm(c["name"]), short(c["name"])}
-        pick = next((t for t in got if is_game_topic(t) and norm(t["title"]) in want), None) or \
-            next((t for t in got if is_game_topic(t) and short(t["title"]) in want), None)
-        self.state.setdefault("topic", {})[c["key"]] = {**(pick or {"none": True}), "date": iso(self.today)}
+        want = {same(c["name"]), same(head_of(c["name"]))}
+        games = [t for t in got if is_game_topic(t)]
+        pick = next((t for t in games if same(t["title"]) in want), None) or \
+            next((t for t in games if same(head_of(t["title"])) in want), None)
+        other = not pick and any(same(t["title"]) in want or same(head_of(t["title"])) in want for t in got)
+        archive(f"radar-topic-{slug(name)}", {"term": name, "suggestions": got, "picked": pick,
+                                              "ambiguous": other}, self.today)
+        print(f"  · {name}: " + (f"topic “{pick['title']}” ({pick['type']})" if pick else
+                                 "no game topic; " + ("the name means something else on Google" if other
+                                                      else "measured as typed")))
+        entry = {**(pick or {"none": True}), "date": iso(self.today), "rule": TOPIC_RULE}
+        if other:
+            entry["ambiguous"] = True
+        self.state.setdefault("topic", {})[c["key"]] = entry
         if pick:
             c["mid"] = pick["mid"]
 
-    def measure(self, games, base):
+    def term_of(self, c):
+        """
+        What Google measures for a game: its topic (every spelling and
+        language), or its name as typed once Google has no game topic for it
+        and the name means nothing else there. None until it is looked up.
+        """
+        if c.get("mid"):
+            return c["mid"]
+        e = (self.state.get("topic") or {}).get(c["key"])
+        typed = short(c["name"])
+        if e and e.get("rule") == TOPIC_RULE and e.get("none") and not e.get("ambiguous") and len(typed) >= MIN_PHRASE:
+            return typed
+        return None
+
+    def measure(self, games, base, names):
         """
         The shortlist's sizes against the baseline, four games to a search, in
-        the run that finds them: a game without its Google topic gets it first,
-        then joins the next chart. Slots a chart would leave empty go to the
-        games measured longest ago.
+        the run that finds them: a game without its Google topic is looked up
+        first, then joins the next chart. Slots a chart would leave empty go
+        to the games measured longest ago. Games too small to read beside the
+        baseline are measured again against a second ruler (rulered()).
         """
         if not base:
             return
@@ -524,23 +602,24 @@ class Radar:
 
         def fresh(c):
             s = sizes.get(c["key"])
-            return bool(s) and s.get("mid") == c["mid"] and s.get("calibrated") == base.get("month") \
+            return bool(s) and size_term(s) == c["term"] and s.get("calibrated") == base.get("month") \
                 and s.get("rule") == SIZE_RULE and days_since(s.get("date"), self.today) < SIZE_EVERY
 
         batch, charted = [], set()
         for c in games:
             if self.measure_room() <= 0:
                 break
-            if not c.get("mid"):
+            if not c.get("term"):
                 e = topics.get(c["key"])
-                if e and days_since(e.get("date"), self.today) < TOPIC_RETRY:
-                    continue   # looked up lately: Google has no game topic for it
+                if e and e.get("rule") == TOPIC_RULE and days_since(e.get("date"), self.today) < TOPIC_RETRY:
+                    continue   # looked up lately: no game topic, and its name means something else on Google
                 if self.measure_room() < 2:
                     continue   # its chart would not fit in this run
                 self.find_topic(c)
-                if not c.get("mid"):
+                c["term"] = self.term_of(c)
+                if not c.get("term"):
                     continue
-            if fresh(c) or c["mid"] in {b["mid"] for b in batch}:
+            if fresh(c) or c["term"] in {b["term"] for b in batch}:
                 continue
             batch.append(c)
             if len(batch) == trends.MAX_TERMS - 1:
@@ -548,31 +627,76 @@ class Radar:
                 charted |= {b["key"] for b in batch}
                 batch = []
         if batch and self.measure_room() > 0:
-            mids = {b["mid"] for b in batch}
-            spare = sorted((c for c in games if c.get("mid") and c["key"] in sizes and c["key"] not in charted
-                            and c["mid"] not in mids), key=lambda c: sizes[c["key"]].get("date") or "")
+            terms = {b["term"] for b in batch}
+            spare = sorted((c for c in games if c.get("term") and c["key"] in sizes and c["key"] not in charted
+                            and c["term"] not in terms and not sizes[c["key"]].get("upper")),
+                           key=lambda c: sizes[c["key"]].get("date") or "")
             self.chart(batch + spare[:trends.MAX_TERMS - 1 - len(batch)], base)
+        self.rulered([c for c in games if c.get("term") and fresh(c) and not sizes[c["key"]].get("ruler")
+                      and (sizes[c["key"]].get("upper") or sizes[c["key"]].get("points", PRECISE) < PRECISE)],
+                     base, names)
 
-    def chart(self, batch, base):
-        """One search: the baseline and up to four games on one Trends scale, each game's size from it."""
-        terms = [base["term"]] + [c["mid"] for c in batch]
+    def chart(self, batch, base, ruler=None):
+        """
+        One search: a reference and up to four games on one Trends scale,
+        each game's size from it. The reference is the baseline, or with
+        `ruler` a game measured against it ({"term", "name", "monthly"}).
+        """
+        ref_term = ruler["term"] if ruler else base["term"]
+        terms = [ref_term] + [c["term"] for c in batch]
         got = self.search("game sizes", lambda: trends.interest_over_time(terms, SIZE_RANGE, budget=self.ctx["budget"]),
                           measuring=True)
         if got is None:
             return
         self.charts += 1   # one file per chart: raw Trends pulls cannot be pulled again
-        archive(f"radar-sizes-{self.now:%H%M}-{self.charts}", {"vs": base["term"], "range": SIZE_RANGE, "terms": terms,
+        archive(f"radar-sizes-{self.now:%H%M}-{self.charts}", {"vs": ruler["name"] if ruler else base["term"],
+                                                               "range": SIZE_RANGE, "terms": terms,
                                                                "games": [c["name"] for c in batch], **got}, self.today)
         series = list(got["series"].values())
-        ref = ref_level(series[0], got["dates"], base.get("month")) if series else 0.0
+        # The baseline's level in its calibrated month; a ruler's over the whole chart, as its monthly was measured.
+        ref = ref_level(series[0], got["dates"], None if ruler else base.get("month")) if series else 0.0
         if ref <= 0:
-            print(f"  ! “{base['term']}” has no data in this comparison")
+            print(f"  ! “{ruler['name'] if ruler else base['term']}” has no data in this comparison")
             return
         sizes = self.state.setdefault("sizes", {})
         for i, c in enumerate(batch):
             sizes[c["key"]] = {**measure_series(series[i + 1] if i + 1 < len(series) else [], ref, got["dates"],
-                                                base["monthly"]), "mid": c["mid"], "date": iso(self.today),
+                                                ruler["monthly"] if ruler else base["monthly"]),
+                               "term": c["term"], "phrase": not c.get("mid"), "date": iso(self.today),
                                "calibrated": base.get("month"), "rule": SIZE_RULE}
+            if ruler:
+                sizes[c["key"]]["ruler"] = ruler["name"]
+
+    def rulered(self, small, base, names):
+        """
+        Games under PRECISE Trends points beside the baseline (under one point,
+        about 20K searches a month in a chart with a big game, is no reading at
+        all) measured again beside a second ruler: the smallest steady game the
+        baseline read well, measured lately under the same calibration. Its
+        average searches a month over its 90 days set the scale, so games down
+        to a few hundred a month get a number and a trend.
+        """
+        if not small:
+            return
+        sizes = self.state.get("sizes") or {}
+        mine = {c["key"] for c in small}
+        rulers = sorted(((k, s) for k, s in sizes.items() if k not in mine and not s.get("upper") and not s.get("ruler")
+                         and s.get("points", 0) >= PRECISE and s["monthly"] <= RULER_MAX
+                         and not s.get("spike") and s.get("weekly") and size_term(s)
+                         and s.get("calibrated") == base.get("month") and s.get("rule") == SIZE_RULE
+                         and days_since(s.get("date"), self.today) < SIZE_EVERY
+                         and abs(s.get("trend") or 0) <= RULER_MAX_TREND),
+                        key=lambda ks: (ks[0] not in names, ks[1]["monthly"]))
+        if not rulers:
+            print(f"  {len(small)} game(s) too small beside the baseline; no steady game of {RULER_MAX:,} searches a month "
+                  "or less measured well lately to read them against")
+            return
+        k, s = rulers[0]
+        ruler = {"term": size_term(s), "name": names.get(k) or k, "monthly": mean(s["weekly"])}
+        for i in range(0, len(small), trends.MAX_TERMS - 1):
+            if self.measure_room() <= 0:
+                return
+            self.chart(small[i:i + trends.MAX_TERMS - 1], base, ruler)
 
     def measure_genres(self, base):
         """The seeds against the baseline once a month: which genre grows overall."""
@@ -772,7 +896,7 @@ def measure_series(vals, ref_avg, dates, base_monthly):
     per = base_monthly / ref_avg if ref_avg > 0 else None
     monthly = (READABLE if upper else sz["level"]) * per if per else None
     first, last = mean(vals[:28]), mean(vals[-28:])
-    return {"monthly": round(monthly) if monthly is not None else None, "upper": upper,
+    return {"monthly": round(monthly) if monthly is not None else None, "upper": upper, "points": sz["level"],
             "trend": round(last / first - 1, 3) if first > 0 and not upper else None,
             "fresh": first == 0 and last > 0, "spike": sz["spike"],
             "weekly": [round(mean(vals[i:i + 7]) * per) for i in range(0, len(vals), 7)]
@@ -789,16 +913,59 @@ def momentum_factor(size):
     return max(0.5, min(3.0, 1 + t)) if t is not None else 1.0
 
 
+def steam_growth(c):
+    """x0.5 to x3: players at the last check against a week before at about the same hour; x1 without both."""
+    p, w = c.get("players"), c.get("players_week")
+    return max(0.5, min(3.0, p / w)) if p is not None and w and w >= MIN_PLAYERS else 1.0
+
+
+def growth(c):
+    """
+    Google's trend when its size has one, else Steam's players against a week
+    ago. Under RISING_MIN searches a month a rise counts for nothing (a fall
+    still does), so a game tripling from 200 to 600 does not lead the list.
+    """
+    z = c.get("size")
+    if z and not z.get("upper") and (z.get("fresh") or z.get("trend") is not None):
+        f = momentum_factor(z)
+        return min(f, 1.0) if (z.get("monthly") or 0) < RISING_MIN else f
+    return steam_growth(c)
+
+
 def guess(c):
-    """A first guess before any Google size: reviews (how many play it) and why it surfaced."""
-    s = math.log10(10 + (c.get("reviews") or 0))
+    """
+    A first guess before any Google size, which picks the games measured:
+    how many play it (players at the last check, or reviews), why it
+    surfaced, and whether its players grow.
+    """
+    s = math.log10(10 + max(c.get("reviews") or 0, c.get("players") or 0))
     bonus = 0.0
     for w in c["why"]:
         if w["kind"] == "google":
             bonus += (3 if w["breakout"] else 2) if w["list"] == "rising" else 1
         else:
             bonus += {"top": 1.0, "trending": 0.5, "upcoming": 0.5}.get(w["list"], 0)
-    return round((s + min(bonus, 5)) * (0.5 + (c.get("fit") or 0)), 3)
+    return round((s + min(bonus, 5)) * steam_growth(c) * (0.5 + (c.get("fit") or 0)), 3)
+
+
+def by_rising(games):
+    """
+    Every game, any release date, by log10(size) x growth x (0.5 + fit):
+    size is Google searches a month when Google could read it, else players
+    at the last check, and games with a Google size come first. Games with
+    neither come last, by the first guess. Sets "score" and "basis".
+    """
+    for c in games.values():
+        z, fit = c.get("size"), 0.5 + (c.get("fit") or 0)
+        if z and z.get("monthly") and not z.get("upper"):
+            c["basis"], size = "google", z["monthly"]
+        elif c.get("players"):
+            c["basis"], size = "steam", c["players"]
+        else:
+            c["basis"], size = None, None
+        c["score"] = round(math.log10(1 + size) * growth(c) * fit, 3) if size else None
+    tier = {"google": 0, "steam": 1, None: 2}
+    return sorted(games.values(), key=lambda c: (tier[c["basis"]], -(c["score"] or c["guess"])))
 
 
 def why_summary(why):
@@ -825,14 +992,6 @@ def is_new(c, today):
     if d or upcoming:
         return upcoming or (today - d).days <= NEW_FOR_DAYS
     return any(w["kind"] == "google" and w["list"] == "rising" for w in c["why"])
-
-
-def split(games, counts):
-    """The first counts[0] new games and the first counts[1] established ones, in their order."""
-    new = [c for c in games if c["new_game"]][:counts[0]]
-    old = [c for c in games if not c["new_game"]][:counts[1]]
-    keep = {id(c) for c in new + old}
-    return [c for c in games if id(c) in keep]
 
 
 def run(ctx, settings, today, now, network, have_key):
@@ -874,33 +1033,38 @@ def run(ctx, settings, today, now, network, have_key):
         known |= {short(t["title"]) for k in ("rising", "top") for t in p.get(k) or []
                   if is_game_topic(t) and len(short(t["title"])) >= 4}
     r.attach_searches(games)
+    hist = r.state.get("momentum") or {}
     for c in games.values():
         c["fit"], c["shared"], c["like"] = r.fit(c, prof, your_tags, ranked, labels)
-        c["guess"] = guess(c)
         c["new_game"] = is_new(c, today)
+        c["term"] = r.term_of(c)
+        c["players"], c["players_week"] = players_then(hist.get(str(c.get("appid"))))
+        c["guess"] = guess(c)
     order = sorted(games.values(), key=lambda c: -c["guess"])
-    shortlist = split(order, SHORTLIST)
+    picked = {c["key"] for c in [c for c in order if c["new_game"]][:SHORTLIST[0]]
+              + [c for c in order if not c["new_game"]][:SHORTLIST[1]]}
+    shortlist = [c for c in order if c["key"] in picked]
 
     if network and have_key:
-        r.measure(shortlist, base)
+        r.measure(shortlist, base, {k: c["name"] for k, c in games.items()})
         r.measure_genres(base)
 
     sizes = r.state.get("sizes") or {}
     for c in games.values():
         sz = sizes.get(c["key"])
-        c["size"] = sz if sz and c.get("mid") and sz.get("mid") == c["mid"] and sz.get("rule") == SIZE_RULE else None
-        if c["size"] and c["size"].get("monthly") and not c["size"].get("upper"):
-            c["score"] = round(math.log10(1 + c["size"]["monthly"]) * momentum_factor(c["size"])
-                               * (0.5 + (c["fit"] or 0)), 3)
-    order = sorted(games.values(), key=lambda c: (c.get("score") is None, -(c.get("score") or c["guess"])))
-    top = split(order, KEEP)
+        c["size"] = sz if sz and c.get("term") and size_term(sz) == c["term"] and sz.get("rule") == SIZE_RULE else None
+    top = by_rising(games)[:KEEP]
 
     if network:
-        r.momentum(split(top, MOMENTUM_GAMES))
+        r.momentum(top[:MOMENTUM_GAMES])
+        hist = r.state.get("momentum") or {}
+        for c in games.values():
+            c["players"], c["players_week"] = players_then(hist.get(str(c.get("appid"))))
+        top = by_rising(games)[:KEEP]   # again, with today's players
         creds = ctx.get("youtube")
         if creds:
             comp = r.state.setdefault("competition", {})
-            for c in split(top, COMPETITION_GAMES):
+            for c in top[:COMPETITION_GAMES]:
                 e = comp.get(c["key"])
                 if e and days_since(e.get("date"), today) < COMPETITION_EVERY:
                     continue
@@ -915,14 +1079,13 @@ def run(ctx, settings, today, now, network, have_key):
     # First seen, for "New".
     first = r.state.setdefault("first_seen", {})
     started = r.state.setdefault("since", iso(today))
-    hist = r.state.get("momentum") or {}
     comp = r.state.get("competition") or {}
+    topics = r.state.get("topic") or {}
+    shortlisted = {c["key"] for c in shortlist}
     out = []
     for c in top:
         f = first.setdefault(c["key"], iso(today))
         h = hist.get(str(c.get("appid"))) or {}
-        p_now = h["players"][-1][1] if h.get("players") else None
-        p_week = week_ago(h.get("players") or [], today)
         rv_now = h["reviews"][-1][1] if h.get("reviews") else None
         rv_week = week_ago(h.get("reviews") or [], today)
         k = comp.get(c["key"])
@@ -939,9 +1102,13 @@ def run(ctx, settings, today, now, network, have_key):
             "why": why_summary(c["why"]), "searches": sorted(c["searches"], key=lambda s: (
                 s["list"] != "rising", not s["breakout"], -(s["rise"] or 0), -(s["score"] or 0)))[:SEARCHES_PER_GAME],
             "topic": bool(c.get("mid")), "mid": c.get("mid"),
-            "size": {k2: c["size"][k2] for k2 in ("monthly", "upper", "trend", "fresh", "spike", "weekly", "date")}
-            if c["size"] else None,
-            "momentum": {"players": p_now, "players_week": p_week, "reviews": rv_now,
+            "size": {**{k2: c["size"][k2] for k2 in ("monthly", "upper", "trend", "fresh", "spike", "weekly", "date")},
+                     "phrase": c["size"].get("phrase", False), "ruler": c["size"].get("ruler")} if c["size"] else None,
+            # Why Google has no size for it: measured on a next run, its name means something else, or not shortlisted.
+            "unmeasured": None if c["size"] else "ambiguous" if (topics.get(c["key"]) or {}).get("rule") == TOPIC_RULE
+            and (topics.get(c["key"]) or {}).get("ambiguous") else "next" if c["key"] in shortlisted else "outside",
+            "basis": c["basis"], "growth": round(growth(c), 2),
+            "momentum": {"players": c["players"], "players_week": c["players_week"], "reviews": rv_now,
                          "reviews_week": (rv_now - rv_week) if rv_now is not None and rv_week is not None else None},
             "competition": {**{k2: k[k2] for k2 in ("videos", "more", "views", "top", "date")},
                             "few": bool(monthly and not k["more"] and k["videos"] < FEW_VIDEOS

@@ -111,7 +111,7 @@ signals.py         week-on-week and shift tests (shared)
 patches.py         Steam updates behind a change, and patches touching a video
 actions.py         the learning loop: logs, measures, remembers
 discover.py        what is not on the dashboard yet (Discover); also applies Dismiss, Set and Seed forms
-radar.py           Discover's new games in your genres and areas heating up (Steam + Google Trends)
+radar.py           Discover's games rising in your genres and areas heating up (Steam + Google Trends)
 trends.py          Google Trends through SerpApi, and the search budget
 auth.py            refresh-token OAuth
 mint_token.py      one-time token minting
@@ -262,7 +262,7 @@ areas heating up around them. Games you already cover are tracked by your own
 video data, so Discover spends no Google searches on them. The roadmap is in
 [docs/search-demand-plan.md](docs/search-demand-plan.md).
 
-**New games in your genres** (`radar.py`). Candidates come from two places:
+**Rising in your genres** (`radar.py`). Candidates come from two places:
 - **Steam**, free, every run: the *New & Trending*, *Top Sellers* and *Popular
   Upcoming* lists of your genre tags (City Builder, Colony Sim, Survival, Base
   Building, Strategy, Turn-Based Tactics, Automation, Management, Open World
@@ -275,28 +275,43 @@ video data, so Discover spends no Google searches on them. The roadmap is in
 
 A game you have a video on (even one title naming it), one of your Steam apps,
 and anything you dismissed are left out. A sequel to one of yours stays,
-marked. Games out in the last year or not out yet lead, as **new & upcoming**.
-Older games you never covered are listed apart, folded, as **established**.
+marked. It is one list, whatever the release date: the card says *Out Oct 15,
+2026*, *Coming …* or *Released 2018*.
 
 Each card shows:
 - **Size**: Google searches a month, measured against the baseline, for the
   game as a Google topic (every spelling and language), and the change over 90
-  days. Only the 16 most promising games are measured (12 new, 4 established),
-  in the run that finds them, and again every 14 days. A game Google surfaces
-  comes with its topic; a game from Steam's lists needs one search to find it,
-  once. A game Google has no topic for stays unmeasured. A game too small to
-  read beside the baseline shows *under* a ceiling, with no trend, and ranks
-  with the unmeasured ones.
+  days. Only the 16 most promising games are measured (12 out in the last year
+  or coming, where rising mostly happens, and 4 older), in the run that finds
+  them, and again every 14 days. A game Google surfaces comes with its topic; a
+  game from Steam's lists needs one search to find it, once (what Google
+  suggested is archived as `radar-topic-*`). Without a topic, the game's name
+  is measured as typed, unless Google knows that name as something else (*Main
+  Sequence*, a star), which stays unmeasured. The baseline reads small games
+  poorly: under one Trends point (about 20K searches a month when a big game
+  shares the chart) is no reading at all. A game under 5 points is measured
+  again beside a **second ruler**: the smallest steady game of 60K searches a
+  month or less that the baseline read well (5+ points) in the last 14 days.
+  That reads down to a few hundred a month, with a trend. Under that it shows
+  *under* a ceiling with no trend, and ranks by Steam.
 - **Fit**: how much of your views come from games with the same Steam tags.
-- **Steam momentum**: players at the daily check against a week ago, and
-  reviews written in the last week.
+- **Steam momentum**: players at the daily check against a week ago at about
+  the same hour (within three hours: players swing through the day, and the
+  daily run starts anywhere between 02:00 and 11:00 UTC), and reviews written
+  in the last week.
 - **YouTube competition**: videos other channels uploaded on it in 30 days,
   and their views. *Few videos* marks a game searched 2,000+ times a month with
   under 10. Only the counts are kept. This needs the YouTube secrets on the
   Discover step, which `collect.yml` passes.
 
-Ranking: log(searches a month) × momentum × (0.5 + fit). Games not measured
-yet come after, by a first guess from reviews and why they surfaced.
+Ranking: log(size) × growth × (0.5 + fit), so rising games lead, weighted by
+size so a tiny game doubling does not. Size is searches a month; a game Google
+has no number for uses its Steam players and comes after every game with one.
+Growth is the Google change over 90 days (×0.5 to ×3), or Steam players
+against a week ago (from 100 players). Under 2,000 searches a month a rise
+earns nothing (a fall still counts): tripling from 200 is not news. Which 16
+are measured is picked by a first guess from
+players (or reviews), Steam growth and why they surfaced.
 *Dismiss* opens a pre-filled issue, and the radar hides that game.
 
 **Areas heating up.** Your genre searches' related searches that name no game
@@ -335,7 +350,7 @@ uses per cycle:
 | What | Searches per cycle |
 |---|---|
 | Nine genre searches, pulled every two weeks (topics and searches) | ~40 |
-| Finding new games' Google topics, and measuring the shortlist | ~20 |
+| Finding games' Google topics, and measuring the shortlist (second ruler included) | ~25 |
 | Measuring the genres themselves, monthly | ~3 |
 
 The daily run spends at most six on pulls (the genre searches, and your games

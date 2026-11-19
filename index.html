@@ -1554,7 +1554,7 @@ function volumesHtml(Z) {
       : '<p class="empty-state">Your games appear here after their first Discover search.</p>');
 }
 
-// ---- New games in your genres, and areas heating up (radar.py) -----------------
+// ---- Rising in your genres, and areas heating up (radar.py) --------------------
 const LIST_NAME = { top: 'Top Sellers', trending: 'New & Trending', upcoming: 'Popular Upcoming' };
 // Dismiss opens the same form as a question's; `scope` says where it hides: "new games" or "areas".
 function hideUrl(item, scope) {
@@ -1625,9 +1625,11 @@ function radarCard(g, R) {
   const z = g.size, k = g.competition;
   const line = (label, html) => html ? `<div class="vc-why"><span class="inl">${label}</span>${html}</div>` : '';
   const google = z ? `<b>${sizeTxt(z)}</b>${trendTxt(z) ? ` · ${trendTxt(z)}` : ''}${z.spike ? ' · mostly a one-day spike' : ''}${
-      z.upper ? ' · too small beside the baseline to read a trend' : ''}`
-    : `<span class="side-why">${g.topic ? 'measured against the baseline on one of the next runs'
-        : `not measured yet: the ${R.shortlist} best by a first guess are measured first`}</span>`;
+      z.upper ? ` · too small${z.ruler ? '' : ' beside the baseline'} to read a trend` : ''}${
+      z.phrase ? ' · its name as typed: Google has no topic for the game' : ''}${z.ruler ? ` · read against ${esc(z.ruler)}` : ''}`
+    : `<span class="side-why">${g.unmeasured === 'ambiguous' ? 'not measured: Google has no topic for the game, and its name means something else there'
+        : g.unmeasured === 'outside' ? `not among the ${R.shortlist} measured on Google${has((g.momentum || {}).players) ? '; ranked by its Steam players' : ''}`
+        : 'measured on one of the next runs'}</span>`;
   const fit = has(g.fit) ? `<b>${Math.round(g.fit * 100)}%</b>${(g.shared || []).length ? ` · shares ${g.shared.map(esc).join(', ')}` : ''}${
     (g.like || []).length ? ` with ${g.like.map(esc).join(' and ')}` : ''}` : '';
   return `<article class="vcard">
@@ -1647,18 +1649,6 @@ function radarCard(g, R) {
     ${(g.searches || []).length ? line('Searched', queryList(g.searches)) : ''}
     ${radarLinks(g)}
   </article>`;
-}
-
-function radarRow(g) {
-  const z = g.size;
-  return `<li>
-    <div class="dq-main"><span class="dq-q">${g.steam_url ? `<a href="${esc(g.steam_url)}" target="_blank" rel="noopener">${esc(g.name)}</a>` : esc(g.name)}</span>
-      ${g.new ? '<span class="att-new">New</span>' : ''}<span class="side-why">${esc(releaseTxt(g))}${has(g.reviews) ? ` · ${fmt(g.reviews)} reviews` : ''}</span>
-      ${z ? `<span class="size">${sizeTxt(z)}</span>` : ''}${z && trendTxt(z) ? `<span class="side-why">${trendTxt(z)}</span>` : ''}
-      ${has(g.fit) ? `<span class="side-why">fit ${Math.round(g.fit * 100)}%</span>` : ''}</div>
-    <div class="dq-sub">${(g.why || []).map(whyTxt).join(' · ')}${g.follows ? ` · follows ${esc(g.follows)}` : ''}</div>
-    ${radarLinks(g)}
-  </li>`;
 }
 
 function themeRow(t) {
@@ -1704,22 +1694,17 @@ function renderDiscover() {
     ? `<p style="margin:12px 0 0"><button type="button" class="btn" data-more="${key}">${all ? 'Show fewer' : `Show all ${n} ${what}`}</button></p>` : '';
   const paused = !!(D.your_games || {}).paused;
 
-  // New games in your genres.
+  // Rising in your genres.
   const R = D.radar, A = D.areas;
   let radar = '<p class="empty-state">The radar fills in after the next collector run: Steam\'s lists are read every run, Google\'s genre searches over the first days.</p>';
   let nNew = 0;
   if (R) {
-    const newG = R.games.filter(g => (g.group || 'new') === 'new'), oldG = R.games.filter(g => g.group === 'established');
-    nNew = newG.length;
-    const all = showAll.has('disc-radar'), cards = newG.map(g => radarCard(g, R));
+    nNew = R.games.length;
+    const all = showAll.has('disc-radar'), cards = R.games.map(g => radarCard(g, R));
     const waiting = R.seeds.filter(s => !((R.pulled || {})[s] || {}).topics);
     const profile = (R.profile || []).slice(0, 5).map(p => `${esc(p.tag)} ${Math.round(p.share * 100)}%`).join(', ');
-    radar = (cards.length ? `<div class="cards">${(all ? cards : cards.slice(0, CARDS_SHOWN)).join('')}</div>${moreBtn('disc-radar', cards.length, all, 'new games')}`
-        : '<p class="empty-state">No new games in your genres yet.</p>') +
-      (oldG.length ? `<details class="sub" data-key="disc-established" ${isOpen('disc-established', false) ? 'open' : ''}>
-          <summary><span class="fold">▶</span>Established games you haven't covered <span class="count">${oldG.length}</span></summary>
-          <p class="vol-how">Out for over a year, in your genres, in none of your titles. Big and steady rather than new; a sequel to one of yours is marked.</p>
-          <ul class="dq">${oldG.map(radarRow).join('')}</ul></details>` : '') +
+    radar = (cards.length ? `<div class="cards">${(all ? cards : cards.slice(0, CARDS_SHOWN)).join('')}</div>${moreBtn('disc-radar', cards.length, all, 'games')}`
+        : '<p class="empty-state">No games in your genres yet.</p>') +
       `<p class="vol-how" style="margin-top:14px">${R.candidates} games in your genres checked: Steam's lists for ${R.steam_tags.map(esc).join(', ')}${
         R.steam_date ? ` (read ${shortDate(R.steam_date)})` : ''}, and the games Google shows beside ${R.seeds.map(s => `“${esc(s)}”`).join(', ')}.${
         waiting.length ? ` ${waiting.length} of these searches still wait for their first pull.` : ''}${
@@ -1755,8 +1740,8 @@ function renderDiscover() {
         <span class="group-what">${what}</span></summary>
       <div class="group-body">${body}</div></details>`;
   el.innerHTML = health +
-    group('disc-radar', isOpen('disc-radar', true), 'New games in your genres', nNew,
-      'Games you have never made a video on, new or coming soon, from Steam\'s lists and from what Google shows beside your genre searches. One card per game: what people search about it is listed on it.', radar) +
+    group('disc-radar', isOpen('disc-radar', true), 'Rising in your genres', nNew,
+      'Games you have never made a video on, any release date, from Steam\'s lists and from what Google shows beside your genre searches. Fastest growing first, weighted by size and fit: Google searches when Google can read them, else Steam players. One card per game.', radar) +
     group('disc-areas', isOpen('disc-areas', true), 'Areas heating up', nThemes,
       'Themes rising in the searches around your genres ("cozy", "medieval", "co-op"), with Steam games that carry them. One that keeps rising can become a seed.', areas) +
     group('disc-questions', isOpen('disc-questions', !paused), `Unanswered questions in your games${paused ? ' <span class="tag">paused</span>' : ''}`, n,
@@ -1771,16 +1756,20 @@ function renderDiscover() {
       <code>settings → radar</code> in <code>data/discover.json</code>. The roadmap is in
       <a href="https://github.com/${REPO}/blob/main/docs/search-demand-plan.md" target="_blank" rel="noopener">docs/search-demand-plan.md</a>.</p>
     <details class="glossary" data-key="disc-help"><summary>How to read this</summary><dl class="gloss-body">
-      <div><dt>New games in your genres</dt><dd>Out in the last year or coming soon, in your Steam tags or beside your genre searches on
-        Google, and in none of your titles. Older ones you never covered are listed apart, folded.</dd></div>
+      <div><dt>Rising in your genres</dt><dd>Games in your Steam tags or beside your genre searches on Google, in none of your titles,
+        whatever their release date. Ranked by size × growth × fit: Google searches a month and their 90-day change when Google
+        can read them; otherwise Steam players and their change on a week ago, and those come after the games Google measured.
+        Under 2,000 searches a month a rise earns nothing: tripling from 200 is not news.</dd></div>
       <div><dt>~45K searches a month · +80% over 90 days</dt><dd>The game's Google searches (as a topic: every spelling and language),
         measured against the baseline, a search term whose monthly searches were pinned down by hand. The change compares its
         last four weeks with its first four. Roughly ±12%, not exact. <i>New on Google</i>: barely searched before, searched now.
-        <i>Under</i>: too small beside the baseline to read, so a ceiling with no trend; it ranks by its Steam signals and fit.</dd></div>
+        <i>Read against</i>: the baseline reads small games poorly (under about 20K a month, often not at all), so they are
+        measured again beside a steady game of 60K a month or less that the baseline read well (less exact). <i>Its name as typed</i>: Google has no topic for the game, so
+        its name is measured as a search. <i>Under</i>: too small to read even so: a ceiling with no trend; it ranks by Steam.</dd></div>
       <div><dt>Fit</dt><dd>How much of your views come from games with the same Steam tags (weighted by those views). 100% would be
         a game tagged exactly like the games that bring you the most views.</dd></div>
-      <div><dt>Steam</dt><dd>Players at the daily check against a week ago, and reviews written in the last week: real players, not
-        just searches.</dd></div>
+      <div><dt>Steam</dt><dd>Players at the daily check against a week ago at about the same hour (players swing through the day),
+        and reviews written in the last week: real players, not just searches.</dd></div>
       <div><dt>YouTube · Few videos</dt><dd>Videos other channels uploaded on it in the last 30 days and their views (counts only; nothing
         about the videos is kept). <i>Few videos</i>: searched a lot, covered little.</dd></div>
       <div><dt>Searched</dt><dd>Google searches that name the game, from your genre searches: one game, one card, however many ways
