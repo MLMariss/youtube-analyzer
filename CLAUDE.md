@@ -37,8 +37,9 @@ Apply to every project unless the project's CLAUDE.md says otherwise.
 # This project
 * MLMariss YouTube analytics: an unattended collector (`collect.py` and friends, Python standard library only) that archives every YouTube Reporting API report as permanent daily JSON shards in `data/reports/`, plus a static read-only dashboard (`index.html`) that reads the summary JSON in `data/`. See `README.md` for the full layout.
 * Deploys with GitHub Pages from `main` (root folder) at `https://mlmariss.github.io/youtube-analyzer/`. A merge into `main` is a deploy. `_config.yml` keeps `data/reports` and `data/discover_archive` off the published site (Pages' 1 GB limit).
-* **Two workflows commit to `main`** as `github-actions[bot]`:
+* **Three workflows commit to `main`** as `github-actions[bot]`:
   * `.github/workflows/collect.yml`: daily at 02:23 UTC (and on manual dispatch), commits `data/`.
+  * `.github/workflows/watch.yml`: hourly at :41, commits `data/edits.json` only when a video was edited or the action log changed.
   * `.github/workflows/discover-intake.yml`: when a Dismiss, Searches a month or Seed issue is opened, commits `data/discover.json`.
-* Because of those bots, `main` moves daily: fetch before branching, and expect `data/` to change under you.
+* Because of those bots, `main` moves daily (and within the hour after a video edit or a logged action): fetch before branching, and expect `data/` to change under you.
 * Credentials are Actions secrets / env vars (`.env` is ignored). Never commit them.

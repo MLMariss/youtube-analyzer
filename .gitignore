@@ -12,3 +12,6 @@ __pycache__/
 .env
 
 # Note: data/ is deliberately NOT ignored. The collector commits it.
+
+# What the hourly edit watcher saw last (kept in the Actions cache, not in git)
+.watch/

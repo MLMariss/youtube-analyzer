@@ -329,7 +329,7 @@
   .btn.small { padding: 5px 10px; font-size: 13.5px; }
   .btn:disabled { opacity: .5; cursor: not-allowed; }
 
-  /* Log action: pick a video, tick what changed, then open the filled-in GitHub issue. */
+  /* Log action: pick a video, tick what changed, then save it to the action log. */
   dialog.log {
     width: min(660px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto;
     padding: 0; border: 1px solid var(--border); border-radius: 12px;
@@ -375,6 +375,10 @@
   }
   .log textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
   .log-hint { margin: 0; font-size: 13.5px; color: var(--text-2); }
+  .log-hint.bad { color: var(--bad); }
+  .log input[type=url], .log input[type=password] { width: 100%; min-width: 0; }
+  .log-setup { display: grid; gap: 8px; border-top: 1px dashed var(--line); padding-top: 10px; }
+  .log-setup > summary { cursor: pointer; font-size: 13.5px; color: var(--link); }
   .vc-history { font-size: 14px; color: var(--text-2); border-top: 1px dashed var(--line); padding-top: 10px; }
   .chip-result { font-weight: 700; white-space: nowrap; }
   .chip-result.flat { color: var(--muted); font-weight: 600; }
@@ -613,12 +617,20 @@
         <label class="log-lbl" for="log-notes">Notes (optional)</label>
         <textarea id="log-notes" rows="2" placeholder="For example the new title, or what the new thumbnail shows"></textarea>
       </div>
-      <p class="log-hint">This opens the action on GitHub, already filled in. Press <b>Create</b> there to save it.</p>
+      <p class="log-hint" id="log-status">This goes to your action log (your Google Sheet). The hourly check picks it up; it is measured 7, 14 and 28 days later.</p>
       <div class="vc-actions">
-        <button type="submit" class="btn primary" id="log-go" disabled>Save on GitHub ↗</button>
+        <button type="submit" class="btn primary" id="log-go" disabled>Save</button>
         <button type="button" class="btn" data-log-close>Cancel</button>
       </div>
     </div>
+    <details class="log-setup" id="log-setup">
+      <summary>Action log settings (once per browser)</summary>
+      <label class="log-lbl" for="log-url">Web app URL</label>
+      <input type="url" id="log-url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off">
+      <label class="log-lbl" for="log-key">Key</label>
+      <input type="password" id="log-key" autocomplete="off">
+      <p class="log-hint">From the Apps Script you deployed (README, <i>Action log</i>). Kept in this browser only.</p>
+    </details>
   </form>
 </dialog>
 
@@ -907,7 +919,7 @@ async function init() {
       '<span style="color:var(--muted)">' + esc(e.message) + '</span>', true);
     return;
   }
-  [DAILY, TRAFFIC, TDETAIL, DEVICES, DEMOGRAPHICS, ATTENTION, DISCOVER] = await Promise.all([
+  [DAILY, TRAFFIC, TDETAIL, DEVICES, DEMOGRAPHICS, ATTENTION, DISCOVER, EDITS] = await Promise.all([
     loadOptional('data/daily.json'),
     loadOptional('data/traffic.json'),
     loadOptional('data/traffic_detail.json'),
@@ -915,6 +927,7 @@ async function init() {
     loadOptional('data/demographics.json'),
     loadOptional('data/attention.json'),
     loadOptional('data/discover.json'),
+    loadOptional('data/edits.json'),
   ]);
 
   const when = SUMMARY.generated_at ? new Date(SUMMARY.generated_at) : null;
@@ -1061,16 +1074,17 @@ function renderMetrics() {
 // next to each suggestion.
 let ATTENTION = null;
 let DISCOVER = null;
+let EDITS = null;   // data/edits.json: what the hourly watcher saw, the action log among it
 const CARDS_SHOWN = 6;          // cards per group before "Show all"
 const showAll = new Set();      // groups showing every card
 
-// Logging an action opens this repository's "Log an action" issue form.
+// Discover's forms open this repository's issue forms.
 const REPO = (() => {
   const h = location.hostname;
   if (h.endsWith('.github.io')) return `${h.split('.')[0]}/${location.pathname.split('/').filter(Boolean)[0] || ''}`;
   return 'MLMariss/youtube-analyzer';
 })();
-// Mirrors actions.KINDS: these labels are what the issue form expects.
+// Mirrors actions.KINDS: these labels are what the action log stores and actions.py reads.
 const KIND_LABEL = {
   thumbnail: 'Thumbnail', ab_test: 'A/B test (Test & Compare)', title: 'Title', description: 'Description',
   hashtags: 'Hashtags', tags: 'Tags', chapters: 'Chapters', subtitles: 'Subtitles', translations: 'Translations',
@@ -1109,8 +1123,10 @@ const attTitle = id => ((ATTENTION.videos || {})[id] || {}).title
   || (((SUMMARY && SUMMARY.video_meta) || {})[id] || {}).title || id;
 
 // ---- Log action ----------------------------------------------------------------
-// A dialog: find the video (title, game or link), tick what changed, and open
-// the "Log an action" issue filled in. The page has no login, so GitHub saves it.
+// A dialog: find the video (title, game or link), tick what changed, and save it
+// to the action log: a Google Sheet behind your Apps Script web app
+// (docs/action-log.gs). The page has no login, so the web app's address and
+// key are typed once per browser. The hourly watcher (watch.py) reads the log.
 const logState = { id: null, situation: '' };
 const metaOf = id => (((SUMMARY && SUMMARY.video_meta) || {})[id]) || {};
 const logTitle = id => metaOf(id).title || (((ATTENTION && ATTENTION.videos) || {})[id] || {}).title || id;
@@ -1187,6 +1203,11 @@ function openLog(id, situation, key) {
   day.value = day.max = localDay();
   document.getElementById('log-notes').value = '';
   document.getElementById('log-q').value = '';
+  const cfg = logConfig();
+  document.getElementById('log-url').value = cfg.url || '';
+  document.getElementById('log-key').value = cfg.key || '';
+  document.getElementById('log-setup').open = !(cfg.url && cfg.key);
+  logStatus('This goes to your action log (your Google Sheet). The hourly check picks it up; it is measured 7, 14 and 28 days later.');
   document.getElementById('log-pick').classList.remove('hidden');
   document.getElementById('log-step2').classList.add('hidden');
   if (id) logChoose(id); else renderLogResults();
@@ -1194,19 +1215,49 @@ function openLog(id, situation, key) {
   if (!id) document.getElementById('log-q').focus();
 }
 
-function logIssueUrl() {
-  const id = logState.id, labels = logChecked().map(k => KIND_LABEL[k]);
-  const p = new URLSearchParams({
-    template: 'log-action.yml',
-    title: `Action: ${labels.join(' + ')} — ${logTitle(id)}`,
-    video: `https://studio.youtube.com/video/${id}/edit`,
-    action: labels.join(', '),
-    situation: logState.situation,
-    date: document.getElementById('log-date').value,
-  });
-  const notes = document.getElementById('log-notes').value.trim();
-  if (notes) p.set('notes', notes);
-  return `https://github.com/${REPO}/issues/new?${p}`;
+const LOG_KEY = 'action-log';
+function logConfig() {
+  try { return JSON.parse(localStorage.getItem(LOG_KEY) || 'null') || {}; } catch (e) { return {}; }
+}
+
+function logStatus(text, bad) {
+  const el = document.getElementById('log-status');
+  el.textContent = text;
+  el.classList.toggle('bad', !!bad);
+}
+
+// Saves the action to the log; the settings typed in the dialog are kept for next time.
+async function saveLog() {
+  const url = document.getElementById('log-url').value.trim(), key = document.getElementById('log-key').value.trim();
+  if (!/^https:\/\//.test(url) || !key) {
+    document.getElementById('log-setup').open = true;
+    logStatus('Set the web app URL and key below first.', true);
+    return false;
+  }
+  try { localStorage.setItem(LOG_KEY, JSON.stringify({ url, key })); } catch (e) { /* private mode: asked again next time */ }
+  const go = document.getElementById('log-go');
+  go.disabled = true;
+  logStatus('Saving…');
+  try {
+    // A plain-text body keeps this a simple request: no CORS preflight, which Apps Script cannot answer.
+    const r = await fetch(url, { method: 'POST', body: JSON.stringify({
+      key, action: 'add',
+      video: `https://studio.youtube.com/video/${logState.id}/edit`,
+      what: logChecked().map(k => KIND_LABEL[k]).join(', '),
+      date: document.getElementById('log-date').value,
+      situation: logState.situation,
+      notes: document.getElementById('log-notes').value.trim(),
+    }) });
+    const out = await r.json();
+    if (!out.ok) throw new Error(out.error || 'not saved');
+    logStatus('Saved ✓ It shows under Actions after the next hourly check.');
+    return true;
+  } catch (e) {
+    logStatus(`Not saved: ${e.message}. Check the settings below.`, true);
+    document.getElementById('log-setup').open = true;
+    go.disabled = false;
+    return false;
+  }
 }
 
 // ---- Trend lines -------------------------------------------------------------
@@ -1333,8 +1384,18 @@ function resultChip(r, label) {
   return `<span class="chip-result ${r.verdict === 'better' ? 'good' : 'bad'}">${label}: ${r.verdict === 'better' ? '▲' : '▼'}${change}</span>`;
 }
 
+// Actions saved with Log action reach attention.json in the next daily run;
+// until then they come from data/edits.json, which the hourly watcher writes.
+function actionList() {
+  const acts = (ATTENTION && ATTENTION.actions) || [];
+  const have = new Set(acts.map(a => a.id));
+  const waiting = ((EDITS && EDITS.logs) || []).map(l => ({ ...l, id: 'log-' + l.id, source: 'logged', results: {} }))
+    .filter(a => !have.has(a.id));
+  return waiting.length ? [...waiting, ...acts].sort((a, b) => b.date.localeCompare(a.date)) : acts;
+}
+
 function historyFor(id) {
-  const acts = (ATTENTION.actions || []).filter(a => a.video_id === id).slice(0, 2);
+  const acts = actionList().filter(a => a.video_id === id).slice(0, 2);
   if (!acts.length) return '';
   return `<div class="vc-history"><span class="inl">Done before</span>${acts.map(a =>
     `${esc(actionLabel(a))} on ${shortDate(a.date)}` +
@@ -1488,7 +1549,7 @@ function smallHtml(A) {
 
 function learnedHtml(A) {
   // Per situation; the "any situation" summary only where an action was tried in several.
-  const acts = A.actions || [], all = A.playbook || [];
+  const acts = actionList(), all = A.playbook || [];
   const spread = k => all.filter(p => p.kind === k && p.situation !== '*').length;
   const book = all.filter(p => p.situation !== '*' || spread(p.kind) > 1);
   const intro = `<p class="empty-state">${acts.length ? '' : 'Nothing measured yet. '}Title, description
@@ -1505,7 +1566,7 @@ function learnedHtml(A) {
       <thead><tr><th>Video</th><th>What</th><th>Date</th><th>Recorded</th><th>Results</th></tr></thead><tbody>${acts.slice(0, 20).map(a => `<tr>
       <td><a href="${studio(a.video_id, 'edit')}" target="_blank" rel="noopener">${esc(attTitle(a.video_id))}</a></td>
       <td>${esc(actionLabel(a))}</td><td>${shortDate(a.date)}</td>
-      <td>${a.issue ? `<a href="${esc(a.issue.url)}" target="_blank" rel="noopener">logged #${a.issue.number}</a>` : 'detected'}</td>
+      <td>${a.issue ? `<a href="${esc(a.issue.url)}" target="_blank" rel="noopener">logged #${a.issue.number}</a>` : a.source === 'logged' ? 'logged' : 'detected'}</td>
       <td style="text-align:left">${['7', '14', '28'].map(h => resultChip((a.results || {})[h], `${h}d`)).join(' · ')}</td></tr>`).join('')}
       </tbody></table></div>` : '';
   return intro + pb + recent +
@@ -1550,7 +1611,7 @@ const GROUPS = [
     raw: A => smallHtml(A), count: A => (A.small || []).length },
   { key: 'learned', title: 'Actions and what worked', always: true, closed: true,
     what: 'What you did, and how each video did 7, 14 and 28 days later.',
-    raw: A => learnedHtml(A), count: A => (A.actions || []).length },
+    raw: A => learnedHtml(A), count: () => actionList().length },
 ];
 
 const OPEN_KEY = 'yt-analyzer-open';
@@ -2341,11 +2402,10 @@ document.addEventListener('click', e => {
     if (e.target.closest('[data-log-close]') || e.target === dlg) dlg.close();
   });
   dlg.addEventListener('change', logReady);
-  document.getElementById('log-form').addEventListener('submit', e => {
+  document.getElementById('log-form').addEventListener('submit', async e => {
     e.preventDefault();
     if (!logState.id || !logChecked().length) return;
-    window.open(logIssueUrl(), '_blank', 'noopener');
-    dlg.close();
+    if (await saveLog()) setTimeout(() => dlg.close(), 1500);
   });
 })();
 
