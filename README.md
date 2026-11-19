@@ -102,6 +102,15 @@ a small Apps Script web app, not to GitHub. About five minutes, once:
 5. On the dashboard, open *Log action* → *Action log settings* and paste the
    same URL and key. Once per browser (phone and computer each); they stay in
    that browser only.
+6. The same script starts the hourly edit watcher. On GitHub: **Settings →
+   Developer settings → Personal access tokens → Fine-grained tokens →
+   Generate new token**. *Repository access*: **Only select repositories**,
+   this one. *Permissions*: **Actions: Read and write**. Add the token as a
+   second script property, `GITHUB_TOKEN`. Then pick `installWatchTrigger` in
+   the editor's function list, **Run**, and allow access. It starts the watcher
+   once straight away (**Actions → Watch for edits** shows the run), then every
+   hour. When the token expires, Apps Script emails you that `startWatcher`
+   failed: make a new token and replace the property.
 
 Anyone with the URL but not the key can neither read nor write the log. Rows
 can be edited or deleted in the Sheet: the watcher reads the whole log every
@@ -127,8 +136,11 @@ so the next run retries it.
 
 ### Hourly edit watcher
 
-`watch.py` runs every hour at :41 (`.github/workflows/watch.yml`), apart from
-the daily run. It reads the action log first, and checks the videos named in
+`watch.py` runs every hour (`.github/workflows/watch.yml`), apart from the
+daily run. The action log's Apps Script starts it (setup step 6): GitHub's own
+hourly schedule, at :41, did not fire once in its first eight hours, and
+GitHub starts this repository's daily run seven to eight hours late. The :41
+schedule stays as a backup; a second run in an hour does no harm. It reads the action log first, and checks the videos named in
 new entries first, including uploads too new to be on the dashboard yet. Then it
 fingerprints every video's title, description, tags and thumbnail and compares
 them with the hour before. An edit is dated by the last check that still showed
@@ -139,9 +151,9 @@ What it costs: 16 Data API calls of 1 quota unit each for about 750 videos
 (384 of the 10,000 units a day), and the thumbnail images, which use no quota.
 What the last check saw stays in the Actions cache, not in git, and only
 `data/edits.json` is committed, when something changed. So an hour without
-edits or new log entries commits nothing and deploys nothing. GitHub may start
-an hourly run late or skip one under load. The daily snapshots still catch an
-edit the watcher missed.
+edits or new log entries commits nothing and deploys nothing. An edit made
+while the watcher was not running is still caught by the daily snapshots, a
+day later.
 
 ## Layout
 
@@ -162,7 +174,7 @@ report_types.py    registry of all report types
 index.html         read-only dashboard
 _config.yml        keeps the raw archives off the published Pages site
 docs/search-demand-plan.md   the Discover roadmap, phase by phase
-docs/action-log.gs           the action log's Apps Script (setup step 6)
+docs/action-log.gs           the action log's Apps Script; also starts the hourly watcher (setup step 6)
 .github/workflows/collect.yml
 .github/workflows/watch.yml                  the hourly edit watcher; commits data/edits.json only when it changed
 .github/ISSUE_TEMPLATE/log-action.yml        the old "Log action" issue form (actions logged with it are still read)
@@ -550,6 +562,7 @@ clicks separately, then divide. Retention is weighted by views the same way.
 | *Log action* says *Not saved: wrong key* | The key in *Action log settings* is not the script's `KEY` property |
 | *Log action* says *Not saved: Failed to fetch* | The web app URL is wrong, or the script is not deployed for *Anyone* |
 | A saved action never shows under *Actions* | Check the *Watch for edits* run (Actions tab): `ACTION_LOG_URL` or `ACTION_LOG_KEY` missing or different from the dashboard's |
+| *Watch for edits* has not run for hours | In the action log's Apps Script, open **Executions**: a failed `startWatcher` says why, usually an expired `GITHUB_TOKEN` (setup step 6) |
 | A Set or Dismiss form changed nothing | The *Discover intake* workflow applies it within minutes (Actions tab); a form it cannot read is closed with a comment saying why |
 
 ## Data retention

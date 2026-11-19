@@ -3,7 +3,8 @@ name: Watch for edits
 on:
   schedule:
     # Hourly, at an odd minute: schedules on the hour queue behind everyone
-    # else's. GitHub may still start a run late or skip one under load.
+    # else's. GitHub may still start a run late or skip one under load, so the
+    # action log's Apps Script starts this every hour too (docs/action-log.gs).
     - cron: '41 * * * *'
   workflow_dispatch:
 
