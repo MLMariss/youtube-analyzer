@@ -1,6 +1,37 @@
 {
  "ambiguous": false,
  "picked": null,
- "suggestions": [],
+ "suggestions": [
+  {
+   "mid": "",
+   "title": "Find The Needle",
+   "type": "Search term"
+  },
+  {
+   "mid": "/g/11mdwrtx54",
+   "title": "Burn the Haystack: Decode Dating, Torch the Duds, and Make Room for Men Who Matter",
+   "type": "Book by Jennie Young"
+  },
+  {
+   "mid": "/g/11byp38rvg",
+   "title": "Quilting For Dummies",
+   "type": "Book by Cheryl Fall"
+  },
+  {
+   "mid": "/g/12bn1cc2_",
+   "title": "Introduction to Managerial Accounting",
+   "type": "Textbook"
+  },
+  {
+   "mid": "/g/11wfgr645b",
+   "title": "Find the Fox: An Almost Impossible Word Search",
+   "type": "Book by Alex Cheddar"
+  },
+  {
+   "mid": "/g/11thf8_qcb",
+   "title": "Mending Life: A Handbook for Repairing Clothes and Hearts (and Patching to Practice Sustainable Fashion and Fix the Clothes You Love)",
+   "type": "Book by Nina Montenegro and Sonya Montenegro"
+  }
+ ],
  "term": "Find The Needle"
 }

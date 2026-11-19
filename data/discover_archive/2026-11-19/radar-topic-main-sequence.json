@@ -1,6 +1,37 @@
 {
- "ambiguous": false,
+ "ambiguous": true,
  "picked": null,
- "suggestions": [],
+ "suggestions": [
+  {
+   "mid": "",
+   "title": "Main Sequence",
+   "type": "Search term"
+  },
+  {
+   "mid": "/m/04ypp",
+   "title": "Main sequence",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/02lwbp",
+   "title": "G-type main-sequence star",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/12bqv4q9f",
+   "title": "The Death of Captain Marvel",
+   "type": "Novel by Jim Starlin"
+  },
+  {
+   "mid": "/g/11fk533_rb",
+   "title": "Elementary Differential Equations and Boundary Value Problems",
+   "type": "Textbook by Douglas B. Meade, Richard C. DiPrima, and William E. Boyce"
+  },
+  {
+   "mid": "/m/05cqd0",
+   "title": "F-type main-sequence star",
+   "type": "Topic"
+  }
+ ],
  "term": "Main Sequence"
 }

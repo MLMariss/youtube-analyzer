@@ -1,0 +1,37 @@
+{
+ "ambiguous": false,
+ "picked": null,
+ "suggestions": [
+  {
+   "mid": "",
+   "title": "Malignus",
+   "type": "Search term"
+  },
+  {
+   "mid": "/g/1215jv6t",
+   "title": "Malignancy",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/035pwp",
+   "title": "Malignant hyperthermia",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0pc0z",
+   "title": "Neuroleptic malignant syndrome",
+   "type": "Syndrome"
+  },
+  {
+   "mid": "/m/03bcby",
+   "title": "Evil demon",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/02602gy",
+   "title": "Malignant Mixed Müllerian Tumor",
+   "type": "Topic"
+  }
+ ],
+ "term": "Malignus"
+}

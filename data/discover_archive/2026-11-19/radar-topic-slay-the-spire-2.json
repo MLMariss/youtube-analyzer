@@ -1,6 +1,41 @@
 {
  "ambiguous": false,
- "picked": null,
- "suggestions": [],
+ "picked": {
+  "mid": "/g/11y3xw71hf",
+  "title": "Slay the Spire II",
+  "type": "Video game"
+ },
+ "suggestions": [
+  {
+   "mid": "",
+   "title": "Slay the Spire 2",
+   "type": "Search term"
+  },
+  {
+   "mid": "/g/11y3xw71hf",
+   "title": "Slay the Spire II",
+   "type": "Video game"
+  },
+  {
+   "mid": "/g/11vz1h59y1",
+   "title": "Slay the Spire 2",
+   "type": "Console game"
+  },
+  {
+   "mid": "/g/11yw40mksd",
+   "title": "Hemokinesis",
+   "type": "Fictional objects"
+  },
+  {
+   "mid": "/g/11mzg_0ssy",
+   "title": "Wraith Form",
+   "type": "Fictional artifact"
+  },
+  {
+   "mid": "/g/11mzgph7hd",
+   "title": "Perfected Strike",
+   "type": "Fictional objects"
+  }
+ ],
  "term": "Slay the Spire 2"
 }

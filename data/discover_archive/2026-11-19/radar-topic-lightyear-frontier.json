@@ -1,6 +1,41 @@
 {
  "ambiguous": false,
- "picked": null,
- "suggestions": [],
+ "picked": {
+  "mid": "/g/11ny3yz6g8",
+  "title": "Lightyear Frontier",
+  "type": "Video game"
+ },
+ "suggestions": [
+  {
+   "mid": "",
+   "title": "Lightyear Frontier",
+   "type": "Search term"
+  },
+  {
+   "mid": "/g/11ny3yz6g8",
+   "title": "Lightyear Frontier",
+   "type": "Video game"
+  },
+  {
+   "mid": "/g/11qh2vkg22",
+   "title": "Lightyear Frontier",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11p1061194",
+   "title": "Lightyear Frontier",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11jsxslf97",
+   "title": "Lightyear Frontier",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11khlhhyyg",
+   "title": "Lightyear Frontier",
+   "type": "Topic"
+  }
+ ],
  "term": "Lightyear Frontier"
 }

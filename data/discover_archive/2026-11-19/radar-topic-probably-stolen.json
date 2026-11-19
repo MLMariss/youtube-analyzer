@@ -1,6 +1,37 @@
 {
  "ambiguous": false,
  "picked": null,
- "suggestions": [],
+ "suggestions": [
+  {
+   "mid": "",
+   "title": "Probably Stolen",
+   "type": "Search term"
+  },
+  {
+   "mid": "/g/11s76qjp_2",
+   "title": "Stolen History: The Truth about the British Empire and how it Shaped Us",
+   "type": "Book by Sathnam Sanghera"
+  },
+  {
+   "mid": "/g/11ggs15ymn",
+   "title": "Legion: The Many Lives of Stephen Leeds",
+   "type": "Book by Brandon Sanderson"
+  },
+  {
+   "mid": "/g/11f190trg9",
+   "title": "Slouch Witch",
+   "type": "Book by Helen Harper"
+  },
+  {
+   "mid": "/g/11c6_vyyq1",
+   "title": "Deep Digger Dan",
+   "type": "Book by Jason Tipple"
+  },
+  {
+   "mid": "/g/11c52gd591",
+   "title": "Ancient Legends, Mystic Charms and Superstitions of Ireland",
+   "type": "Book by Jane Wilde"
+  }
+ ],
  "term": "Probably Stolen"
 }

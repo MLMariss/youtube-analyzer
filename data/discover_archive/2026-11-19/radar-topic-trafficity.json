@@ -1,6 +1,41 @@
 {
  "ambiguous": false,
- "picked": null,
- "suggestions": [],
+ "picked": {
+  "mid": "/g/11zyrt1b6c",
+  "title": "Trafficity",
+  "type": "Mobile game"
+ },
+ "suggestions": [
+  {
+   "mid": "",
+   "title": "Trafficity",
+   "type": "Search term"
+  },
+  {
+   "mid": "/g/11h59qdjl8",
+   "title": "Trafficity",
+   "type": "Song by DJ EMM"
+  },
+  {
+   "mid": "/g/11zyrssvys",
+   "title": "Trafficity",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11fnctncl2",
+   "title": "Trafficity",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11zyrt1b6c",
+   "title": "Trafficity",
+   "type": "Mobile game"
+  },
+  {
+   "mid": "/g/11fnctn6q_",
+   "title": "Trafficity",
+   "type": "Topic"
+  }
+ ],
  "term": "Trafficity"
 }

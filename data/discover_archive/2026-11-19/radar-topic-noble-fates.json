@@ -1,6 +1,37 @@
 {
- "ambiguous": false,
+ "ambiguous": true,
  "picked": null,
- "suggestions": [],
+ "suggestions": [
+  {
+   "mid": "",
+   "title": "Noble Fates",
+   "type": "Search term"
+  },
+  {
+   "mid": "/g/11n328078q",
+   "title": "A Shadow in the Ember",
+   "type": "Book by Jennifer L. Armentrout"
+  },
+  {
+   "mid": "/g/11lp0gpbzy",
+   "title": "Warrior Princess Assassin: A Novel",
+   "type": "Book by Brigid Kemmerer"
+  },
+  {
+   "mid": "/g/11wqd0v4j2",
+   "title": "The Last Tiger",
+   "type": "Book by Brad Riew and Julia Riew"
+  },
+  {
+   "mid": "/g/11sgkk345g",
+   "title": "Noble Fates",
+   "type": "Console game"
+  },
+  {
+   "mid": "/g/11fj7q6kvg",
+   "title": "The Call of the Wild and White Fang",
+   "type": "Book by Jack London"
+  }
+ ],
  "term": "Noble Fates"
 }

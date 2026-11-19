@@ -1,6 +1,41 @@
 {
  "ambiguous": false,
- "picked": null,
- "suggestions": [],
+ "picked": {
+  "mid": "/g/11ln1qbkq5",
+  "title": "Schedule I",
+  "type": "Video game"
+ },
+ "suggestions": [
+  {
+   "mid": "",
+   "title": "Schedule I",
+   "type": "Search term"
+  },
+  {
+   "mid": "/g/11ln1qbkq5",
+   "title": "Schedule I",
+   "type": "Video game"
+  },
+  {
+   "mid": "/g/11x__x_xd0",
+   "title": "The Last to Drown",
+   "type": "Book by Noelle Ihli"
+  },
+  {
+   "mid": "/g/11f731s20p",
+   "title": "Blood, Sweat, and Pixels: The Triumphant, Turbulent Stories Behind How Video Games Are Made",
+   "type": "Book by Jason Schreier"
+  },
+  {
+   "mid": "/g/11fq_yl7g6",
+   "title": "Change Your Schedule, Change Your Life: How to Harness the Power of Clock Genes to Lose Weight, Optimize Your Workout, and Finally Get a Good Night's Sleep",
+   "type": "Book by Michelle D. Seaton and Suhas Kshirsagar"
+  },
+  {
+   "mid": "/g/11pz7s3b_3",
+   "title": "My Killer Vacation",
+   "type": "Book by Tessa Bailey"
+  }
+ ],
  "term": "Schedule I"
 }
