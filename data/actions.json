@@ -1,6 +1,25 @@
 {
  "actions": [
   {
+   "date": "2026-11-19",
+   "detected": true,
+   "id": "log-ac8abb27",
+   "issue": null,
+   "kind": "ab_test",
+   "kinds": [
+    "ab_test",
+    "title",
+    "description",
+    "hashtags",
+    "tags"
+   ],
+   "notes": null,
+   "results": {},
+   "situation": "wave",
+   "source": "logged",
+   "video_id": "z3aFxD7iUSY"
+  },
+  {
    "date": "2026-11-18",
    "id": "auto-OopDjsg19UQ-2026-11-18",
    "issue": null,
