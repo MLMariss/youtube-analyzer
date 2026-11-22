@@ -306,7 +306,9 @@ def situation(sig):
     imp, views, ctr = sig["impressions"]["dir"], sig["views"]["dir"], sig["ctr"]["dir"]
     if imp > 0 and ctr < 0:
         return "packaging"
-    if ctr < 0:
+    # With impressions falling too, a lower CTR is part of lost reach (in
+    # search, a video shown lower gets fewer clicks), not the packaging.
+    if ctr < 0 and imp == 0:
         return "clicks"
     if imp > 0 or views > 0:
         return "wave"
