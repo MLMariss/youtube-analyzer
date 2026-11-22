@@ -1627,13 +1627,25 @@ function rememberOpen(key, open) {
   try { const s = openState(); s[key] = open; localStorage.setItem(OPEN_KEY, JSON.stringify(s)); } catch (e) { /* private mode */ }
 }
 
+// A video changed in the last 28 days, logged or seen by the hourly watcher,
+// stays off the panel until its 28-day result is in (the days actions.py
+// measures on): another change meanwhile would muddle it. Actions and what
+// worked still lists it. Game rows stay.
+function withoutMeasuring(A) {
+  const changed = [...actionList(), ...((EDITS && EDITS.changes) || [])];
+  const busy = new Set(changed.filter(a => addDays(a.date, 28) > A.data_through).map(a => a.video_id));
+  const keep = e => !busy.has(e.video_id), E = A.early || {};
+  return { ...A, cards: A.cards.filter(keep), small: (A.small || []).filter(keep),
+    early: { ...E, today: (E.today || []).filter(keep), building: (E.building || []).filter(keep) } };
+}
+
 function renderAttention() {
   const el = document.getElementById('attention');
-  const A = ATTENTION;
-  if (!A || !A.cards) {
+  if (!ATTENTION || !ATTENTION.cards) {
     el.innerHTML = `<p class="quiet">The new view appears after the next collector run, which writes <code>data/attention.json</code>.</p>`;
     return;
   }
+  const A = withoutMeasuring(ATTENTION);
   document.getElementById('att-range').textContent =
     `${shortDate(A.this_week.from)}–${shortDate(A.this_week.to)} vs ${shortDate(A.last_week.from)}–${shortDate(A.last_week.to)} · every video against its own last week, and against where it was before any lasting rise or fall${
       A.floor ? ` · cards need a change worth ${fmt(A.floor.views)}+ views a week` : ''}`;

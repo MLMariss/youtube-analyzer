@@ -322,7 +322,9 @@ Notice → act → measure → remember:
    once, on the first of those metrics it targets. A logged update absorbs a
    detected one that shares a part with it, within three days, and its date
    wins. Results show on the dashboard, and are also posted on actions
-   logged as issues.
+   logged as issues. Until the 28-day result is in, the video stays off
+   *Needs attention* (its card, early signals and small changes): another
+   change in that time would muddle the result.
 3. **Remember.** Results are pooled per situation and action in *Actions and
    what worked*, and each suggested step shows how that action went before.
 
