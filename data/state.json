@@ -275,6 +275,11 @@
         "create_time": "2026-11-24T05:32:35.268978Z",
         "report_id": "20826949062",
         "row_count": 0
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T02:07:07.684909Z",
+        "report_id": "20832527867",
+        "row_count": 0
       }
     },
     "channel_basic_a3": {
@@ -1242,6 +1247,11 @@
         "create_time": "2026-11-24T05:41:42.898261Z",
         "report_id": "20827106244",
         "row_count": 494
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T00:18:46.330208Z",
+        "report_id": "20831311652",
+        "row_count": 463
       }
     },
     "channel_cards_a1": {
@@ -2014,6 +2024,11 @@
         "create_time": "2026-11-24T05:02:16.112374Z",
         "report_id": "17841485933",
         "row_count": 1
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T00:31:22.487074Z",
+        "report_id": "17847390239",
+        "row_count": 0
       }
     },
     "channel_combined_a3": {
@@ -2786,6 +2801,11 @@
         "create_time": "2026-11-24T05:51:47.613283Z",
         "report_id": "17842442821",
         "row_count": 686
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T01:54:26.354811Z",
+        "report_id": "17848838462",
+        "row_count": 605
       }
     },
     "channel_demographics_a1": {
@@ -3558,6 +3578,11 @@
         "create_time": "2026-11-24T04:54:09.792978Z",
         "report_id": "17841294241",
         "row_count": 96
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T02:28:50.839746Z",
+        "report_id": "20832760737",
+        "row_count": 97
       }
     },
     "channel_device_os_a3": {
@@ -4330,6 +4355,11 @@
         "create_time": "2026-11-24T05:43:05.531229Z",
         "report_id": "17842296072",
         "row_count": 594
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T01:54:23.599498Z",
+        "report_id": "17848829861",
+        "row_count": 529
       }
     },
     "channel_end_screens_a1": {
@@ -4607,6 +4637,11 @@
         "create_time": "2026-11-24T04:20:30.096352Z",
         "report_id": "17840574974",
         "row_count": 69
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T02:23:07.591305Z",
+        "report_id": "20832700562",
+        "row_count": 72
       }
     },
     "channel_playback_location_a3": {
@@ -5379,6 +5414,11 @@
         "create_time": "2026-11-24T05:28:52.036614Z",
         "report_id": "20826922061",
         "row_count": 532
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T02:28:59.510759Z",
+        "report_id": "17849571135",
+        "row_count": 505
       }
     },
     "channel_province_a3": {
@@ -6151,6 +6191,11 @@
         "create_time": "2026-11-24T04:45:36.643149Z",
         "report_id": "17841115897",
         "row_count": 156
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T02:26:52.575149Z",
+        "report_id": "17849606710",
+        "row_count": 139
       }
     },
     "channel_reach_basic_a1": {
@@ -6923,6 +6968,11 @@
         "create_time": "2026-11-24T06:03:48.980235Z",
         "report_id": "17842680875",
         "row_count": 296
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T01:16:23.420645Z",
+        "report_id": "17848078258",
+        "row_count": 341
       }
     },
     "channel_reach_combined_a1": {
@@ -7695,6 +7745,11 @@
         "create_time": "2026-11-24T04:13:16.849017Z",
         "report_id": "17839613042",
         "row_count": 1505
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T02:03:57.740955Z",
+        "report_id": "20832425736",
+        "row_count": 1512
       }
     },
     "channel_sharing_service_a1": {
@@ -7971,6 +8026,11 @@
       "2026-11-22": {
         "create_time": "2026-11-24T05:35:45.943393Z",
         "report_id": "17842093647",
+        "row_count": 1
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T01:10:05.292461Z",
+        "report_id": "17848026306",
         "row_count": 1
       }
     },
@@ -8744,6 +8804,11 @@
         "create_time": "2026-11-24T04:26:17.519699Z",
         "report_id": "17840729536",
         "row_count": 556
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T00:29:32.609755Z",
+        "report_id": "17847358739",
+        "row_count": 524
       }
     },
     "channel_traffic_source_a3": {
@@ -9516,6 +9581,11 @@
         "create_time": "2026-11-24T05:29:38.399498Z",
         "report_id": "20826954855",
         "row_count": 606
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T02:36:04.346012Z",
+        "report_id": "17849763505",
+        "row_count": 549
       }
     },
     "playlist_basic_a2": {
@@ -10288,6 +10358,11 @@
         "create_time": "2026-11-24T05:12:14.060721Z",
         "report_id": "20826659585",
         "row_count": 2
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T02:16:55.725580Z",
+        "report_id": "20832621746",
+        "row_count": 0
       }
     },
     "playlist_combined_a2": {
@@ -11060,6 +11135,11 @@
         "create_time": "2026-11-24T06:01:52.967360Z",
         "report_id": "20827425830",
         "row_count": 2
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T01:16:12.453434Z",
+        "report_id": "17848104311",
+        "row_count": 0
       }
     },
     "playlist_device_os_a2": {
@@ -11832,6 +11912,11 @@
         "create_time": "2026-11-24T04:48:41.912274Z",
         "report_id": "17841165071",
         "row_count": 2
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T01:28:29.088788Z",
+        "report_id": "17848240810",
+        "row_count": 0
       }
     },
     "playlist_playback_location_a2": {
@@ -12604,6 +12689,11 @@
         "create_time": "2026-11-24T04:58:01.305852Z",
         "report_id": "20826448826",
         "row_count": 2
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T01:49:44.393545Z",
+        "report_id": "17848704258",
+        "row_count": 0
       }
     },
     "playlist_province_a2": {
@@ -13376,6 +13466,11 @@
         "create_time": "2026-11-24T04:31:47.396569Z",
         "report_id": "17840839132",
         "row_count": 1
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T01:38:19.145107Z",
+        "report_id": "20832096189",
+        "row_count": 0
       }
     },
     "playlist_traffic_source_a2": {
@@ -14148,6 +14243,11 @@
         "create_time": "2026-11-24T04:31:36.472338Z",
         "report_id": "20826086445",
         "row_count": 2
+      },
+      "2026-11-24": {
+        "create_time": "2026-11-26T00:32:24.251601Z",
+        "report_id": "20831415135",
+        "row_count": 0
       }
     }
   },
@@ -14173,7 +14273,7 @@
     "playlist_province_a2": "0c217b96-e686-44cc-9daf-7651980893b0",
     "playlist_traffic_source_a2": "2f9ca6e0-4576-40ed-98ba-9cb41adb4726"
   },
-  "last_run": "2026-11-25T11:29:36.173971+00:00",
+  "last_run": "2026-11-26T11:10:05.071550+00:00",
   "offered": [
     "channel_annotations_a1",
     "channel_basic_a3",
@@ -14197,12 +14297,6 @@
     "playlist_traffic_source_a2"
   ],
   "runs": [
-    {
-      "at": "2026-10-07T08:30:34.214855+00:00",
-      "backfilled": 18,
-      "failed": 0,
-      "new": 0
-    },
     {
       "at": "2026-10-08T08:46:53.736307+00:00",
       "backfilled": 5,
@@ -14556,6 +14650,12 @@
       "backfilled": 9,
       "failed": 0,
       "new": 0
+    },
+    {
+      "at": "2026-11-26T11:10:05.071550+00:00",
+      "backfilled": 0,
+      "failed": 0,
+      "new": 20
     }
   ]
 }
