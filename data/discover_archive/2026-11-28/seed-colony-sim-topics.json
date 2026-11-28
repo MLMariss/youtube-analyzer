@@ -1,0 +1,171 @@
+{
+ "cat": 8,
+ "date": "2026-11-28",
+ "kind": "topics",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "mid": "/m/0425yl",
+   "rise": null,
+   "title": "Ant colony",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/01bm80",
+   "rise": null,
+   "title": "SimAnt",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11szc75bst",
+   "rise": null,
+   "title": "Base building",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/025wz28",
+   "rise": null,
+   "title": "Dwarf Fortress",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0cgh4",
+   "rise": null,
+   "title": "Building",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11bvsrjh30",
+   "rise": null,
+   "title": "Survival game",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/038_hy",
+   "rise": null,
+   "title": "City-building game",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0cvr2",
+   "rise": null,
+   "title": "Roguelike",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/065krz",
+   "rise": null,
+   "title": "Indie game",
+   "type": "Topic"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/082hp",
+   "rise": 170,
+   "title": "Web browser",
+   "type": "Topic"
+  }
+ ],
+ "seed": "colony sim",
+ "top": [
+  {
+   "mid": "/g/120zjhcx",
+   "score": 100,
+   "title": "Simulation video game",
+   "type": "Game type"
+  },
+  {
+   "mid": "/m/0425yl",
+   "score": 43,
+   "title": "Ant colony",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/082hp",
+   "score": 35,
+   "title": "Web browser",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/01_lc",
+   "score": 24,
+   "title": "Colony",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/01bm80",
+   "score": 24,
+   "title": "SimAnt",
+   "type": "Video game"
+  },
+  {
+   "mid": "/g/11szc75bst",
+   "score": 15,
+   "title": "Base building",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/04_tv",
+   "score": 15,
+   "title": "Management",
+   "type": "Field of study"
+  },
+  {
+   "mid": "/m/02wxtgw",
+   "score": 12,
+   "title": "Android",
+   "type": "Operating system"
+  },
+  {
+   "mid": "/m/012sdh12",
+   "score": 7,
+   "title": "RimWorld",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/025wz28",
+   "score": 2,
+   "title": "Dwarf Fortress",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/0cgh4",
+   "score": 2,
+   "title": "Building",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11bvsrjh30",
+   "score": 1,
+   "title": "Survival game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/038_hy",
+   "score": 1,
+   "title": "City-building game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0cvr2",
+   "score": 1,
+   "title": "Roguelike",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/065krz",
+   "score": 1,
+   "title": "Indie game",
+   "type": "Topic"
+  }
+ ]
+}

@@ -1,0 +1,259 @@
+{
+ "cat": 8,
+ "date": "2026-11-28",
+ "kind": "topics",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "mid": "/g/11cky7ybt1",
+   "rise": null,
+   "title": "Mafia: The Game of Survival",
+   "type": "2016 film"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/06n90",
+   "rise": null,
+   "title": "Science fiction",
+   "type": "Literary genre"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11ryz3dn2g",
+   "rise": null,
+   "title": "just",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11g65f7h5y",
+   "rise": null,
+   "title": "Day R Survival: Last Survivor",
+   "type": "Survival game"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11bzs2mfxy",
+   "rise": null,
+   "title": "Days Gone",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11rk0pfb68",
+   "rise": null,
+   "title": "Zombie Gunship",
+   "type": "Video game series"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11c67wjx09",
+   "rise": null,
+   "title": "Zombie Gunship Survival",
+   "type": "Survival game"
+  },
+  {
+   "breakout": false,
+   "mid": "/g/11x_jm9lz2",
+   "rise": 400,
+   "title": "Resident Evil Survival Unit",
+   "type": "Survival game"
+  },
+  {
+   "breakout": false,
+   "mid": "/g/11t4xtv4c9",
+   "rise": 250,
+   "title": "VEIN",
+   "type": "Survival game"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/0dgpjr",
+   "rise": 200,
+   "title": "Survival Island",
+   "type": "2005 film"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/07yqn",
+   "rise": 200,
+   "title": "Platform game",
+   "type": "Topic"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/01028ycx",
+   "rise": 190,
+   "title": "The Forest",
+   "type": "Video game"
+  },
+  {
+   "breakout": false,
+   "mid": "/g/11rfsctfg_",
+   "rise": 160,
+   "title": "Palworld",
+   "type": "Survival game"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/04tr8s",
+   "rise": 40,
+   "title": "PC game",
+   "type": "Topic"
+  }
+ ],
+ "seed": "survival game",
+ "top": [
+  {
+   "mid": "/g/11bvsrjh30",
+   "score": 100,
+   "title": "Survival game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/02psyd2",
+   "score": 19,
+   "title": "Zombie",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/1217cnnq",
+   "score": 14,
+   "title": "Horror game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/01qf5x",
+   "score": 9,
+   "title": "Survival horror",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/01z747",
+   "score": 6,
+   "title": "Multiplayer video game",
+   "type": "Gameplay"
+  },
+  {
+   "mid": "/m/013c9xk7",
+   "score": 5,
+   "title": "ARK: Survival Evolved",
+   "type": "Survival game"
+  },
+  {
+   "mid": "/m/03s0c",
+   "score": 4,
+   "title": "Island",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/04f3w5j",
+   "score": 4,
+   "title": "Open world",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11sjch2yf_",
+   "score": 3,
+   "title": "Last War: Survival Game",
+   "type": "Mobile game"
+  },
+  {
+   "mid": "/m/02x9hs",
+   "score": 3,
+   "title": "Shooter game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/04tr8s",
+   "score": 3,
+   "title": "PC game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/05l9r9",
+   "score": 3,
+   "title": "Cooperative video game",
+   "type": "Gameplay"
+  },
+  {
+   "mid": "/m/03npn",
+   "score": 3,
+   "title": "Horror",
+   "type": "Film genre"
+  },
+  {
+   "mid": "/m/0dgpjr",
+   "score": 1,
+   "title": "Survival Island",
+   "type": "2005 film"
+  },
+  {
+   "mid": "/m/01028ycx",
+   "score": 1,
+   "title": "The Forest",
+   "type": "Video game"
+  },
+  {
+   "mid": "/g/11cky7ybt1",
+   "score": 1,
+   "title": "Mafia: The Game of Survival",
+   "type": "2016 film"
+  },
+  {
+   "mid": "/g/11rfsctfg_",
+   "score": 1,
+   "title": "Palworld",
+   "type": "Survival game"
+  },
+  {
+   "mid": "/g/11x_jm9lz2",
+   "score": 1,
+   "title": "Resident Evil Survival Unit",
+   "type": "Survival game"
+  },
+  {
+   "mid": "/m/06n90",
+   "score": 1,
+   "title": "Science fiction",
+   "type": "Literary genre"
+  },
+  {
+   "mid": "/g/11t4xtv4c9",
+   "score": 1,
+   "title": "VEIN",
+   "type": "Survival game"
+  },
+  {
+   "mid": "/m/07yqn",
+   "score": 0,
+   "title": "Platform game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11ryz3dn2g",
+   "score": 0,
+   "title": "just",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11g65f7h5y",
+   "score": 0,
+   "title": "Day R Survival: Last Survivor",
+   "type": "Survival game"
+  },
+  {
+   "mid": "/g/11bzs2mfxy",
+   "score": 0,
+   "title": "Days Gone",
+   "type": "Video game"
+  },
+  {
+   "mid": "/g/11rk0pfb68",
+   "score": 0,
+   "title": "Zombie Gunship",
+   "type": "Video game series"
+  }
+ ]
+}

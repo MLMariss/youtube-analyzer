@@ -1,0 +1,22 @@
+{
+ "cat": 8,
+ "date": "2026-11-28",
+ "kind": "queries",
+ "range": "today 1-m",
+ "rising": [],
+ "seed": "colony sim",
+ "top": [
+  {
+   "query": "colony sim games",
+   "score": 100
+  },
+  {
+   "query": "best colony sim games",
+   "score": 16
+  },
+  {
+   "query": "rimworld",
+   "score": 10
+  }
+ ]
+}

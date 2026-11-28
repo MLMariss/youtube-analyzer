@@ -1,0 +1,250 @@
+{
+ "cat": 8,
+ "date": "2026-11-28",
+ "kind": "topics",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "mid": "/m/0dgw9r",
+   "rise": null,
+   "title": "Human",
+   "type": "Primate"
+  },
+  {
+   "breakout": true,
+   "mid": "/g/11nn_ng3j9",
+   "rise": null,
+   "title": "Urbek City Builder",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0mbr2",
+   "rise": null,
+   "title": "Warhammer 40,000",
+   "type": "Game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0cvr2",
+   "rise": null,
+   "title": "Roguelike",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/0c5g7",
+   "rise": null,
+   "title": "Genre",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/012r80lp",
+   "rise": null,
+   "title": "Forge of Empires",
+   "type": "Mobile game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/065krz",
+   "rise": null,
+   "title": "Indie game",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/01ddm",
+   "rise": null,
+   "title": "Bodybuilding",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/01jm5c",
+   "rise": null,
+   "title": "Grand Theft Auto: Vice City",
+   "type": "Video game"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/01vty",
+   "rise": null,
+   "title": "Civilization",
+   "type": "Topic"
+  },
+  {
+   "breakout": true,
+   "mid": "/m/02x9hs",
+   "rise": null,
+   "title": "Shooter game",
+   "type": "Topic"
+  },
+  {
+   "breakout": false,
+   "mid": "/g/11n0khk8mc",
+   "rise": 450,
+   "title": "Fitgirl",
+   "type": "Website"
+  },
+  {
+   "breakout": false,
+   "mid": "/g/11gnq7g2qp",
+   "rise": 300,
+   "title": "Valheim",
+   "type": "Survival game"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/0cgh4",
+   "rise": 250,
+   "title": "Building",
+   "type": "Topic"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/0_fsnld",
+   "rise": 130,
+   "title": "Anno",
+   "type": "Video game series"
+  },
+  {
+   "breakout": false,
+   "mid": "/g/120zjhcx",
+   "rise": 130,
+   "title": "Simulation video game",
+   "type": "Game type"
+  },
+  {
+   "breakout": false,
+   "mid": "/m/04_tv",
+   "rise": 130,
+   "title": "Management",
+   "type": "Field of study"
+  }
+ ],
+ "seed": "city builder",
+ "top": [
+  {
+   "mid": "/m/01n32",
+   "score": 100,
+   "title": "City",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/038_hy",
+   "score": 95,
+   "title": "City-building game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11n0khk8mc",
+   "score": 7,
+   "title": "Fitgirl",
+   "type": "Website"
+  },
+  {
+   "mid": "/m/0dgw9r",
+   "score": 6,
+   "title": "Human",
+   "type": "Primate"
+  },
+  {
+   "mid": "/m/07b7r",
+   "score": 5,
+   "title": "Strategy",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0cgh4",
+   "score": 5,
+   "title": "Building",
+   "type": "Topic"
+  },
+  {
+   "mid": "/g/11gnq7g2qp",
+   "score": 5,
+   "title": "Valheim",
+   "type": "Survival game"
+  },
+  {
+   "mid": "/m/0_fsnld",
+   "score": 5,
+   "title": "Anno",
+   "type": "Video game series"
+  },
+  {
+   "mid": "/g/11nn_ng3j9",
+   "score": 4,
+   "title": "Urbek City Builder",
+   "type": "Video game"
+  },
+  {
+   "mid": "/g/120zjhcx",
+   "score": 4,
+   "title": "Simulation video game",
+   "type": "Game type"
+  },
+  {
+   "mid": "/m/04_tv",
+   "score": 4,
+   "title": "Management",
+   "type": "Field of study"
+  },
+  {
+   "mid": "/m/0mbr2",
+   "score": 4,
+   "title": "Warhammer 40,000",
+   "type": "Game"
+  },
+  {
+   "mid": "/m/0cvr2",
+   "score": 3,
+   "title": "Roguelike",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/0c5g7",
+   "score": 3,
+   "title": "Genre",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/012r80lp",
+   "score": 3,
+   "title": "Forge of Empires",
+   "type": "Mobile game"
+  },
+  {
+   "mid": "/m/065krz",
+   "score": 3,
+   "title": "Indie game",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/01ddm",
+   "score": 3,
+   "title": "Bodybuilding",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/01jm5c",
+   "score": 3,
+   "title": "Grand Theft Auto: Vice City",
+   "type": "Video game"
+  },
+  {
+   "mid": "/m/01vty",
+   "score": 3,
+   "title": "Civilization",
+   "type": "Topic"
+  },
+  {
+   "mid": "/m/02x9hs",
+   "score": 2,
+   "title": "Shooter game",
+   "type": "Topic"
+  }
+ ]
+}

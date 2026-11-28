@@ -1,0 +1,191 @@
+{
+ "cat": 8,
+ "date": "2026-11-28",
+ "kind": "queries",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "query": "day z",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "mist survival",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "empyrion galactic survival",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "days gone",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "westland survival",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "medieval zombie game",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "best pizza recipe",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "silver pines",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "abiotic factor",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "wild west survival game",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "no mans sky",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "sons of the forest",
+   "rise": null
+  },
+  {
+   "breakout": false,
+   "query": "crimson desert",
+   "rise": 4350
+  },
+  {
+   "breakout": false,
+   "query": "v rising",
+   "rise": 4050
+  },
+  {
+   "breakout": false,
+   "query": "roblox survival game",
+   "rise": 60
+  },
+  {
+   "breakout": false,
+   "query": "survival game steam",
+   "rise": 40
+  }
+ ],
+ "seed": "survival game",
+ "top": [
+  {
+   "query": "survival games",
+   "score": 100
+  },
+  {
+   "query": "the survival game",
+   "score": 94
+  },
+  {
+   "query": "zombie",
+   "score": 69
+  },
+  {
+   "query": "zombie survival game",
+   "score": 69
+  },
+  {
+   "query": "zombie survival",
+   "score": 69
+  },
+  {
+   "query": "zombie game",
+   "score": 67
+  },
+  {
+   "query": "survival horror game",
+   "score": 56
+  },
+  {
+   "query": "survival horror",
+   "score": 54
+  },
+  {
+   "query": "best survival game",
+   "score": 49
+  },
+  {
+   "query": "survival game pc",
+   "score": 31
+  },
+  {
+   "query": "roblox survival game",
+   "score": 29
+  },
+  {
+   "query": "last survival",
+   "score": 29
+  },
+  {
+   "query": "last survival game",
+   "score": 28
+  },
+  {
+   "query": "island survival game",
+   "score": 25
+  },
+  {
+   "query": "island survival",
+   "score": 25
+  },
+  {
+   "query": "free survival game",
+   "score": 25
+  },
+  {
+   "query": "survival game steam",
+   "score": 25
+  },
+  {
+   "query": "survival island",
+   "score": 25
+  },
+  {
+   "query": "online survival game",
+   "score": 23
+  },
+  {
+   "query": "best survival games",
+   "score": 22
+  },
+  {
+   "query": "survival game download",
+   "score": 21
+  },
+  {
+   "query": "ark game",
+   "score": 21
+  },
+  {
+   "query": "ark survival game",
+   "score": 20
+  },
+  {
+   "query": "ark survival",
+   "score": 20
+  },
+  {
+   "query": "ark",
+   "score": 20
+  }
+ ]
+}

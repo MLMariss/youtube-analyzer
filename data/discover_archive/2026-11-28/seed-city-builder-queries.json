@@ -1,0 +1,211 @@
+{
+ "cat": 8,
+ "date": "2026-11-28",
+ "kind": "queries",
+ "range": "today 1-m",
+ "rising": [
+  {
+   "breakout": true,
+   "query": "songs of syx",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "valheim",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "tiny glade",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "valheim city builder",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "multiplayer city builder",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "tropico",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "sim city 4",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "openttd",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "banished",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "foundation game",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "medieval dynasty",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "beaver city builder",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "manor lords",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "against the storm",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "anno 117",
+   "rise": null
+  },
+  {
+   "breakout": true,
+   "query": "sanny builder",
+   "rise": null
+  },
+  {
+   "breakout": false,
+   "query": "city builder games online",
+   "rise": 300
+  },
+  {
+   "breakout": false,
+   "query": "city builder online",
+   "rise": 150
+  },
+  {
+   "breakout": false,
+   "query": "fantasy city builder",
+   "rise": 60
+  },
+  {
+   "breakout": false,
+   "query": "pokemon team builder",
+   "rise": 40
+  }
+ ],
+ "seed": "city builder",
+ "top": [
+  {
+   "query": "city builder game",
+   "score": 100
+  },
+  {
+   "query": "city builder games",
+   "score": 82
+  },
+  {
+   "query": "best city builder",
+   "score": 36
+  },
+  {
+   "query": "city builder online",
+   "score": 29
+  },
+  {
+   "query": "best city builder games",
+   "score": 22
+  },
+  {
+   "query": "sim city builder",
+   "score": 18
+  },
+  {
+   "query": "pokemon team builder",
+   "score": 16
+  },
+  {
+   "query": "best city builder game",
+   "score": 15
+  },
+  {
+   "query": "sim city",
+   "score": 15
+  },
+  {
+   "query": "songs of syx",
+   "score": 13
+  },
+  {
+   "query": "pc builder",
+   "score": 12
+  },
+  {
+   "query": "city builder games online",
+   "score": 11
+  },
+  {
+   "query": "fantasy city builder",
+   "score": 10
+  },
+  {
+   "query": "valheim",
+   "score": 9
+  },
+  {
+   "query": "tiny glade",
+   "score": 8
+  },
+  {
+   "query": "valheim city builder",
+   "score": 8
+  },
+  {
+   "query": "roguelike city builder",
+   "score": 7
+  },
+  {
+   "query": "browser games",
+   "score": 7
+  },
+  {
+   "query": "medieval city builder",
+   "score": 7
+  },
+  {
+   "query": "multiplayer city builder",
+   "score": 7
+  },
+  {
+   "query": "tropico",
+   "score": 7
+  },
+  {
+   "query": "sim city 4",
+   "score": 4
+  },
+  {
+   "query": "openttd",
+   "score": 2
+  },
+  {
+   "query": "banished",
+   "score": 1
+  },
+  {
+   "query": "foundation game",
+   "score": 1
+  }
+ ]
+}
